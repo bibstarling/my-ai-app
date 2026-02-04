@@ -1,7 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { ClerkProvider } from '@clerk/nextjs';
+
+const EmbedModeContext = createContext(false);
+
+export function useEmbedMode() {
+  return useContext(EmbedModeContext);
+}
 
 function isEmbedded() {
   if (typeof window === 'undefined') return true;
@@ -27,11 +33,22 @@ export function ClientAuthWrapper({
     setEmbed(isEmbedded());
   }, []);
 
-  // In embed (e.g. v0 preview): never load Clerk so the preview works without browser restrictions
-  if (!mounted || embed) {
-    return <>{children}</>;
+  // Server: always use ClerkProvider so pages using useUser() can prerender
+  if (typeof window === 'undefined') {
+    return (
+      <ClerkProvider publishableKey={publishableKey}>
+        {children}
+      </ClerkProvider>
+    );
   }
-
+  // Client + embed (e.g. v0 preview): never load Clerk; mark embed so auth pages can show fallback
+  if (!mounted || embed) {
+    return (
+      <EmbedModeContext.Provider value={true}>
+        {children}
+      </EmbedModeContext.Provider>
+    );
+  }
   return (
     <ClerkProvider publishableKey={publishableKey}>
       {children}
