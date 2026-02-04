@@ -95,7 +95,7 @@ export default function AdminPage() {
                   <col />
                   <col style={{ width: '100px' }} />
                   <col style={{ width: '70px' }} />
-                  <col style={{ width: '110px' }} />
+                  <col style={{ width: '180px' }} />
                 </colgroup>
                 <thead className="bg-card">
                   <tr className="text-left text-sm text-muted">
