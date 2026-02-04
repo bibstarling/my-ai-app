@@ -553,21 +553,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Footer */}
-        <footer className="mt-24 pt-8 border-t border-border">
-          <p className="text-xs text-muted">
-            Built with Next.js and Tailwind CSS. Design inspired by{' '}
-            <a
-              href="https://brittanychiang.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-foreground hover:text-accent transition-colors"
-            >
-              Brittany Chiang
-            </a>
-            .
-          </p>
-        </footer>
+        
       </main>
     </div>
   );
