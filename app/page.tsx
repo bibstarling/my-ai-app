@@ -70,9 +70,25 @@ export default function Home() {
 
   if (!isLoaded) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-950">
-        <div className="text-white">Loading...</div>
-      </div>
+      <main className="flex min-h-screen items-center justify-center p-4 bg-gray-950 text-white">
+        <div className="max-w-xl w-full">
+          <h1 className="text-2xl font-semibold mb-4">Auth loading state (temporary debug)</h1>
+          <pre className="text-xs whitespace-pre-wrap bg-gray-900 p-4 rounded border border-gray-700">
+            {JSON.stringify(
+              {
+                isLoaded,
+                hasUser: !!user,
+                host: typeof window !== 'undefined' ? window.location.host : null,
+              },
+              null,
+              2
+            )}
+          </pre>
+          <p className="mt-4 text-gray-400">
+            This is a temporary debug view to inspect Clerk&apos;s loading state in production.
+          </p>
+        </div>
+      </main>
     );
   }
 
