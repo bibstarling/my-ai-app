@@ -387,6 +387,15 @@ function AssistantEmbedFallback() {
   );
 }
 
+/** Shown before mount so we never call useUser() without ClerkProvider. No Clerk hooks. */
+function AssistantLoadingShell() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <Loader2 className="h-8 w-8 animate-spin text-accent" />
+    </div>
+  );
+}
+
 function AssistantContent() {
   const { user, isLoaded } = useUser();
   const [activeTool, setActiveTool] = useState<AssistantTool>('assistant');
@@ -747,7 +756,7 @@ export default function AssistantPage() {
   const [mounted, setMounted] = useState(false);
   const embedMode = useEmbedMode();
   useEffect(() => setMounted(true), []);
-  if (!mounted) return <AssistantContent />;
+  if (!mounted) return <AssistantLoadingShell />;
   if (embedMode) return <AssistantEmbedFallback />;
   return <AssistantContent />;
 }
