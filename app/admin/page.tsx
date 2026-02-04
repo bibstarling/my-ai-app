@@ -90,13 +90,13 @@ export default function AdminPage() {
             </div>
           ) : (
             <div className="overflow-hidden rounded-lg border border-border">
-              <table className="w-full">
+              <table className="w-full table-auto">
                 <thead className="bg-card">
                   <tr className="text-left text-sm text-muted">
                     <th className="px-6 py-4 font-medium">Email</th>
-                    <th className="px-6 py-4 font-medium">Status</th>
-                    <th className="px-6 py-4 font-medium">Role</th>
-                    <th className="px-6 py-4 font-medium">Actions</th>
+                    <th className="px-6 py-4 font-medium whitespace-nowrap w-px">Status</th>
+                    <th className="px-6 py-4 font-medium whitespace-nowrap w-px">Role</th>
+                    <th className="px-6 py-4 font-medium whitespace-nowrap w-px">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -113,20 +113,20 @@ export default function AdminPage() {
                           <span className="text-foreground">{u.email ?? '—'}</span>
                           <p className="text-xs text-muted-foreground">{u.clerk_id}</p>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 whitespace-nowrap">
                           {u.approved ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-1 text-xs text-green-400">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-1 text-xs text-green-600">
                               <UserCheck className="h-3 w-3" />
                               Approved
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-yellow-500/10 px-2 py-1 text-xs text-yellow-400">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-yellow-500/10 px-2 py-1 text-xs text-yellow-600">
                               <UserX className="h-3 w-3" />
                               Pending
                             </span>
                           )}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 whitespace-nowrap">
                           {u.is_admin ? (
                             <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2 py-1 text-xs text-accent">
                               <Shield className="h-3 w-3" />
@@ -136,7 +136,7 @@ export default function AdminPage() {
                             <span className="text-xs text-muted">User</span>
                           )}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex gap-2">
                             {!u.approved && (
                               <button
