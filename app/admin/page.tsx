@@ -61,7 +61,7 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
       <main>
         <div className="mx-auto max-w-6xl px-6 py-12">
           <div className="mb-8 flex items-center gap-4">
@@ -91,12 +91,18 @@ export default function AdminPage() {
           ) : (
             <div className="overflow-hidden rounded-lg border border-border">
               <table className="w-full">
+                <colgroup>
+                  <col />
+                  <col style={{ width: '90px' }} />
+                  <col style={{ width: '60px' }} />
+                  <col style={{ width: '100px' }} />
+                </colgroup>
                 <thead className="bg-card">
                   <tr className="text-left text-sm text-muted">
                     <th className="px-6 py-4 font-medium">Email</th>
-                    <th className="px-6 py-4 font-medium">Status</th>
-                    <th className="px-6 py-4 font-medium">Role</th>
-                    <th className="px-6 py-4 font-medium">Actions</th>
+                    <th className="px-6 py-4 font-medium text-center">Status</th>
+                    <th className="px-6 py-4 font-medium text-center">Role</th>
+                    <th className="px-6 py-4 font-medium text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -113,20 +119,20 @@ export default function AdminPage() {
                           <span className="text-foreground">{u.email ?? '—'}</span>
                           <p className="text-xs text-muted-foreground">{u.clerk_id}</p>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 text-center whitespace-nowrap">
                           {u.approved ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-1 text-xs text-green-400">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-1 text-xs text-green-600">
                               <UserCheck className="h-3 w-3" />
                               Approved
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-yellow-500/10 px-2 py-1 text-xs text-yellow-400">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-yellow-500/10 px-2 py-1 text-xs text-yellow-600">
                               <UserX className="h-3 w-3" />
                               Pending
                             </span>
                           )}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 text-center whitespace-nowrap">
                           {u.is_admin ? (
                             <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2 py-1 text-xs text-accent">
                               <Shield className="h-3 w-3" />
@@ -136,8 +142,8 @@ export default function AdminPage() {
                             <span className="text-xs text-muted">User</span>
                           )}
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex gap-2">
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex justify-end gap-2">
                             {!u.approved && (
                               <button
                                 className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700 transition-colors"

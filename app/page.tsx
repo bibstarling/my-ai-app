@@ -15,11 +15,12 @@ const navItems = [
 const experiences = [
   {
     period: 'Mar 2024 — Present',
-    title: 'Senior Product Manager',
+    title: 'Lead Product Manager',
+    subtitle: 'Senior Product Manager → Lead Product Manager (Nov 2025)',
     company: 'Skillshare',
     location: 'New York, USA (Remote)',
-    description: 'Shaping company-wide AI strategy and designing multi-agent MCP to connect platform data with external AI tools. Delivered 25% increase in daily engagement through Creative Feed and Follow Suggestions. Led marketplace expansion with 1-1 sessions and digital products. Introduced headless CMS and Builder.io framework.',
-    skills: ['AI Strategy', 'MCP', 'Community Growth', 'Marketplace', 'CMS'],
+    description: 'Promoted to Lead PM in Nov 2025. Driving company-wide AI strategy and designing multi-agent MCP to connect platform data with external AI tools. Delivered 25% increase in daily engagement through Creative Feed and Follow Suggestions. Led marketplace expansion with 1-1 sessions and digital products. Introduced headless CMS and Builder.io framework.',
+    skills: ['AI Strategy', 'MCP', 'Community Growth', 'Marketplace', 'CMS', 'Team Leadership'],
     highlights: ['Curiosity Award Q2 2024', 'Agility Award Q1 2025'],
   },
   {
@@ -160,15 +161,15 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background lg:flex">
+    <div className="min-h-screen bg-white lg:flex">
       {/* Left Sidebar - Sticky on Desktop */}
-      <header className="lg:fixed lg:top-0 lg:left-0 lg:flex lg:h-screen lg:w-1/2 lg:flex-col lg:justify-between lg:py-24 lg:px-24 px-6 py-16">
+      <header className="lg:fixed lg:top-0 lg:left-0 lg:flex lg:h-screen lg:w-1/3 lg:flex-col lg:justify-between lg:py-24 lg:px-24 px-6 py-16">
         <div>
           <h1 className="text-4xl font-bold text-foreground lg:text-5xl tracking-tight">
             Bianca Starling
           </h1>
           <h2 className="mt-3 text-xl font-medium text-foreground/90 lg:text-2xl">
-            Senior Product Manager
+            Lead Product Manager
           </h2>
           <p className="mt-4 max-w-xs text-muted leading-relaxed">
             Building community-driven EdTech products and AI-powered experiences. Based in Brasília, working globally.
@@ -220,17 +221,11 @@ export default function HomePage() {
           >
             <Mail className="h-5 w-5" />
           </a>
-          <Link
-            href="/assistant"
-            className="text-xs font-medium text-muted hover:text-accent transition-colors uppercase tracking-wider"
-          >
-            Assistant
-          </Link>
         </div>
       </header>
 
       {/* Right Content - Scrollable */}
-      <main className="lg:ml-[50%] lg:w-1/2 lg:py-24 lg:px-24 px-6 pb-24">
+      <main className="lg:ml-[33.333333%] lg:w-2/3 lg:py-24 lg:px-24 px-6 pb-24">
         {/* About Section */}
         <section id="about" className="mb-24 scroll-mt-24 lg:mb-36">
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
@@ -298,6 +293,9 @@ export default function HomePage() {
                   <h4 className="font-medium text-foreground group-hover:text-accent transition-colors">
                     {exp.title}
                   </h4>
+                  {exp.subtitle && (
+                    <p className="text-xs text-accent mt-0.5">{exp.subtitle}</p>
+                  )}
                   <p className="text-sm text-foreground/80">{exp.company}</p>
                   <p className="text-xs text-muted">{exp.location}</p>
                   <p className="mt-3 text-sm text-muted leading-relaxed">{exp.description}</p>
@@ -549,21 +547,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Footer */}
-        <footer className="mt-24 pt-8 border-t border-border">
-          <p className="text-xs text-muted">
-            Built with Next.js and Tailwind CSS. Design inspired by{' '}
-            <a
-              href="https://brittanychiang.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-foreground hover:text-accent transition-colors"
-            >
-              Brittany Chiang
-            </a>
-            .
-          </p>
-        </footer>
+        
       </main>
     </div>
   );
