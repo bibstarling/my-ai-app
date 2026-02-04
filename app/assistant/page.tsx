@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { SiteHeader } from '@/components/site-header';
-import { Send, Loader2, Bot, User, Briefcase, FileText, Lightbulb, Plus, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { Send, Loader2, Bot, User, Briefcase, FileText, Lightbulb, Plus, Trash2, ArrowLeft } from 'lucide-react';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -106,15 +106,22 @@ export default function AssistantPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <SiteHeader />
-      
-      <main className="flex flex-1 flex-col pt-16">
+      <main className="flex flex-1 flex-col">
         <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-6 py-8">
           {/* Header */}
           <div className="mb-6 flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Personal Assistant</h1>
-              <p className="text-sm text-muted">Your private AI workspace for job search and productivity</p>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/"
+                className="flex items-center gap-2 text-sm text-muted hover:text-accent transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">Personal Assistant</h1>
+                <p className="text-sm text-muted">Your private AI workspace</p>
+              </div>
             </div>
             {messages.length > 0 && (
               <button

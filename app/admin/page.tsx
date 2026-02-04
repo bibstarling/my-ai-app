@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { SiteHeader } from '@/components/site-header';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
-import { Loader2, UserCheck, UserX, Shield } from 'lucide-react';
+import { Loader2, UserCheck, UserX, Shield, ArrowLeft } from 'lucide-react';
 
 type UserRow = {
   id: string;
@@ -62,13 +62,20 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SiteHeader />
-      
-      <main className="pt-16">
+      <main>
         <div className="mx-auto max-w-6xl px-6 py-12">
-          <div className="mb-8">
-            <h1 className="mb-2 text-3xl font-bold text-foreground">Admin Dashboard</h1>
-            <p className="text-muted">Manage user approvals and access.</p>
+          <div className="mb-8 flex items-center gap-4">
+            <Link
+              href="/"
+              className="flex items-center gap-2 text-sm text-muted hover:text-accent transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
+              <p className="text-sm text-muted">Manage user approvals and access</p>
+            </div>
           </div>
 
           {error && (
