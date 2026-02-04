@@ -19,14 +19,19 @@ export default function Home() {
       setCheckingApproval(true);
 
       // Check if user exists in database
-      const { data: existingUser } = await supabase
+      const { data, error } = await supabase
         .from('users')
-        .select('*')
+        .select('approved')
         .eq('clerk_id', user.id)
-        .single();
+        .limit(10);
 
-      if (existingUser) {
-        setIsApproved(existingUser.approved);
+      if (error) {
+        console.error('Error fetching user approval:', error);
+        setIsApproved(false);
+      } else if (data && data.length > 0) {
+        // If any row for this clerk_id is approved, treat the user as approved
+        const anyApproved = data.some((row) => row.approved === true);
+        setIsApproved(anyApproved);
       } else {
         // Create new user as pending
         await supabase.from('users').insert({
