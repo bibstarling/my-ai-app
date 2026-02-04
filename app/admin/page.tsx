@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
+import { SiteHeader } from '@/components/site-header';
 import { supabase } from '@/lib/supabase';
+import { Loader2, UserCheck, UserX, Shield } from 'lucide-react';
 
 type UserRow = {
   id: string;
@@ -63,114 +65,135 @@ export default function AdminPage() {
 
   if (!isLoaded) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-950 text-white">
-        <div>Loading admin panel...</div>
-      </main>
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+      </div>
     );
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-8 bg-gray-950 text-white">
-      <SignedOut>
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4">Admin dashboard</h1>
-          <p className="text-gray-400 mb-4">Please sign in as an admin to continue.</p>
-          <SignInButton mode="modal">
-            <button className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700">
-              Sign In
-            </button>
-          </SignInButton>
-        </div>
-      </SignedOut>
-
-      <SignedIn>
-        {!isAdmin ? (
-          <div className="text-center">
-            <h1 className="text-3xl font-bold mb-4">Not authorized</h1>
-            <p className="text-gray-400">
-              You must be an admin to view this page.
-            </p>
+    <div className="min-h-screen bg-background">
+      <SiteHeader />
+      
+      <main className="pt-16">
+        <SignedOut>
+          <div className="flex min-h-[60vh] items-center justify-center">
+            <div className="text-center">
+              <h1 className="mb-4 text-3xl font-bold text-foreground">Admin Dashboard</h1>
+              <p className="mb-8 text-muted">Please sign in as an admin to continue.</p>
+              <SignInButton mode="modal">
+                <button className="rounded-lg bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground hover:opacity-90 transition-opacity">
+                  Sign In
+                </button>
+              </SignInButton>
+            </div>
           </div>
-        ) : (
-          <div className="w-full max-w-4xl">
-            <h1 className="text-3xl font-bold mb-6">Admin dashboard</h1>
-            <p className="text-gray-400 mb-6">
-              Manage user approvals and admin status.
-            </p>
+        </SignedOut>
 
-            {error && (
-              <div className="mb-4 rounded border border-red-500 bg-red-900/50 px-4 py-2 text-sm">
-                {error}
+        <SignedIn>
+          {!isAdmin ? (
+            <div className="flex min-h-[60vh] items-center justify-center">
+              <div className="text-center">
+                <h1 className="mb-4 text-3xl font-bold text-foreground">Access Denied</h1>
+                <p className="text-muted">You must be an admin to view this page.</p>
               </div>
-            )}
+            </div>
+          ) : (
+            <div className="mx-auto max-w-6xl px-6 py-12">
+              <div className="mb-8">
+                <h1 className="mb-2 text-3xl font-bold text-foreground">Admin Dashboard</h1>
+                <p className="text-muted">Manage user approvals and access.</p>
+              </div>
 
-            {loading ? (
-              <div>Loading users...</div>
-            ) : (
-              <div className="overflow-x-auto rounded-lg border border-gray-800 bg-gray-900">
-                <table className="min-w-full text-sm">
-                  <thead className="bg-gray-800">
-                    <tr>
-                      <th className="px-4 py-2 text-left">Email</th>
-                      <th className="px-4 py-2 text-left">Clerk ID</th>
-                      <th className="px-4 py-2 text-left">Approved</th>
-                      <th className="px-4 py-2 text-left">Admin</th>
-                      <th className="px-4 py-2 text-left">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.map((u) => (
-                      <tr key={u.id} className="border-t border-gray-800">
-                        <td className="px-4 py-2">{u.email ?? '—'}</td>
-                        <td className="px-4 py-2 text-xs text-gray-400">{u.clerk_id}</td>
-                        <td className="px-4 py-2">
-                          <span
-                            className={
-                              u.approved
-                                ? 'rounded-full bg-green-900/60 px-2 py-1 text-xs text-green-300'
-                                : 'rounded-full bg-yellow-900/60 px-2 py-1 text-xs text-yellow-300'
-                            }
-                          >
-                            {u.approved ? 'Approved' : 'Pending'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-2">
-                          {u.is_admin ? (
-                            <span className="rounded-full bg-blue-900/60 px-2 py-1 text-xs text-blue-300">
-                              Admin
-                            </span>
-                          ) : (
-                            <span className="text-xs text-gray-400">User</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-2 space-x-2">
-                          {!u.approved && (
-                            <button
-                              className="rounded bg-green-600 px-3 py-1 text-xs font-semibold hover:bg-green-700"
-                              onClick={() => updateUser(u.id, { approved: true })}
-                            >
-                              Approve
-                            </button>
-                          )}
-                          {!u.is_admin && (
-                            <button
-                              className="rounded bg-blue-600 px-3 py-1 text-xs font-semibold hover:bg-blue-700"
-                              onClick={() => updateUser(u.id, { is_admin: true })}
-                            >
-                              Make admin
-                            </button>
-                          )}
-                        </td>
+              {error && (
+                <div className="mb-6 rounded-lg border border-red-500/50 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                  {error}
+                </div>
+              )}
+
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-accent" />
+                </div>
+              ) : (
+                <div className="overflow-hidden rounded-lg border border-border">
+                  <table className="w-full">
+                    <thead className="bg-card">
+                      <tr className="text-left text-sm text-muted">
+                        <th className="px-6 py-4 font-medium">Email</th>
+                        <th className="px-6 py-4 font-medium">Status</th>
+                        <th className="px-6 py-4 font-medium">Role</th>
+                        <th className="px-6 py-4 font-medium">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
-      </SignedIn>
-    </main>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {users.length === 0 ? (
+                        <tr>
+                          <td colSpan={4} className="px-6 py-8 text-center text-muted">
+                            No users found
+                          </td>
+                        </tr>
+                      ) : (
+                        users.map((u) => (
+                          <tr key={u.id} className="hover:bg-card/50 transition-colors">
+                            <td className="px-6 py-4">
+                              <span className="text-foreground">{u.email ?? '—'}</span>
+                              <p className="text-xs text-muted-foreground">{u.clerk_id}</p>
+                            </td>
+                            <td className="px-6 py-4">
+                              {u.approved ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-1 text-xs text-green-400">
+                                  <UserCheck className="h-3 w-3" />
+                                  Approved
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-yellow-500/10 px-2 py-1 text-xs text-yellow-400">
+                                  <UserX className="h-3 w-3" />
+                                  Pending
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4">
+                              {u.is_admin ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2 py-1 text-xs text-accent">
+                                  <Shield className="h-3 w-3" />
+                                  Admin
+                                </span>
+                              ) : (
+                                <span className="text-xs text-muted">User</span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex gap-2">
+                                {!u.approved && (
+                                  <button
+                                    className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700 transition-colors"
+                                    onClick={() => updateUser(u.id, { approved: true })}
+                                  >
+                                    Approve
+                                  </button>
+                                )}
+                                {u.approved && !u.is_admin && (
+                                  <button
+                                    className="rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground hover:opacity-90 transition-opacity"
+                                    onClick={() => updateUser(u.id, { is_admin: true })}
+                                  >
+                                    Make Admin
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+        </SignedIn>
+      </main>
+    </div>
   );
 }
-

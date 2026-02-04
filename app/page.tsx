@@ -1,195 +1,193 @@
-'use client';
+import Link from 'next/link';
+import { SiteHeader } from '@/components/site-header';
+import { ArrowRight } from 'lucide-react';
 
-import { useState, useEffect } from 'react';
-import { SignInButton, SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs';
-import { supabase } from '@/lib/supabase';
+const impactHighlights = [
+  { metric: '3x', description: 'Retention improvement through data-driven discovery' },
+  { metric: '40%', description: 'Reduction in time-to-value for new users' },
+  { metric: '$2M+', description: 'Revenue impact from strategic product initiatives' },
+];
 
-export default function Home() {
-  const { user, isLoaded } = useUser();
-  const [message, setMessage] = useState('');
-  const [response, setResponse] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [isApproved, setIsApproved] = useState<boolean | null>(null);
-  const [checkingApproval, setCheckingApproval] = useState(false);
-  const isAdmin = user?.primaryEmailAddress?.emailAddress === 'bibstarling@gmail.com';
+const coreStrengths = [
+  { 
+    title: 'Discovery', 
+    description: 'Continuous discovery practices that surface real user needs and validate solutions before building.' 
+  },
+  { 
+    title: 'Strategy', 
+    description: 'Clear product vision backed by market analysis, competitive positioning, and business model thinking.' 
+  },
+  { 
+    title: 'Execution', 
+    description: 'Shipping outcomes, not outputs. Cross-functional leadership that moves fast without breaking things.' 
+  },
+  { 
+    title: 'Analytics', 
+    description: 'Metrics that matter. Building measurement frameworks that connect product decisions to business impact.' 
+  },
+  { 
+    title: 'AI Products', 
+    description: 'Experience building AI-powered features that solve real problems, not technology looking for use cases.' 
+  },
+];
 
-  useEffect(() => {
-    const checkUserApproval = async () => {
-      if (!user) return;
+const selectedWork = [
+  {
+    title: 'Retention Engine',
+    company: 'Series B SaaS',
+    description: 'Led discovery and execution of a retention system that reduced churn by 35% in 6 months.',
+    tags: ['Discovery', 'Analytics', 'Retention'],
+  },
+  {
+    title: 'AI Writing Assistant',
+    company: 'Consumer Product',
+    description: 'Shipped an AI-powered feature from 0-1 that drove 40% of new user activation within 3 months.',
+    tags: ['AI/ML', 'Growth', '0-1'],
+  },
+  {
+    title: 'Enterprise Onboarding',
+    company: 'B2B Platform',
+    description: 'Redesigned onboarding flow resulting in 60% improvement in time-to-first-value for enterprise accounts.',
+    tags: ['B2B', 'Onboarding', 'Research'],
+  },
+];
 
-      setCheckingApproval(true);
-
-      // Dev shortcut: always approve your own account
-      if (user.primaryEmailAddress?.emailAddress === 'bibstarling@gmail.com') {
-        setIsApproved(true);
-        setCheckingApproval(false);
-        return;
-      }
-
-      // Check if user exists in database
-      const { data, error } = await supabase
-        .from('users')
-        .select('approved')
-        .eq('clerk_id', user.id)
-        .limit(10);
-
-      if (error) {
-        console.error('Error fetching user approval:', error);
-        setIsApproved(false);
-      } else if (data && data.length > 0) {
-        // If any row for this clerk_id is approved, treat the user as approved
-        const anyApproved = data.some((row) => row.approved === true);
-        setIsApproved(anyApproved);
-      } else {
-        // Create new user as pending
-        await supabase.from('users').insert({
-          email: user.primaryEmailAddress?.emailAddress,
-          clerk_id: user.id,
-          approved: false,
-        });
-        setIsApproved(false);
-      }
-
-      setCheckingApproval(false);
-    };
-
-    if (user) {
-      checkUserApproval();
-    }
-  }, [user]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setResponse('');
-
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message }),
-      });
-
-      const data = await res.json();
-      setResponse(data.response);
-    } catch (error) {
-      setResponse('Error: Could not get response');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!isLoaded) {
-    return (
-      <main className="flex min-h-screen items-center justify-center p-4 bg-gray-950 text-white">
-        <div className="max-w-xl w-full">
-          <h1 className="text-2xl font-semibold mb-4">Auth loading state (temporary debug)</h1>
-          <pre className="text-xs whitespace-pre-wrap bg-gray-900 p-4 rounded border border-gray-700">
-            {JSON.stringify(
-              {
-                isLoaded,
-                hasUser: !!user,
-                host: typeof window !== 'undefined' ? window.location.host : null,
-              },
-              null,
-              2
-            )}
-          </pre>
-          <p className="mt-4 text-gray-400">
-            This is a temporary debug view to inspect Clerk&apos;s loading state in production.
-          </p>
-        </div>
-      </main>
-    );
-  }
-
+export default function HomePage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-gray-950">
-      <div className="absolute top-4 right-4 flex items-center gap-4">
-        {isAdmin && (
-          <a
-            href="/admin"
-            className="rounded-lg bg-purple-600 px-3 py-1 text-sm font-semibold text-white hover:bg-purple-700"
-          >
-            Admin
-          </a>
-        )}
-        <SignedIn>
-          <UserButton />
-        </SignedIn>
-      </div>
-
-      <SignedOut>
-        <div className="text-center">
-          <h1 className="text-4xl font-bold mb-8 text-white">
-            Chat with Claude 🤖
-          </h1>
-          <p className="text-gray-400 mb-8">Please sign in to continue</p>
-          <SignInButton mode="modal">
-            <button className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700">
-              Sign In
-            </button>
-          </SignInButton>
-        </div>
-      </SignedOut>
-
-      <SignedIn>
-        {checkingApproval ? (
-          <div className="flex min-h-[200px] items-center justify-center">
-            <div className="text-white">Checking your access...</div>
+    <div className="min-h-screen bg-background">
+      <SiteHeader />
+      
+      <main className="pt-16">
+        {/* Hero Section */}
+        <section className="mx-auto max-w-6xl px-6 py-24 lg:py-32">
+          <div className="max-w-3xl">
+            <p className="mb-4 text-sm font-medium uppercase tracking-wider text-accent">
+              Senior Product Manager
+            </p>
+            <h1 className="mb-6 text-4xl font-bold leading-tight text-foreground lg:text-5xl text-balance">
+              Building products that drive discovery, retention, and measurable outcomes.
+            </h1>
+            <p className="mb-8 text-lg text-muted leading-relaxed">
+              I help teams move from assumptions to evidence, shipping products that users love and businesses can measure. 
+              Focused on continuous discovery, AI-powered experiences, and growth that compounds.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <Link
+                href="/work"
+                className="inline-flex items-center gap-2 rounded-lg bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground transition-opacity hover:opacity-90"
+              >
+                View Work
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/contact"
+                className="inline-flex items-center gap-2 rounded-lg border border-border px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-card"
+              >
+                Resume
+              </Link>
+            </div>
           </div>
-        ) : (
-          <>
-            {isApproved === false && (
-              <div className="text-center max-w-md">
-                <h1 className="text-4xl font-bold mb-4 text-white">
-                  Access Pending ⏳
-                </h1>
-                <p className="text-gray-400 mb-4">
-                  Your account is awaiting approval from the administrator.
-                </p>
-                <p className="text-gray-500 text-sm">
-                  You&apos;ll be able to use the chat once approved.
-                </p>
+        </section>
+
+        {/* Impact Highlights */}
+        <section className="border-y border-border bg-card/50">
+          <div className="mx-auto max-w-6xl px-6 py-16">
+            <div className="grid gap-8 md:grid-cols-3">
+              {impactHighlights.map((item, index) => (
+                <div key={index} className="text-center md:text-left">
+                  <p className="mb-2 text-4xl font-bold text-accent">{item.metric}</p>
+                  <p className="text-sm text-muted">{item.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Core Strengths */}
+        <section className="mx-auto max-w-6xl px-6 py-24">
+          <h2 className="mb-12 text-2xl font-bold text-foreground">Core Strengths</h2>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {coreStrengths.map((strength, index) => (
+              <div
+                key={index}
+                className="rounded-lg border border-border bg-card p-6 transition-colors hover:border-accent/50"
+              >
+                <h3 className="mb-2 text-lg font-semibold text-foreground">{strength.title}</h3>
+                <p className="text-sm text-muted leading-relaxed">{strength.description}</p>
               </div>
-            )}
+            ))}
+          </div>
+        </section>
 
-            {isApproved === true && (
-              <div className="w-full max-w-2xl">
-                <h1 className="text-4xl font-bold mb-8 text-center text-white">
-                  Chat with Claude 🤖
-                </h1>
-
-                <form onSubmit={handleSubmit} className="mb-8">
-                  <textarea
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Ask Claude anything..."
-                    className="w-full p-4 border border-gray-700 rounded-lg mb-4 min-h-[100px] bg-gray-900 text-white"
-                    disabled={loading}
-                  />
-                  <button
-                    type="submit"
-                    disabled={loading || !message.trim()}
-                    className="w-full bg-blue-600 text-white p-4 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
-                  >
-                    {loading ? 'Thinking...' : 'Send Message'}
-                  </button>
-                </form>
-
-                {response && (
-                  <div className="bg-gray-900 p-6 rounded-lg border border-gray-700">
-                    <h2 className="font-bold mb-2 text-white">Claude&apos;s Response:</h2>
-                    <p className="whitespace-pre-wrap text-gray-300">{response}</p>
+        {/* Selected Work */}
+        <section className="border-t border-border bg-card/30">
+          <div className="mx-auto max-w-6xl px-6 py-24">
+            <div className="mb-12 flex items-end justify-between">
+              <h2 className="text-2xl font-bold text-foreground">Selected Work</h2>
+              <Link
+                href="/work"
+                className="text-sm text-accent hover:underline"
+              >
+                View all case studies
+              </Link>
+            </div>
+            <div className="grid gap-8 lg:grid-cols-3">
+              {selectedWork.map((work, index) => (
+                <Link
+                  key={index}
+                  href="/work"
+                  className="group rounded-lg border border-border bg-card p-6 transition-all hover:border-accent/50 hover:bg-card/80"
+                >
+                  <p className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    {work.company}
+                  </p>
+                  <h3 className="mb-3 text-lg font-semibold text-foreground group-hover:text-accent transition-colors">
+                    {work.title}
+                  </h3>
+                  <p className="mb-4 text-sm text-muted leading-relaxed">{work.description}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {work.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full bg-background px-3 py-1 text-xs text-muted"
+                      >
+                        {tag}
+                      </span>
+                    ))}
                   </div>
-                )}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="border-t border-border">
+          <div className="mx-auto max-w-6xl px-6 py-12">
+            <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+              <p className="text-sm text-muted">
+                {new Date().getFullYear()} Bianca Starling. Built with intention.
+              </p>
+              <div className="flex gap-6">
+                <a
+                  href="https://linkedin.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-muted hover:text-foreground transition-colors"
+                >
+                  LinkedIn
+                </a>
+                <a
+                  href="mailto:hello@biancastarling.com"
+                  className="text-sm text-muted hover:text-foreground transition-colors"
+                >
+                  Email
+                </a>
               </div>
-            )}
-          </>
-        )}
-      </SignedIn>
-    </main>
+            </div>
+          </div>
+        </footer>
+      </main>
+    </div>
   );
 }
