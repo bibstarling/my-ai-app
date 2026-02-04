@@ -12,15 +12,22 @@ export const metadata: Metadata = {
 
 const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
-if (!publishableKey) {
-  throw new Error("Missing NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY environment variable");
-}
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // If Clerk is not configured, render without ClerkProvider
+  if (!publishableKey) {
+    return (
+      <html lang="en">
+        <body className={`${inter.className} antialiased`}>
+          {children}
+        </body>
+      </html>
+    );
+  }
+
   return (
     <ClerkProvider publishableKey={publishableKey}>
       <html lang="en">

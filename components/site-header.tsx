@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { SignInButton, SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs';
 
 const navItems = [
   { href: '/', label: 'Home' },
@@ -13,8 +12,6 @@ const navItems = [
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const { user } = useUser();
-  const isAdmin = user?.primaryEmailAddress?.emailAddress === 'bibstarling@gmail.com';
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
@@ -40,28 +37,16 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-4">
-          <SignedOut>
-            <SignInButton mode="modal">
-              <button className="text-sm text-muted hover:text-foreground transition-colors">
-                Log in
-              </button>
-            </SignInButton>
-          </SignedOut>
-          <SignedIn>
-            {isAdmin && (
-              <Link
-                href="/assistant"
-                className={`text-sm transition-colors ${
-                  pathname === '/assistant'
-                    ? 'text-accent'
-                    : 'text-muted hover:text-foreground'
-                }`}
-              >
-                Assistant
-              </Link>
-            )}
-            <UserButton />
-          </SignedIn>
+          <Link
+            href="/assistant"
+            className={`text-sm transition-colors ${
+              pathname === '/assistant'
+                ? 'text-accent'
+                : 'text-muted hover:text-foreground'
+            }`}
+          >
+            Assistant
+          </Link>
         </div>
       </div>
     </header>
