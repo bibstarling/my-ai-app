@@ -160,7 +160,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background lg:flex">
+    <div className="min-h-screen bg-white lg:flex">
       {/* Left Sidebar - Sticky on Desktop */}
       <header className="lg:fixed lg:top-0 lg:left-0 lg:flex lg:h-screen lg:w-1/2 lg:flex-col lg:justify-between lg:py-24 lg:px-24 px-6 py-16">
         <div>
