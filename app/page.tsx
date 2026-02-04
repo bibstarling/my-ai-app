@@ -4,7 +4,19 @@ import { useState, useEffect } from 'react';
 import { SignInButton, SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs';
 import { supabase } from '@/lib/supabase';
 
+function isEmbeddedPreview() {
+  if (typeof window === 'undefined') return false;
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true;
+  }
+}
+
+const EMBED_DEMO_RESPONSE = `This is a preview. Authentication doesn't run in embedded views (e.g. v0.dev). Open the app in a new tab to sign in and use the real chat.`;
+
 export default function Home() {
+  const [isEmbed] = useState(() => isEmbeddedPreview());
   const { user, isLoaded } = useUser();
   const [message, setMessage] = useState('');
   const [response, setResponse] = useState('');
@@ -80,6 +92,49 @@ export default function Home() {
       setLoading(false);
     }
   };
+
+  // Embedded preview (e.g. v0.dev iframe): show demo UI so auth isn't required
+  if (isEmbed) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-gray-950">
+        <div className="absolute top-4 right-4 rounded bg-amber-900/60 px-3 py-1 text-xs text-amber-200">
+          Preview mode
+        </div>
+        <div className="w-full max-w-2xl">
+          <h1 className="text-4xl font-bold mb-8 text-center text-white">
+            Chat with Claude 🤖
+          </h1>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setResponse(EMBED_DEMO_RESPONSE);
+            }}
+            className="mb-8"
+          >
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Ask Claude anything..."
+              className="w-full p-4 border border-gray-700 rounded-lg mb-4 min-h-[100px] bg-gray-900 text-white"
+            />
+            <button
+              type="submit"
+              disabled={!message.trim()}
+              className="w-full bg-blue-600 text-white p-4 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
+            >
+              Send Message
+            </button>
+          </form>
+          {response && (
+            <div className="bg-gray-900 p-6 rounded-lg border border-gray-700">
+              <h2 className="font-bold mb-2 text-white">Claude&apos;s Response:</h2>
+              <p className="whitespace-pre-wrap text-gray-300">{response}</p>
+            </div>
+          )}
+        </div>
+      </main>
+    );
+  }
 
   if (!isLoaded) {
     return (
