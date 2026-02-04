@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowUpRight, Github, Linkedin, Mail, FileText } from 'lucide-react';
+import { ArrowUpRight, Linkedin, Mail, ExternalLink } from 'lucide-react';
 
 const navItems = [
   { id: 'about', label: 'About' },
@@ -14,67 +14,101 @@ const navItems = [
 
 const experiences = [
   {
-    period: '2022 — Present',
+    period: 'Mar 2024 — Present',
     title: 'Senior Product Manager',
-    company: 'Series B SaaS',
-    description: 'Leading product strategy for the core platform, driving discovery practices that reduced churn by 35%. Shipped AI-powered features that increased user activation by 40%.',
-    skills: ['Product Strategy', 'AI/ML', 'Discovery', 'Analytics'],
+    company: 'Skillshare',
+    location: 'New York, USA (Remote)',
+    description: 'Leading taxonomy overhaul with AI-powered classification improving content discoverability. Driving digital products integration and Creator Hub expansion, enabling new revenue streams. Implementing headless CMS and building personalized community feed to increase learner engagement.',
+    skills: ['AI Classification', 'Marketplace', 'CMS', 'Community'],
   },
   {
-    period: '2020 — 2022',
+    period: 'Mar 2022 — Mar 2024',
+    title: 'Senior Product Manager',
+    company: 'Voxy',
+    location: 'New York, USA (Remote)',
+    description: 'Transformed AI-Powered Publishing Platform, increasing publishing productivity across multiple languages. Implemented Maze for user testing, initiated design system creation, and integrated Productboard for data-informed decisions. Led platform integration following two acquisitions.',
+    skills: ['AI Publishing', 'Design Systems', 'Continuous Discovery', 'Platform Integration'],
+  },
+  {
+    period: 'May 2020 — Mar 2022',
     title: 'Product Manager',
-    company: 'Growth Stage Startup',
-    description: 'Owned the retention and engagement portfolio. Built measurement frameworks connecting product decisions to $2M+ revenue impact.',
-    skills: ['Retention', 'Growth', 'Data Analysis', 'User Research'],
+    company: 'SENAI National Department',
+    location: 'Brasília, Brazil',
+    description: 'Created national digital transformation program with 750K BRL budget. Built AI-powered course recommendation platform analyzing student resumes and job posts. Developed educational resources repository saving 20TB storage. Created AR app for machinery visualization.',
+    skills: ['Digital Transformation', 'AI/ML', 'EdTech', 'AR'],
   },
   {
-    period: '2018 — 2020',
-    title: 'Associate Product Manager',
-    company: 'Enterprise Platform',
-    description: 'Led enterprise onboarding redesign resulting in 60% improvement in time-to-first-value. Collaborated with 3 engineering teams.',
-    skills: ['B2B', 'Onboarding', 'Cross-functional'],
+    period: 'Apr 2018 — May 2020',
+    title: 'Product Manager',
+    company: 'Unyleya Educacional',
+    location: 'Brasília, Brazil',
+    description: 'Built Custom CMS enabling course publishing in 15 min (previously 1 week), driving 200% revenue increase. Developed Netflix-style student platform and native mobile apps with offline download, favorites, and progress tracking.',
+    skills: ['CMS', 'Mobile Apps', 'Revenue Growth', 'UX'],
   },
 ];
 
 const projects = [
   {
-    title: 'Retention Engine',
-    description: 'Led discovery and execution of a retention system that identified at-risk users through behavioral signals and automated personalized interventions.',
-    outcome: 'Reduced churn by 35% in 6 months',
-    tags: ['Discovery', 'Analytics', 'Retention'],
+    title: 'AI-Driven Content Classification',
+    company: 'Skillshare',
+    description: 'Led the release of a restructured taxonomy with QA coordination and AI-powered classification, resulting in improved content discoverability and learner experience.',
+    outcome: 'New bar for catalog scalability',
+    tags: ['AI/ML', 'Taxonomy', 'Discovery'],
   },
   {
-    title: 'AI Writing Assistant',
-    description: 'Shipped an AI-powered feature from 0-1 that helps users draft content 3x faster. Designed the UX to build trust in AI suggestions.',
-    outcome: 'Drove 40% of new user activation',
-    tags: ['AI/ML', 'Growth', '0-1'],
+    title: 'Creator Hub & Digital Marketplace',
+    company: 'Skillshare',
+    description: 'Spearheaded Creator Hub development to support multi-format offerings and improve creator workflows. Drove launch of digital product offerings expanding marketplace beyond classes.',
+    outcome: 'New revenue streams for creators',
+    tags: ['Marketplace', 'Creator Tools', 'Monetization'],
   },
   {
-    title: 'Enterprise Onboarding',
-    description: 'Redesigned the onboarding experience for enterprise accounts through extensive user research and iterative prototyping.',
-    outcome: '60% faster time-to-first-value',
-    tags: ['B2B', 'Research', 'Design'],
+    title: 'SENAI Skills GAP AI Engine',
+    company: 'SENAI',
+    description: 'Conceptualized platform to analyze student resumes, SENAI offerings, and job posts to recommend targeted courses, increasing chances of securing specific jobs.',
+    outcome: 'Personalized learning pathways',
+    tags: ['AI/ML', 'Recommendation', 'EdTech'],
+  },
+  {
+    title: 'Continuous Discovery at Voxy',
+    company: 'Voxy',
+    description: 'Successfully ran MVP and introduced continuous discovery process, making product development more assertive and aligned with user needs. Integrated Productboard for data-informed decisions.',
+    outcome: 'Reduced time-to-market',
+    tags: ['Discovery', 'Process', 'Data-Driven'],
+  },
+  {
+    title: 'SCORM Hub',
+    company: 'SENAI',
+    description: 'Developed open educational resources repository to manage and share educational assets across national network of teachers.',
+    outcome: '20TB storage savings',
+    tags: ['Repository', 'Cost Savings', 'Scale'],
   },
 ];
 
 const approachItems = [
   {
-    title: 'Start with Problems',
-    description: 'Every solution begins with deeply understanding the problem. I use continuous discovery to validate assumptions before building.',
+    title: 'Customer-Centric Discovery',
+    description: 'I build products users naturally gravitate towards. Using continuous discovery, I steer away from traditional personas and focus on real customer interactions for more inclusive solutions.',
   },
   {
-    title: 'Measure What Matters',
-    description: 'Metrics should drive decisions, not vanity. I build measurement frameworks that connect product decisions to business outcomes.',
+    title: 'Metrics That Matter',
+    description: 'Every feature starts with aligning business metrics to product metrics. This ensures efforts contribute meaningfully to growth, avoiding wasted resources on low ROI features.',
   },
   {
-    title: 'Ship to Learn',
-    description: 'Perfect is the enemy of good. I believe in shipping early, learning fast, and iterating based on real user feedback.',
+    title: 'The Product Trio',
+    description: 'My ideal workflow involves PM, designer, and engineer working together to assess desirability, viability, and feasibility. We use opportunity solution trees to link customer needs to business metrics.',
   },
   {
-    title: 'Cross-functional by Default',
-    description: 'Great products come from great teams. I build strong relationships with engineering, design, and business stakeholders.',
+    title: 'Test Assumptions Fast',
+    description: 'We map and test critical assumptions for each solution using the compare and contrast methodology—generating multiple solutions to find the most impactful one.',
   },
 ];
+
+const skills = {
+  technical: ['Product Management', 'Continuous Discovery', 'UI/UX Design', 'Data Analysis', 'Agile', 'APIs', 'SQL', 'Technical Writing'],
+  tools: ['Productboard', 'Pendo', 'Maze', 'Jira', 'Tableau', 'Google Analytics', 'Figma', 'Airtable'],
+  soft: ['Leadership', 'Problem-Solving', 'Critical Thinking', 'Communication', 'Decision-Making', 'Collaboration'],
+};
 
 export default function HomePage() {
   const [activeSection, setActiveSection] = useState('about');
@@ -104,14 +138,14 @@ export default function HomePage() {
       {/* Left Sidebar - Sticky on Desktop */}
       <header className="lg:fixed lg:top-0 lg:left-0 lg:flex lg:h-screen lg:w-1/2 lg:flex-col lg:justify-between lg:py-24 lg:px-24 px-6 py-16">
         <div>
-          <h1 className="text-4xl font-bold text-foreground lg:text-5xl">
+          <h1 className="text-4xl font-bold text-foreground lg:text-5xl tracking-tight">
             Bianca Starling
           </h1>
-          <h2 className="mt-3 text-xl font-medium text-foreground lg:text-2xl">
+          <h2 className="mt-3 text-xl font-medium text-foreground/90 lg:text-2xl">
             Senior Product Manager
           </h2>
           <p className="mt-4 max-w-xs text-muted leading-relaxed">
-            I build products that users love and businesses can measure.
+            Building AI-powered products in digital education and creative platforms. Based in Brasília, working globally.
           </p>
 
           {/* Navigation - Desktop Only */}
@@ -128,7 +162,7 @@ export default function HomePage() {
                     <span
                       className={`h-px transition-all duration-300 ${
                         activeSection === id
-                          ? 'w-16 bg-foreground'
+                          ? 'w-16 bg-accent'
                           : 'w-8 bg-muted group-hover:w-16 group-hover:bg-foreground'
                       }`}
                     />
@@ -145,16 +179,7 @@ export default function HomePage() {
         {/* Social Links */}
         <div className="mt-8 flex items-center gap-6 lg:mt-0">
           <a
-            href="https://github.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="GitHub"
-            className="text-muted hover:text-accent transition-colors"
-          >
-            <Github className="h-5 w-5" />
-          </a>
-          <a
-            href="https://linkedin.com"
+            href="https://linkedin.com/in/biancastarling"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="LinkedIn"
@@ -171,10 +196,9 @@ export default function HomePage() {
           </a>
           <Link
             href="/assistant"
-            className="text-muted hover:text-accent transition-colors"
-            aria-label="Assistant"
+            className="text-xs font-medium text-muted hover:text-accent transition-colors uppercase tracking-wider"
           >
-            <FileText className="h-5 w-5" />
+            Assistant
           </Link>
         </div>
       </header>
@@ -183,40 +207,54 @@ export default function HomePage() {
       <main className="lg:ml-[50%] lg:w-1/2 lg:py-24 lg:px-24 px-6 pb-24">
         {/* About Section */}
         <section id="about" className="mb-24 scroll-mt-24 lg:mb-36">
-          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-foreground lg:hidden">
+          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
             About
           </h3>
           <div className="space-y-4 text-muted leading-relaxed">
             <p>
-              I'm a product manager focused on building software that drives{' '}
-              <span className="text-foreground">discovery</span>,{' '}
-              <span className="text-foreground">retention</span>, and{' '}
-              <span className="text-foreground">measurable outcomes</span>. My approach combines
-              rigorous user research with data-driven decision making.
+              I'm an experienced{' '}
+              <span className="text-foreground">Senior Product Manager</span> specializing in{' '}
+              <span className="text-foreground">digital transformation</span>,{' '}
+              <span className="text-foreground">educational platforms</span>, and{' '}
+              <span className="text-foreground">AI-powered products</span>. My journey from mechatronics engineering to industrial design to product management gives me a unique blend of technical depth and creative problem-solving.
             </p>
             <p>
-              Currently, I lead product strategy at a{' '}
-              <span className="text-foreground">Series B SaaS company</span>, where I've shipped
-              AI-powered features that drove 40% of new user activation and built retention systems
-              that reduced churn by 35%.
+              Currently at <span className="text-foreground">Skillshare</span>, I'm leading AI-driven content classification and building the Creator Hub—expanding the marketplace and unlocking new monetization paths for creators.
             </p>
             <p>
-              I believe the best products come from teams that{' '}
-              <span className="text-foreground">start with problems, not solutions</span>. I use
-              continuous discovery practices to validate assumptions before building, and I'm
-              obsessed with connecting product decisions to business impact.
+              I've led successful projects across{' '}
+              <span className="text-foreground">Brazil, Mozambique, Portugal, and the United States</span>. At SENAI, I created a national digital transformation program and built an AI-powered course recommendation engine. At Voxy, I transformed their publishing platform and introduced continuous discovery practices.
             </p>
             <p>
-              When I'm not obsessing over user interviews or A/B test results, you'll find me
-              exploring new AI tools, reading about behavioral psychology, or debugging why that
-              one metric moved.
+              My approach centers on{' '}
+              <span className="text-foreground">continuous discovery</span>—real customer interactions over personas, opportunity solution trees over feature backlogs, and testing critical assumptions before building.
             </p>
+          </div>
+
+          {/* Featured Achievements */}
+          <div className="mt-12 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-lg border border-border bg-card/30 p-4">
+              <p className="text-2xl font-bold text-accent">200%</p>
+              <p className="text-sm text-muted">Revenue increase at Unyleya</p>
+            </div>
+            <div className="rounded-lg border border-border bg-card/30 p-4">
+              <p className="text-2xl font-bold text-accent">20TB</p>
+              <p className="text-sm text-muted">Storage saved at SENAI</p>
+            </div>
+            <div className="rounded-lg border border-border bg-card/30 p-4">
+              <p className="text-2xl font-bold text-accent">15min</p>
+              <p className="text-sm text-muted">Course publish time (from 1 week)</p>
+            </div>
+            <div className="rounded-lg border border-border bg-card/30 p-4">
+              <p className="text-2xl font-bold text-accent">4</p>
+              <p className="text-sm text-muted">Countries worked across</p>
+            </div>
           </div>
         </section>
 
         {/* Experience Section */}
         <section id="experience" className="mb-24 scroll-mt-24 lg:mb-36">
-          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-foreground lg:hidden">
+          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
             Experience
           </h3>
           <div className="space-y-12">
@@ -226,14 +264,18 @@ export default function HomePage() {
                 className="group relative grid gap-4 pb-1 transition-all sm:grid-cols-8 sm:gap-8"
               >
                 <div className="absolute -inset-x-4 -inset-y-4 z-0 hidden rounded-md transition-all group-hover:bg-card/50 group-hover:shadow-[inset_0_1px_0_0_rgba(148,163,184,0.1)] lg:block" />
-                <span className="z-10 text-xs font-semibold uppercase tracking-wide text-muted sm:col-span-2">
-                  {exp.period}
-                </span>
+                <div className="z-10 sm:col-span-2">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+                    {exp.period}
+                  </span>
+                </div>
                 <div className="z-10 sm:col-span-6">
                   <h4 className="font-medium text-foreground group-hover:text-accent transition-colors">
-                    {exp.title} · {exp.company}
+                    {exp.title}
                   </h4>
-                  <p className="mt-2 text-sm text-muted leading-relaxed">{exp.description}</p>
+                  <p className="text-sm text-foreground/80">{exp.company}</p>
+                  <p className="text-xs text-muted">{exp.location}</p>
+                  <p className="mt-3 text-sm text-muted leading-relaxed">{exp.description}</p>
                   <ul className="mt-4 flex flex-wrap gap-2">
                     {exp.skills.map((skill) => (
                       <li
@@ -248,6 +290,35 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+
+          {/* Skills */}
+          <div className="mt-16">
+            <h4 className="mb-4 text-sm font-semibold text-foreground">Technical Skills</h4>
+            <ul className="flex flex-wrap gap-2">
+              {skills.technical.map((skill) => (
+                <li
+                  key={skill}
+                  className="rounded-full border border-border px-3 py-1 text-xs text-muted"
+                >
+                  {skill}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="mt-6">
+            <h4 className="mb-4 text-sm font-semibold text-foreground">Tools</h4>
+            <ul className="flex flex-wrap gap-2">
+              {skills.tools.map((skill) => (
+                <li
+                  key={skill}
+                  className="rounded-full border border-border px-3 py-1 text-xs text-muted"
+                >
+                  {skill}
+                </li>
+              ))}
+            </ul>
+          </div>
+
           <a
             href="/resume.pdf"
             className="mt-12 inline-flex items-center gap-2 text-sm font-semibold text-foreground hover:text-accent transition-colors group"
@@ -259,7 +330,7 @@ export default function HomePage() {
 
         {/* Work Section */}
         <section id="work" className="mb-24 scroll-mt-24 lg:mb-36">
-          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-foreground lg:hidden">
+          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
             Work
           </h3>
           <div className="space-y-12">
@@ -270,7 +341,8 @@ export default function HomePage() {
               >
                 <div className="absolute -inset-x-4 -inset-y-4 z-0 hidden rounded-md transition-all group-hover:bg-card/50 group-hover:shadow-[inset_0_1px_0_0_rgba(148,163,184,0.1)] lg:block" />
                 <div className="z-10">
-                  <h4 className="font-medium text-foreground group-hover:text-accent transition-colors">
+                  <p className="text-xs font-medium text-muted uppercase tracking-wider">{project.company}</p>
+                  <h4 className="mt-1 font-medium text-foreground group-hover:text-accent transition-colors">
                     {project.title}
                   </h4>
                   <p className="mt-2 text-sm text-muted leading-relaxed">{project.description}</p>
@@ -289,16 +361,47 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+
+          {/* Speaking & Articles */}
+          <div className="mt-16">
+            <h4 className="mb-6 text-sm font-semibold text-foreground">Speaking & Articles</h4>
+            <div className="space-y-4">
+              <a
+                href="#"
+                className="group flex items-center gap-3 text-muted hover:text-foreground transition-colors"
+              >
+                <ExternalLink className="h-4 w-4 text-accent" />
+                <span className="text-sm">Interview about Continuous Discovery — Product Talk</span>
+              </a>
+              <a
+                href="#"
+                className="group flex items-center gap-3 text-muted hover:text-foreground transition-colors"
+              >
+                <ExternalLink className="h-4 w-4 text-accent" />
+                <span className="text-sm">Speaker — Google Government and Education Summit 2021</span>
+              </a>
+              <a
+                href="#"
+                className="group flex items-center gap-3 text-muted hover:text-foreground transition-colors"
+              >
+                <ExternalLink className="h-4 w-4 text-accent" />
+                <span className="text-sm">Workshop: Lean Startup for Digital Businesses — Menos 30 Fest</span>
+              </a>
+            </div>
+          </div>
         </section>
 
         {/* Approach Section */}
         <section id="approach" className="mb-24 scroll-mt-24 lg:mb-36">
-          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-foreground lg:hidden">
+          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
             Approach
           </h3>
           <div className="space-y-8">
+            <p className="text-muted leading-relaxed">
+              My love for product management stems from the joy of solving complex problems and employing creativity to enhance user experiences. The ever-evolving nature of this field keeps me on my toes—staying abreast of industry trends, learning new skills, and adapting to new technologies.
+            </p>
             {approachItems.map((item, index) => (
-              <div key={index} className="group">
+              <div key={index} className="group border-l-2 border-border pl-4 hover:border-accent transition-colors">
                 <h4 className="font-medium text-foreground group-hover:text-accent transition-colors">
                   {item.title}
                 </h4>
@@ -306,45 +409,72 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+
+          {/* Certifications */}
+          <div className="mt-16">
+            <h4 className="mb-6 text-sm font-semibold text-foreground">Certifications & Training</h4>
+            <ul className="space-y-3 text-sm text-muted">
+              <li className="flex items-start gap-3">
+                <span className="text-accent">—</span>
+                <span>Product-led Certification — Pendo + Mind the Product</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-accent">—</span>
+                <span>Identifying Hidden Assumptions — Product Talk Academy</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-accent">—</span>
+                <span>Strategic Digital Transformation — TDS Company</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-accent">—</span>
+                <span>Educational Product Manager — Future Education</span>
+              </li>
+            </ul>
+          </div>
         </section>
 
         {/* Contact Section */}
         <section id="contact" className="scroll-mt-24">
-          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-foreground lg:hidden">
+          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
             Contact
           </h3>
           <div className="space-y-4 text-muted leading-relaxed">
             <p>
-              I'm currently exploring new opportunities where I can lead product strategy and drive
-              meaningful outcomes. If you're building something interesting and need a PM who's
-              obsessed with discovery and data, I'd love to chat.
+              I'm currently exploring opportunities where I can lead product strategy in{' '}
+              <span className="text-foreground">AI-powered products</span>,{' '}
+              <span className="text-foreground">digital education</span>, or{' '}
+              <span className="text-foreground">creative platforms</span>. If you're building something that requires deep discovery thinking and data-driven execution, I'd love to connect.
             </p>
             <p>
-              The best way to reach me is via{' '}
+              Based in <span className="text-foreground">Brasília, Brazil</span> but experienced working with global teams across multiple time zones.
+            </p>
+            <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:gap-8">
               <a
                 href="mailto:bibstarling@gmail.com"
-                className="text-foreground hover:text-accent transition-colors"
+                className="inline-flex items-center gap-2 text-foreground hover:text-accent transition-colors group"
               >
-                email
-              </a>{' '}
-              or{' '}
+                <Mail className="h-4 w-4" />
+                <span>bibstarling@gmail.com</span>
+              </a>
               <a
-                href="https://linkedin.com"
+                href="https://linkedin.com/in/biancastarling"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-foreground hover:text-accent transition-colors"
+                className="inline-flex items-center gap-2 text-foreground hover:text-accent transition-colors group"
               >
-                LinkedIn
+                <Linkedin className="h-4 w-4" />
+                <span>LinkedIn</span>
+                <ArrowUpRight className="h-3 w-3 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
               </a>
-              .
-            </p>
+            </div>
           </div>
         </section>
 
         {/* Footer */}
         <footer className="mt-24 pt-8 border-t border-border">
           <p className="text-xs text-muted">
-            Designed and built with care. Loosely inspired by{' '}
+            Built with Next.js. Design inspired by{' '}
             <a
               href="https://brittanychiang.com"
               target="_blank"
