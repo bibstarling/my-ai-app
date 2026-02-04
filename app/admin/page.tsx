@@ -90,12 +90,12 @@ export default function AdminPage() {
             </div>
           ) : (
             <div className="overflow-hidden rounded-lg border border-border">
-              <table className="w-full table-fixed">
+              <table className="w-full">
                 <colgroup>
-                  <col className="w-auto" />
-                  <col className="w-28" />
-                  <col className="w-24" />
-                  <col className="w-32" />
+                  <col />
+                  <col style={{ width: '100px' }} />
+                  <col style={{ width: '70px' }} />
+                  <col style={{ width: '110px' }} />
                 </colgroup>
                 <thead className="bg-card">
                   <tr className="text-left text-sm text-muted">

@@ -14,13 +14,13 @@ const navItems = [
 
 const experiences = [
   {
-    period: 'Mar 2024 — Present',
-    title: 'Senior Product Manager',
+    period: 'Nov 2025 — Present',
+    title: 'Lead Product Manager',
     company: 'Skillshare',
     location: 'New York, USA (Remote)',
-    description: 'Shaping company-wide AI strategy and designing multi-agent MCP to connect platform data with external AI tools. Delivered 25% increase in daily engagement through Creative Feed and Follow Suggestions. Led marketplace expansion with 1-1 sessions and digital products. Introduced headless CMS and Builder.io framework.',
-    skills: ['AI Strategy', 'MCP', 'Community Growth', 'Marketplace', 'CMS'],
-    highlights: ['Curiosity Award Q2 2024', 'Agility Award Q1 2025'],
+    description: 'Promoted to lead the product team, driving company-wide AI strategy and designing multi-agent MCP to connect platform data with external AI tools. Delivered 25% increase in daily engagement through Creative Feed and Follow Suggestions. Led marketplace expansion with 1-1 sessions and digital products. Introduced headless CMS and Builder.io framework.',
+    skills: ['AI Strategy', 'MCP', 'Community Growth', 'Marketplace', 'CMS', 'Team Leadership'],
+    highlights: ['Promoted to Lead Nov 2025', 'Curiosity Award Q2 2024', 'Agility Award Q1 2025'],
   },
   {
     period: 'Mar 2022 — Mar 2024',
@@ -168,7 +168,7 @@ export default function HomePage() {
             Bianca Starling
           </h1>
           <h2 className="mt-3 text-xl font-medium text-foreground/90 lg:text-2xl">
-            Senior Product Manager
+            Lead Product Manager
           </h2>
           <p className="mt-4 max-w-xs text-muted leading-relaxed">
             Building community-driven EdTech products and AI-powered experiences. Based in Brasília, working globally.
