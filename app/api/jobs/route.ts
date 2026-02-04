@@ -18,7 +18,34 @@ export type JobsParams = {
   remoteOnly?: boolean;
   country?: string;
   resumeText?: string;
+  language?: string;
+  datePosted?: string;
+  employmentTypes?: string[];
+  jobRequirements?: string[];
+  radius?: number;
+  excludeJobPublishers?: string[];
 };
+
+const COUNTRY_TO_ISO: Record<string, string> = {
+  us: 'us', usa: 'us', 'united states': 'us', 'united states of america': 'us',
+  uk: 'gb', 'united kingdom': 'gb', britain: 'gb',
+  brazil: 'br', brasil: 'br',
+  germany: 'de', deutschland: 'de',
+  france: 'fr',
+  canada: 'ca',
+  australia: 'au',
+  spain: 'es', españa: 'es',
+  netherlands: 'nl',
+  india: 'in',
+  mexico: 'mx', méxico: 'mx',
+  remote: 'us',
+};
+
+function toCountryCode(country: string): string {
+  if (!country || !country.trim()) return '';
+  const key = country.trim().toLowerCase();
+  return COUNTRY_TO_ISO[key] || '';
+}
 
 /* Real jobs from JSearch use job_apply_link / job_google_link from the API. Mock jobs below have no real apply URL. */
 const MOCK_JOBS_LIST: JobListing[] = [
@@ -119,7 +146,7 @@ export async function GET() {
 
 /**
  * Returns job listings. Uses resumeText if provided, else main-page profile.
- * Params: remoteOnly, country, resumeText (from uploaded resume).
+ * Params: remoteOnly, country, resumeText, language, datePosted, employmentTypes, jobRequirements, radius, excludeJobPublishers.
  * Set JSEARCH_API_KEY (RapidAPI) to use real JSearch API.
  */
 export async function POST(req: Request) {
@@ -127,6 +154,12 @@ export async function POST(req: Request) {
     let remoteOnly = false;
     let country = '';
     let resumeText = '';
+    let language = '';
+    let datePosted = '';
+    let employmentTypes: string[] = [];
+    let jobRequirements: string[] = [];
+    let radius: number | undefined;
+    let excludeJobPublishers: string[] = [];
 
     const contentType = req.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
@@ -135,6 +168,13 @@ export async function POST(req: Request) {
         remoteOnly = !!body.remoteOnly;
         country = (body.country || '').trim();
         resumeText = (body.resumeText || '').trim().slice(0, 50000);
+        language = (body.language || '').trim();
+        datePosted = (body.datePosted || '').trim();
+        employmentTypes = Array.isArray(body.employmentTypes) ? body.employmentTypes.filter((x: unknown) => typeof x === 'string') : [];
+        jobRequirements = Array.isArray(body.jobRequirements) ? body.jobRequirements.filter((x: unknown) => typeof x === 'string') : [];
+        const r = body.radius;
+        radius = typeof r === 'number' && r >= 0 ? r : (typeof r === 'string' && /^\d+$/.test(r.trim()) ? parseInt(r.trim(), 10) : undefined);
+        excludeJobPublishers = Array.isArray(body.excludeJobPublishers) ? body.excludeJobPublishers.filter((x: unknown) => typeof x === 'string') : [];
       } catch {
         return NextResponse.json(
           { error: 'Invalid request body (expected JSON)', jobs: [] },
@@ -145,18 +185,27 @@ export async function POST(req: Request) {
 
     const searchText = resumeText || getResumeSearchText();
     const apiKey = process.env.JSEARCH_API_KEY;
+    const opts = { remoteOnly, country, datePosted, employmentTypes, jobRequirements, radius, excludeJobPublishers };
 
     if (apiKey) {
       const queryParts = resumeText
         ? [resumeText.slice(0, 300).replace(/\s+/g, ' ')]
         : [resumeProfile.title, ...resumeProfile.jobTitles.slice(0, 2)];
-      if (country) queryParts.push(country);
-      if (remoteOnly) queryParts.push('remote');
-      const query = encodeURIComponent(queryParts.join(' '));
+      const queryText = queryParts.join(' ');
+      const locationHint = country ? ` in ${country}` : '';
+      const query = `${queryText} jobs${locationHint}`.trim();
       const url = new URL('https://jsearch.p.rapidapi.com/search');
       url.searchParams.set('query', query);
       url.searchParams.set('num_pages', '2');
-      if (remoteOnly) url.searchParams.set('remote_jobs_only', 'true');
+      if (remoteOnly) url.searchParams.set('work_from_home', 'true');
+      const countryCode = toCountryCode(country);
+      if (countryCode) url.searchParams.set('country', countryCode);
+      if (language) url.searchParams.set('language', language);
+      if (datePosted) url.searchParams.set('date_posted', datePosted);
+      if (employmentTypes.length) url.searchParams.set('employment_types', employmentTypes.join(','));
+      if (jobRequirements.length) url.searchParams.set('job_requirements', jobRequirements.join(','));
+      if (radius !== undefined && radius > 0) url.searchParams.set('radius', String(radius));
+      if (excludeJobPublishers.length) url.searchParams.set('exclude_job_publishers', excludeJobPublishers.join(','));
 
       const res = await fetch(url.toString(), {
         headers: {
@@ -170,13 +219,27 @@ export async function POST(req: Request) {
         return NextResponse.json(
           {
             error: `Job search API failed (${res.status}). Check JSEARCH_API_KEY and quota.`,
-            jobs: isProd ? [] : getMockJobs('', { remoteOnly, country }),
+            jobs: isProd ? [] : getMockJobs('', opts),
           },
           { status: 200 }
         );
       }
       const data = await res.json();
-      const rawJobs = Array.isArray(data?.data) ? data.data : Array.isArray(data?.jobs) ? data.jobs : Array.isArray(data) ? data : [];
+      if (data?.status === 'ERROR' && data?.error) {
+        const msg = typeof data.error === 'object' && data.error?.message ? data.error.message : String(data.error);
+        return NextResponse.json(
+          { error: `Job search error: ${msg}`, jobs: isProd ? [] : getMockJobs('', { remoteOnly, country }) },
+          { status: 200 }
+        );
+      }
+      const raw = data?.data;
+      const rawJobs = Array.isArray(raw)
+        ? raw
+        : Array.isArray(raw?.jobs)
+          ? raw.jobs
+          : Array.isArray(data?.jobs)
+            ? data.jobs
+            : [];
       let jobs: JobListing[] = rawJobs.slice(0, 15).map((j: Record<string, unknown>, i: number) => ({
         id: (j.job_id as string) || `job-${i}`,
         title: (j.job_title as string) || 'Product Manager',
@@ -204,7 +267,7 @@ export async function POST(req: Request) {
         error: 'Job search is not configured. Add JSEARCH_API_KEY in your host environment to show real job listings.',
       });
     }
-    const jobs = getMockJobs(searchText, { remoteOnly, country });
+    const jobs = getMockJobs(searchText, opts);
     return NextResponse.json({ jobs });
   } catch (error) {
     console.error('Jobs API error:', error);
@@ -220,7 +283,15 @@ export async function POST(req: Request) {
 
 function getMockJobs(
   _searchText: string,
-  opts: { remoteOnly?: boolean; country?: string }
+  opts: {
+    remoteOnly?: boolean;
+    country?: string;
+    datePosted?: string;
+    employmentTypes?: string[];
+    jobRequirements?: string[];
+    radius?: number;
+    excludeJobPublishers?: string[];
+  }
 ): JobListing[] {
   let list = [...MOCK_JOBS_LIST];
   if (opts.remoteOnly) {
@@ -235,6 +306,13 @@ function getMockJobs(
     list = list.filter(
       (j) => re.test(j.location) || re.test(j.description)
     );
+  }
+  if (opts.employmentTypes?.length) {
+    const types = opts.employmentTypes.map((t) => t.toLowerCase());
+    list = list.filter((j) => {
+      const t = (j.type || '').toLowerCase();
+      return types.some((x) => t.includes(x) || (x === 'fulltime' && t.includes('full-time')) || (x === 'parttime' && t.includes('part-time')));
+    });
   }
   return list;
 }

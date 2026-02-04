@@ -137,8 +137,25 @@ function JobScrapingPanel() {
   const [resumeFileName, setResumeFileName] = useState<string | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [extractingResume, setExtractingResume] = useState(false);
+  const [language, setLanguage] = useState('');
+  const [datePosted, setDatePosted] = useState('');
+  const [employmentTypes, setEmploymentTypes] = useState<string[]>([]);
+  const [jobRequirements, setJobRequirements] = useState<string[]>([]);
+  const [radius, setRadius] = useState('');
+  const [excludeJobPublishers, setExcludeJobPublishers] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+
+  const toggleEmploymentType = (value: string) => {
+    setEmploymentTypes((prev) =>
+      prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]
+    );
+  };
+  const toggleJobRequirement = (value: string) => {
+    setJobRequirements((prev) =>
+      prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]
+    );
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -189,6 +206,14 @@ function JobScrapingPanel() {
         remoteOnly,
         country: country.trim() || undefined,
         resumeText: truncated || undefined,
+        language: language.trim() || undefined,
+        datePosted: datePosted || undefined,
+        employmentTypes: employmentTypes.length ? employmentTypes : undefined,
+        jobRequirements: jobRequirements.length ? jobRequirements : undefined,
+        radius: radius.trim() ? parseInt(radius.trim(), 10) : undefined,
+        excludeJobPublishers: excludeJobPublishers.trim()
+          ? excludeJobPublishers.split(/[\s,]+/).map((s) => s.trim()).filter(Boolean)
+          : undefined,
       });
       const res = await fetch('/api/jobs', {
         method: 'POST',
@@ -273,6 +298,101 @@ function JobScrapingPanel() {
               value={country}
               onChange={(e) => setCountry(e.target.value)}
               placeholder="e.g. Brazil, United States"
+              className="w-48 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="job-language" className="text-xs font-medium text-muted">
+              Language
+            </label>
+            <input
+              id="job-language"
+              type="text"
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              placeholder="e.g. en, pt"
+              className="w-24 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="job-date-posted" className="text-xs font-medium text-muted">
+              Date posted
+            </label>
+            <select
+              id="job-date-posted"
+              value={datePosted}
+              onChange={(e) => setDatePosted(e.target.value)}
+              className="w-36 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            >
+              <option value="">Any</option>
+              <option value="all">All</option>
+              <option value="today">Today</option>
+              <option value="3days">Past 3 days</option>
+              <option value="week">Past week</option>
+              <option value="month">Past month</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="job-radius" className="text-xs font-medium text-muted">
+              Radius (miles)
+            </label>
+            <input
+              id="job-radius"
+              type="number"
+              min={0}
+              value={radius}
+              onChange={(e) => setRadius(e.target.value)}
+              placeholder="e.g. 25"
+              className="w-24 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs font-medium text-muted">Employment types</span>
+            <div className="flex flex-wrap gap-2">
+              {['FULLTIME', 'PARTTIME', 'CONTRACTOR', 'INTERN'].map((t) => (
+                <label key={t} className="flex cursor-pointer items-center gap-1.5">
+                  <input
+                    type="checkbox"
+                    checked={employmentTypes.includes(t)}
+                    onChange={() => toggleEmploymentType(t)}
+                    className="h-3.5 w-3.5 rounded border-border text-accent focus:ring-accent"
+                  />
+                  <span className="text-xs text-foreground">{t}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs font-medium text-muted">Job requirements</span>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { value: 'under_3_years_experience', label: '< 3 yrs' },
+                { value: 'more_than_3_years_experience', label: '3+ yrs' },
+                { value: 'no_experience', label: 'No exp' },
+                { value: 'no_degree', label: 'No degree' },
+              ].map(({ value, label }) => (
+                <label key={value} className="flex cursor-pointer items-center gap-1.5">
+                  <input
+                    type="checkbox"
+                    checked={jobRequirements.includes(value)}
+                    onChange={() => toggleJobRequirement(value)}
+                    className="h-3.5 w-3.5 rounded border-border text-accent focus:ring-accent"
+                  />
+                  <span className="text-xs text-foreground">{label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="job-exclude-publishers" className="text-xs font-medium text-muted">
+              Exclude publishers
+            </label>
+            <input
+              id="job-exclude-publishers"
+              type="text"
+              value={excludeJobPublishers}
+              onChange={(e) => setExcludeJobPublishers(e.target.value)}
+              placeholder="Comma-separated"
               className="w-48 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
           </div>
