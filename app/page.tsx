@@ -163,7 +163,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white lg:flex">
       {/* Left Sidebar - Sticky on Desktop */}
-      <header className="lg:fixed lg:top-0 lg:left-0 lg:flex lg:h-screen lg:w-5/12 lg:flex-col lg:justify-between lg:py-24 lg:px-24 px-6 py-16">
+      <header className="lg:fixed lg:top-0 lg:left-0 lg:flex lg:h-screen lg:w-1/3 lg:flex-col lg:justify-between lg:py-24 lg:px-24 px-6 py-16">
         <div>
           <h1 className="text-4xl font-bold text-foreground lg:text-5xl tracking-tight">
             Bianca Starling
@@ -231,7 +231,7 @@ export default function HomePage() {
       </header>
 
       {/* Right Content - Scrollable */}
-      <main className="lg:ml-[41.666667%] lg:w-7/12 lg:py-24 lg:px-24 px-6 pb-24">
+      <main className="lg:ml-[33.333333%] lg:w-2/3 lg:py-24 lg:px-24 px-6 pb-24">
         {/* About Section */}
         <section id="about" className="mb-24 scroll-mt-24 lg:mb-36">
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
