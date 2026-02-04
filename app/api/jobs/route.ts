@@ -44,7 +44,8 @@ const COUNTRY_TO_ISO: Record<string, string> = {
 function toCountryCode(country: string): string {
   if (!country || !country.trim()) return '';
   const key = country.trim().toLowerCase();
-  return COUNTRY_TO_ISO[key] || '';
+  const code = COUNTRY_TO_ISO[key];
+  return code ? code.toUpperCase() : '';
 }
 
 /* Real jobs from JSearch use job_apply_link / job_google_link from the API. Mock jobs below have no real apply URL. */
@@ -197,7 +198,7 @@ export async function POST(req: Request) {
       const url = new URL('https://jsearch.p.rapidapi.com/search');
       url.searchParams.set('query', query);
       url.searchParams.set('num_pages', '2');
-      if (remoteOnly) url.searchParams.set('work_from_home', 'true');
+      if (remoteOnly) url.searchParams.set('remote_jobs_only', 'true');
       const countryCode = toCountryCode(country);
       if (countryCode) url.searchParams.set('country', countryCode);
       if (language) url.searchParams.set('language', language);
@@ -240,7 +241,23 @@ export async function POST(req: Request) {
           : Array.isArray(data?.jobs)
             ? data.jobs
             : [];
-      let jobs: JobListing[] = rawJobs.slice(0, 15).map((j: Record<string, unknown>, i: number) => ({
+      let filtered = rawJobs.slice(0, 15);
+      if (remoteOnly) {
+        filtered = filtered.filter((j: Record<string, unknown>) => {
+          const isRemote = j.job_is_remote === true;
+          const loc = String(j.job_city || '') + ' ' + String(j.job_country || '');
+          const desc = (j.job_description as string) || '';
+          return isRemote || /remote|work from home|wfh/i.test(loc + ' ' + desc);
+        });
+      }
+      if (country) {
+        const countryRe = new RegExp(country, 'i');
+        filtered = filtered.filter((j: Record<string, unknown>) => {
+          const loc = [j.job_city, j.job_country, j.job_description].filter(Boolean).join(' ');
+          return countryRe.test(String(loc));
+        });
+      }
+      const jobs: JobListing[] = filtered.map((j: Record<string, unknown>, i: number) => ({
         id: (j.job_id as string) || `job-${i}`,
         title: (j.job_title as string) || 'Product Manager',
         company: (j.employer_name as string) || 'Company',
@@ -256,8 +273,6 @@ export async function POST(req: Request) {
         applyUrl: (j.job_apply_link as string) || (j.job_google_link as string) || '#',
         skills: [],
       }));
-      if (remoteOnly) jobs = jobs.filter((j) => /remote/i.test(j.location || j.description));
-      if (country) jobs = jobs.filter((j) => new RegExp(country, 'i').test(j.location || j.description || ''));
       return NextResponse.json({ jobs });
     }
 
