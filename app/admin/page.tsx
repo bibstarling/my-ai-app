@@ -186,6 +186,43 @@ function AdminContent() {
                 </div>
               )}
 
+              {/* Approval requests - pending users */}
+              {!loading && users.some((u) => !u.approved) && (
+                <div className="mb-6 rounded-lg border border-amber-500/40 bg-amber-500/10 p-4">
+                  <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
+                    <UserX className="h-4 w-4 text-amber-500" />
+                    Approval requests
+                    <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+                      {users.filter((u) => !u.approved).length} pending
+                    </span>
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    These users signed in and are waiting for access approval.
+                  </p>
+                  <ul className="mt-3 space-y-2">
+                    {users
+                      .filter((u) => !u.approved)
+                      .map((u) => (
+                        <li
+                          key={u.id}
+                          className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 py-2"
+                        >
+                          <span className="text-sm text-foreground">
+                            {u.email ?? u.clerk_id}
+                          </span>
+                          <button
+                            type="button"
+                            className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700 transition-colors"
+                            onClick={() => updateUser(u.id, { approved: true })}
+                          >
+                            Approve
+                          </button>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              )}
+
               {loading ? (
                 <div className="flex justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-accent" />
