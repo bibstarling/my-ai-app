@@ -20,6 +20,7 @@ export type JobsParams = {
   resumeText?: string;
 };
 
+/* Real jobs from JSearch use job_apply_link / job_google_link from the API. Mock jobs below have no real apply URL. */
 const MOCK_JOBS_LIST: JobListing[] = [
   {
     id: '1',
@@ -30,7 +31,7 @@ const MOCK_JOBS_LIST: JobListing[] = [
     salary: '$150k - $180k',
     posted: '2 days ago',
     description: 'Drive AI strategy and LLM integrations for a learning platform. Work with multi-agent systems and discovery.',
-    applyUrl: 'https://example.com/apply/1',
+    applyUrl: '#',
     skills: ['AI Strategy', 'LLM', 'Product Management'],
   },
   {
@@ -41,7 +42,7 @@ const MOCK_JOBS_LIST: JobListing[] = [
     type: 'Full-time',
     posted: '1 week ago',
     description: 'Own roadmap for creator tools and marketplace. Continuous discovery, community growth.',
-    applyUrl: 'https://example.com/apply/2',
+    applyUrl: '#',
     skills: ['Marketplace', 'Discovery', 'Community'],
   },
   {
@@ -53,7 +54,7 @@ const MOCK_JOBS_LIST: JobListing[] = [
     salary: '$140k - $165k',
     posted: '3 days ago',
     description: 'Recommendation systems, user research, and opportunity mapping. Design system experience a plus.',
-    applyUrl: 'https://example.com/apply/3',
+    applyUrl: '#',
     skills: ['Recommendation', 'User Research', 'Design Systems'],
   },
   {
@@ -64,7 +65,7 @@ const MOCK_JOBS_LIST: JobListing[] = [
     type: 'Full-time',
     posted: '5 days ago',
     description: 'Digital transformation, course authoring, and ML-based recommendations. Government or education background valued.',
-    applyUrl: 'https://example.com/apply/4',
+    applyUrl: '#',
     skills: ['EdTech', 'ML', 'Digital Transformation'],
   },
   {
@@ -76,7 +77,7 @@ const MOCK_JOBS_LIST: JobListing[] = [
     salary: '$145k - $170k',
     posted: '1 day ago',
     description: 'Monetization, 1-1 sessions, digital products. Builder.io and headless CMS experience preferred.',
-    applyUrl: 'https://example.com/apply/5',
+    applyUrl: '#',
     skills: ['Marketplace', 'CMS', 'Monetization'],
   },
   {
@@ -87,16 +88,19 @@ const MOCK_JOBS_LIST: JobListing[] = [
     type: 'Full-time',
     posted: '4 days ago',
     description: 'On-site role in São Paulo. Product roadmap and stakeholder alignment.',
-    applyUrl: 'https://example.com/apply/6',
+    applyUrl: '#',
     skills: ['Product Management', 'Stakeholder Management'],
   },
 ];
 
-/** GET returns mock jobs (for debugging / same shape as POST). */
+const isProd = process.env.NODE_ENV === 'production';
+
+/** GET: in prod returns empty (no mock data); in dev returns mock jobs for testing. */
 export async function GET() {
   try {
+    const jobs = isProd ? [] : MOCK_JOBS_LIST;
     return NextResponse.json(
-      { jobs: MOCK_JOBS_LIST, ok: true },
+      { jobs, ok: true },
       {
         status: 200,
         headers: {
@@ -165,8 +169,8 @@ export async function POST(req: Request) {
         console.error('JSearch API error:', err);
         return NextResponse.json(
           {
-            error: 'Job search API failed',
-            jobs: getMockJobs('', { remoteOnly, country }),
+            error: 'Job search API failed. Please try again later.',
+            jobs: isProd ? [] : getMockJobs('', { remoteOnly, country }),
           },
           { status: 200 }
         );
@@ -193,12 +197,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ jobs });
     }
 
+    if (isProd) {
+      return NextResponse.json({
+        jobs: [],
+        error: 'Job search is not configured. Add JSEARCH_API_KEY in your host environment to show real job listings.',
+      });
+    }
     const jobs = getMockJobs(searchText, { remoteOnly, country });
     return NextResponse.json({ jobs });
   } catch (error) {
     console.error('Jobs API error:', error);
     return NextResponse.json(
-      { error: (error as Error).message, jobs: getMockJobs('', {}) },
+      {
+        error: (error as Error).message,
+        jobs: isProd ? [] : getMockJobs('', {}),
+      },
       { status: 200 }
     );
   }

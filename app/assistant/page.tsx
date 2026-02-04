@@ -363,15 +363,21 @@ function JobScrapingPanel() {
                 <h3 className="font-semibold text-foreground">{job.title}</h3>
                 <p className="text-sm text-muted mt-0.5">{job.company}</p>
               </div>
-              <a
-                href={job.applyUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex shrink-0 items-center gap-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:border-accent hover:bg-accent/5 transition-colors"
-              >
-                Apply
-                <ExternalLink className="h-3 w-3" />
-              </a>
+              {job.applyUrl && job.applyUrl !== '#' ? (
+                <a
+                  href={job.applyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex shrink-0 items-center gap-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:border-accent hover:bg-accent/5 transition-colors"
+                >
+                  Apply
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              ) : (
+                <span className="flex shrink-0 items-center gap-1 rounded-lg border border-border bg-muted/50 px-3 py-1.5 text-xs text-muted">
+                  Apply
+                </span>
+              )}
             </div>
             <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
               {job.location && (
