@@ -11,6 +11,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [isApproved, setIsApproved] = useState<boolean | null>(null);
   const [checkingApproval, setCheckingApproval] = useState(false);
+  const isAdmin = user?.primaryEmailAddress?.emailAddress === 'bibstarling@gmail.com';
 
   useEffect(() => {
     const checkUserApproval = async () => {
@@ -106,7 +107,15 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-gray-950">
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 right-4 flex items-center gap-4">
+        {isAdmin && (
+          <a
+            href="/admin"
+            className="rounded-lg bg-purple-600 px-3 py-1 text-sm font-semibold text-white hover:bg-purple-700"
+          >
+            Admin
+          </a>
+        )}
         <SignedIn>
           <UserButton />
         </SignedIn>
