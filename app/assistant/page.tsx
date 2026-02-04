@@ -98,23 +98,31 @@ async function extractTextFromFile(file: File): Promise<string> {
     });
   }
   if (ext === 'pdf') {
-    const pdfjsLib = await import('pdfjs-dist');
-    if (typeof window !== 'undefined' && pdfjsLib.GlobalWorkerOptions) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@5.4.624/build/pdf.worker.min.mjs';
+    try {
+      const pdfjsLib = await import('pdfjs-dist');
+      if (typeof window !== 'undefined' && pdfjsLib.GlobalWorkerOptions) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.624/build/pdf.worker.min.mjs';
+      }
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const numPages = pdf.numPages;
+      const parts: string[] = [];
+      for (let i = 1; i <= numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const text = content.items
+          .map((item) => ('str' in item ? item.str : ''))
+          .join(' ');
+        parts.push(text);
+      }
+      return parts.join('\n');
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (/worker|script|load/i.test(msg)) {
+        throw new Error('PDF viewer could not load. Save your resume as .txt or .md and upload that instead.');
+      }
+      throw new Error('Could not read PDF. Try saving as .txt or .md.');
     }
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    const numPages = pdf.numPages;
-    const parts: string[] = [];
-    for (let i = 1; i <= numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      const text = content.items
-        .map((item) => ('str' in item ? item.str : ''))
-        .join(' ');
-      parts.push(text);
-    }
-    return parts.join('\n');
   }
   throw new Error('Unsupported format. Use .txt, .md, or .pdf');
 }
@@ -148,8 +156,8 @@ function JobScrapingPanel() {
       const text = await extractTextFromFile(file);
       setResumeText(text);
       setResumeFileName(file.name);
-    } catch {
-      setFileError('Could not read file. Try .txt or .md.');
+    } catch (e) {
+      setFileError(e instanceof Error ? e.message : 'Could not read file. Try .txt or .md.');
     } finally {
       setExtractingResume(false);
       e.target.value = '';
@@ -164,16 +172,23 @@ function JobScrapingPanel() {
   };
 
   const [searchDone, setSearchDone] = useState(false);
+  const [usedFallback, setUsedFallback] = useState(false);
 
   const fetchJobs = async () => {
     setLoading(true);
     setError(null);
     setSearchDone(false);
+    setUsedFallback(false);
+    const textToSend = resumeText.trim();
+    const truncated = textToSend.length > 30000 ? textToSend.slice(0, 30000) : textToSend;
+    if (resumeFileName && !textToSend) {
+      setUsedFallback(true);
+    }
     try {
       const body = JSON.stringify({
         remoteOnly,
         country: country.trim() || undefined,
-        resumeText: resumeText.trim() || undefined,
+        resumeText: truncated || undefined,
       });
       const res = await fetch('/api/jobs', {
         method: 'POST',
@@ -190,14 +205,36 @@ function JobScrapingPanel() {
       }
       const data = await res.json();
       setSearchDone(true);
-      if (Array.isArray(data.jobs)) {
-        setJobs(data.jobs);
-        if (data.error) setError(data.error);
+      let jobsList = Array.isArray(data.jobs) ? data.jobs : Array.isArray(data) ? data : [];
+      if (jobsList.length === 0 && res.ok) {
+        const fallback = await fetch('/api/jobs');
+        if (fallback.ok) {
+          const fallbackData = await fallback.json();
+          jobsList = Array.isArray(fallbackData.jobs) ? fallbackData.jobs : [];
+        }
+        setJobs(jobsList);
       } else {
-        setJobs([]);
-        setError(data.error || 'No jobs in response');
+        setJobs(jobsList);
       }
+      if (jobsList.length > 0) setError(null);
+      else if (data.error) setError(data.error);
+      else if (res.ok) setError('Server returned no jobs. Open /api/jobs in a new tab to test.');
     } catch (err) {
+      try {
+        const fallback = await fetch('/api/jobs');
+        if (fallback.ok) {
+          const fallbackData = await fallback.json();
+          const list = Array.isArray(fallbackData.jobs) ? fallbackData.jobs : [];
+          if (list.length > 0) {
+            setJobs(list);
+            setError(null);
+            setSearchDone(true);
+            return;
+          }
+        }
+      } catch {
+        // ignore
+      }
       setError(err instanceof Error ? err.message : 'Failed to load jobs');
       setJobs([]);
       setSearchDone(true);
@@ -212,7 +249,7 @@ function JobScrapingPanel() {
       <div className="mb-6">
         <h2 className="text-xl font-bold text-foreground">Job scraping</h2>
         <p className="text-sm text-muted mt-1">
-          Find roles that match your resume or your portfolio (main page).
+          Find roles that match your portfolio (main page). Uploading a resume is optional—.txt or .md work without any setup; PDF uses the in-browser reader.
         </p>
 
         <div className="mt-4 flex flex-wrap gap-6 rounded-xl border border-border bg-card/50 p-4">
@@ -293,12 +330,23 @@ function JobScrapingPanel() {
           ) : (
             <Search className="h-4 w-4" />
           )}
-          {loading ? 'Searching...' : 'Find jobs matching my resume'}
+          {loading ? (resumeText.trim() ? 'Searching with your resume…' : 'Searching…') : 'Find jobs matching my resume'}
         </button>
         {searchDone && !loading && (
-          <p className="mt-3 text-sm text-muted">
-            {error ? 'Search completed with an issue.' : jobs.length > 0 ? `${jobs.length} job${jobs.length === 1 ? '' : 's'} found.` : 'No jobs found. Try changing filters or leave country blank.'}
-          </p>
+          <>
+            <p className="mt-3 text-sm text-muted">
+              {error
+                ? 'Search completed with an issue.'
+                : jobs.length > 0
+                  ? `${jobs.length} job${jobs.length === 1 ? '' : 's'} found.`
+                  : 'No jobs match your filters. Try clearing "Remote only" or the country field, then search again.'}
+            </p>
+            {usedFallback && (
+              <p className="mt-2 text-sm text-amber-600 dark:text-amber-400">
+                Resume could not be read; search used your portfolio. For best results, upload a .txt or .md version of your resume.
+              </p>
+            )}
+          </>
         )}
       </div>
       {error && (
@@ -368,7 +416,9 @@ function JobScrapingPanel() {
         ))}
       </div>
       {!loading && jobs.length === 0 && !error && (
-        <p className="text-sm text-muted">Click the button above to find jobs matching your resume.</p>
+        <p className="text-sm text-muted">
+          {searchDone ? 'No jobs matched. Try different filters above.' : 'Click "Find jobs matching my resume" above to run the search.'}
+        </p>
       )}
     </div>
   );
