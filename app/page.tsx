@@ -18,6 +18,13 @@ export default function Home() {
 
       setCheckingApproval(true);
 
+      // Dev shortcut: always approve your own account
+      if (user.primaryEmailAddress?.emailAddress === 'bibstarling@gmail.com') {
+        setIsApproved(true);
+        setCheckingApproval(false);
+        return;
+      }
+
       // Check if user exists in database
       const { data, error } = await supabase
         .from('users')
