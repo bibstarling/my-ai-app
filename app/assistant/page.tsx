@@ -210,7 +210,8 @@ function JobScrapingPanel() {
         const fallback = await fetch('/api/jobs');
         if (fallback.ok) {
           const fallbackData = await fallback.json();
-          jobsList = Array.isArray(fallbackData.jobs) ? fallbackData.jobs : [];
+          const fallbackJobs = Array.isArray(fallbackData.jobs) ? fallbackData.jobs : [];
+          if (fallbackJobs.length > 0) jobsList = fallbackJobs;
         }
         setJobs(jobsList);
       } else {
@@ -218,7 +219,7 @@ function JobScrapingPanel() {
       }
       if (jobsList.length > 0) setError(null);
       else if (data.error) setError(data.error);
-      else if (res.ok) setError('Server returned no jobs. Open /api/jobs in a new tab to test.');
+      else if (res.ok) setError('No jobs returned. In production, add JSEARCH_API_KEY to your host environment for real job listings.');
     } catch (err) {
       try {
         const fallback = await fetch('/api/jobs');
@@ -421,10 +422,16 @@ function JobScrapingPanel() {
           </article>
         ))}
       </div>
-      {!loading && jobs.length === 0 && !error && (
-        <p className="text-sm text-muted">
-          {searchDone ? 'No jobs matched. Try different filters above.' : 'Click "Find jobs matching my resume" above to run the search.'}
-        </p>
+      {!loading && jobs.length === 0 && (
+        <div className="rounded-xl border border-border bg-card/50 p-6 text-center">
+          {error ? (
+            <p className="text-sm text-foreground font-medium">{error}</p>
+          ) : searchDone ? (
+            <p className="text-sm text-muted">No jobs matched. Try different filters above.</p>
+          ) : (
+            <p className="text-sm text-muted">Click &quot;Find jobs matching my resume&quot; above to run the search.</p>
+          )}
+        </div>
       )}
     </div>
   );

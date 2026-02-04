@@ -6,8 +6,8 @@ import { ClientAuthWrapper } from './ClientAuthWrapper';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Bianca Starling | Senior Product Manager",
-  description: "Senior Product Manager focused on discovery, retention, and AI-powered products. Proven track record in driving measurable outcomes through strategic product thinking.",
+  title: "Bianca Starling | Lead Product Manager",
+  description: "Lead Product Manager focused on discovery, retention, and AI-powered products. Proven track record in driving measurable outcomes through strategic product thinking.",
 };
 
 const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? '';

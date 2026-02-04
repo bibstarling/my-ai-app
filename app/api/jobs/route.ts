@@ -166,17 +166,18 @@ export async function POST(req: Request) {
       });
       if (!res.ok) {
         const err = await res.text();
-        console.error('JSearch API error:', err);
+        console.error('JSearch API error:', res.status, err);
         return NextResponse.json(
           {
-            error: 'Job search API failed. Please try again later.',
+            error: `Job search API failed (${res.status}). Check JSEARCH_API_KEY and quota.`,
             jobs: isProd ? [] : getMockJobs('', { remoteOnly, country }),
           },
           { status: 200 }
         );
       }
       const data = await res.json();
-      let jobs: JobListing[] = (data.data || []).slice(0, 15).map((j: Record<string, unknown>, i: number) => ({
+      const rawJobs = Array.isArray(data?.data) ? data.data : Array.isArray(data?.jobs) ? data.jobs : Array.isArray(data) ? data : [];
+      let jobs: JobListing[] = rawJobs.slice(0, 15).map((j: Record<string, unknown>, i: number) => ({
         id: (j.job_id as string) || `job-${i}`,
         title: (j.job_title as string) || 'Product Manager',
         company: (j.employer_name as string) || 'Company',
