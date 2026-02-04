@@ -90,7 +90,13 @@ export default function AdminPage() {
             </div>
           ) : (
             <div className="overflow-hidden rounded-lg border border-border">
-              <table className="w-full">
+              <table className="w-full table-fixed">
+                <colgroup>
+                  <col className="w-auto" />
+                  <col className="w-28" />
+                  <col className="w-24" />
+                  <col className="w-32" />
+                </colgroup>
                 <thead className="bg-card">
                   <tr className="text-left text-sm text-muted">
                     <th className="px-6 py-4 font-medium">Email</th>
@@ -136,8 +142,8 @@ export default function AdminPage() {
                             <span className="text-xs text-muted">User</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-right whitespace-nowrap">
-                          <div className="flex gap-2">
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex justify-end gap-2">
                             {!u.approved && (
                               <button
                                 className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700 transition-colors"
