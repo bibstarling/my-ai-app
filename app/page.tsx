@@ -14,21 +14,13 @@ const navItems = [
 
 const experiences = [
   {
-    period: 'Nov 2025 — Present',
+    period: 'Mar 2024 — Present',
     title: 'Lead Product Manager',
+    subtitle: 'Senior Product Manager → Lead Product Manager (Nov 2025)',
     company: 'Skillshare',
     location: 'New York, USA (Remote)',
-    description: 'Promoted to lead the product team, driving company-wide AI strategy and designing multi-agent MCP to connect platform data with external AI tools.',
-    skills: ['AI Strategy', 'MCP', 'Team Leadership'],
-    highlights: ['Promoted Nov 2025'],
-  },
-  {
-    period: 'Mar 2024 — Nov 2025',
-    title: 'Senior Product Manager',
-    company: 'Skillshare',
-    location: 'New York, USA (Remote)',
-    description: 'Delivered 25% increase in daily engagement through Creative Feed and Follow Suggestions. Led marketplace expansion with 1-1 sessions and digital products. Introduced headless CMS and Builder.io framework.',
-    skills: ['Community Growth', 'Marketplace', 'CMS'],
+    description: 'Promoted to Lead PM in Nov 2025. Driving company-wide AI strategy and designing multi-agent MCP to connect platform data with external AI tools. Delivered 25% increase in daily engagement through Creative Feed and Follow Suggestions. Led marketplace expansion with 1-1 sessions and digital products. Introduced headless CMS and Builder.io framework.',
+    skills: ['AI Strategy', 'MCP', 'Community Growth', 'Marketplace', 'CMS', 'Team Leadership'],
     highlights: ['Curiosity Award Q2 2024', 'Agility Award Q1 2025'],
   },
   {
@@ -307,6 +299,9 @@ export default function HomePage() {
                   <h4 className="font-medium text-foreground group-hover:text-accent transition-colors">
                     {exp.title}
                   </h4>
+                  {exp.subtitle && (
+                    <p className="text-xs text-accent mt-0.5">{exp.subtitle}</p>
+                  )}
                   <p className="text-sm text-foreground/80">{exp.company}</p>
                   <p className="text-xs text-muted">{exp.location}</p>
                   <p className="mt-3 text-sm text-muted leading-relaxed">{exp.description}</p>
