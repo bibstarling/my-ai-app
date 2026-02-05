@@ -19,7 +19,7 @@ import {
 
 type TrackedJob = {
   id: string;
-  user_id: string;
+  clerk_id: string;
   title: string;
   company: string;
   location: string;
@@ -70,23 +70,11 @@ export default function MyJobsPage() {
         return;
       }
 
-      // Get the current user's database record using their Clerk ID
-      const { data: userData } = await supabase
-        .from('users')
-        .select('id')
-        .eq('clerk_id', user.id)
-        .maybeSingle();
-
-      if (!userData) {
-        setError('User not found. Please contact support.');
-        setLoading(false);
-        return;
-      }
-
+      // Query tracked_jobs directly using Clerk ID
       const { data, error: fetchError } = await supabase
         .from('tracked_jobs')
         .select('*')
-        .eq('user_id', userData.id)
+        .eq('clerk_id', user.id)
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
