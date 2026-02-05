@@ -19,31 +19,6 @@ export default function ResumePreviewPage({ params, searchParams }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
 
-  useEffect(() => {
-    fetchResume();
-  }, [id]);
-
-  // Auto-download if autoDownload parameter is present
-  useEffect(() => {
-    if (resolvedSearchParams?.autoDownload === 'true' && resume && !loading && !downloading) {
-      downloadPDF();
-    }
-  }, [resume, loading, resolvedSearchParams, downloading, downloadPDF]);
-
-  async function fetchResume() {
-    try {
-      const response = await fetch(`/api/resume/${id}`);
-      const data = await response.json();
-      if (data.resume) {
-        setResume(data.resume);
-      }
-    } catch (error) {
-      console.error('Error fetching resume:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   const downloadPDF = useCallback(async () => {
     if (!resume) return;
     
@@ -100,6 +75,31 @@ export default function ResumePreviewPage({ params, searchParams }: PageProps) {
       setDownloading(false);
     }
   }, [resume]);
+
+  useEffect(() => {
+    fetchResume();
+  }, [id]);
+
+  // Auto-download if autoDownload parameter is present
+  useEffect(() => {
+    if (resolvedSearchParams?.autoDownload === 'true' && resume && !loading && !downloading) {
+      downloadPDF();
+    }
+  }, [resume, loading, resolvedSearchParams, downloading, downloadPDF]);
+
+  async function fetchResume() {
+    try {
+      const response = await fetch(`/api/resume/${id}`);
+      const data = await response.json();
+      if (data.resume) {
+        setResume(data.resume);
+      }
+    } catch (error) {
+      console.error('Error fetching resume:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   if (loading) {
     return (
