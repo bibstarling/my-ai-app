@@ -1618,7 +1618,8 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
       const { width, height } = page.getSize();
       let yPosition = height - 50;
       const margin = 50;
-      const lineHeight = 15;
+      const lineHeight = 14;
+      const rightMargin = width - margin;
 
         if (type === 'resume') {
           // Header - Name
@@ -1626,30 +1627,45 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
           page.drawText(fullName, {
             x: margin,
             y: yPosition,
-            size: 24,
+            size: 28,
             font: timesRomanBold,
             color: rgb(0, 0, 0),
           });
-          yPosition -= 30;
+          yPosition -= 8;
+          
+          // Draw line under name
+          page.drawLine({
+            start: { x: margin, y: yPosition },
+            end: { x: rightMargin, y: yPosition },
+            thickness: 2,
+            color: rgb(0, 0, 0),
+          });
+          yPosition -= 20;
 
-          // Contact Info
-          const contactInfo = [
+          // Contact Info with bullets
+          const contactItems = [
             content.email,
             content.phone,
             content.location,
             content.linkedin_url,
             content.portfolio_url
-          ].filter(Boolean).join(' • ');
+          ].filter(Boolean);
 
-          if (contactInfo) {
-            page.drawText(contactInfo, {
+          if (contactItems.length > 0) {
+            let contactLine = '';
+            for (let i = 0; i < contactItems.length; i++) {
+              if (i > 0) contactLine += ' • ';
+              contactLine += contactItems[i];
+            }
+            
+            page.drawText(contactLine, {
               x: margin,
               y: yPosition,
-              size: 10,
+              size: 9,
               font: timesRomanFont,
-              color: rgb(0.3, 0.3, 0.3),
+              color: rgb(0.4, 0.4, 0.4),
             });
-            yPosition -= 25;
+            yPosition -= 30;
           }
 
           // Process sections in order
@@ -1662,51 +1678,98 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                 yPosition = height - 50;
               }
 
-              // Section header
+              // Section header with underline
               page.drawText(sectionTitle, {
                 x: margin,
                 y: yPosition,
-                size: 12,
+                size: 11,
                 font: timesRomanBold,
                 color: rgb(0, 0, 0),
               });
-              yPosition -= 20;
+              yPosition -= 3;
+              
+              // Draw line under section header
+              page.drawLine({
+                start: { x: margin, y: yPosition },
+                end: { x: rightMargin, y: yPosition },
+                thickness: 0.5,
+                color: rgb(0.7, 0.7, 0.7),
+              });
+              yPosition -= 15;
 
               // Handle different section types
               if (section.section_type === 'summary') {
                 const summaryText = section.content?.text || '';
-                const summaryLines = summaryText.match(/.{1,80}(\s|$)/g) || [];
-                for (const line of summaryLines) {
+                
+                // Wrap text properly
+                const maxWidth = rightMargin - margin;
+                const words = summaryText.split(' ');
+                let currentLine = '';
+                const lines = [];
+                
+                for (const word of words) {
+                  const testLine = currentLine ? `${currentLine} ${word}` : word;
+                  const testWidth = timesRomanFont.widthOfTextAtSize(testLine, 10);
+                  
+                  if (testWidth > maxWidth && currentLine) {
+                    lines.push(currentLine);
+                    currentLine = word;
+                  } else {
+                    currentLine = testLine;
+                  }
+                }
+                if (currentLine) lines.push(currentLine);
+                
+                for (const line of lines) {
                   if (yPosition < 50) {
                     page = pdfDoc.addPage([612, 792]);
                     yPosition = height - 50;
                   }
-                  page.drawText(line.trim(), {
+                  page.drawText(line, {
                     x: margin,
                     y: yPosition,
                     size: 10,
                     font: timesRomanFont,
-                    color: rgb(0, 0, 0),
+                    color: rgb(0.2, 0.2, 0.2),
                   });
-                  yPosition -= lineHeight;
+                  yPosition -= 14;
                 }
               } else if (section.section_type === 'skills') {
                 const skillItems = section.content?.items || [];
-                const skillsText = skillItems.join(', ');
-                const skillsLines = skillsText.match(/.{1,80}(\s|$)/g) || [];
-                for (const line of skillsLines) {
+                const skillsText = skillItems.join(' • ');
+                
+                // Wrap skills text
+                const maxWidth = rightMargin - margin;
+                const words = skillsText.split(' ');
+                let currentLine = '';
+                const lines = [];
+                
+                for (const word of words) {
+                  const testLine = currentLine ? `${currentLine} ${word}` : word;
+                  const testWidth = timesRomanFont.widthOfTextAtSize(testLine, 10);
+                  
+                  if (testWidth > maxWidth && currentLine) {
+                    lines.push(currentLine);
+                    currentLine = word;
+                  } else {
+                    currentLine = testLine;
+                  }
+                }
+                if (currentLine) lines.push(currentLine);
+                
+                for (const line of lines) {
                   if (yPosition < 50) {
                     page = pdfDoc.addPage([612, 792]);
                     yPosition = height - 50;
                   }
-                  page.drawText(line.trim(), {
+                  page.drawText(line, {
                     x: margin,
                     y: yPosition,
                     size: 10,
                     font: timesRomanFont,
-                    color: rgb(0, 0, 0),
+                    color: rgb(0.2, 0.2, 0.2),
                   });
-                  yPosition -= lineHeight;
+                  yPosition -= 14;
                 }
               } else if (section.section_type === 'experience') {
                 // Experience is stored as single content object
@@ -1717,7 +1780,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                     yPosition = height - 50;
                   }
 
-                  // Position and Company
+                  // Position (left) and Dates (right)
                   page.drawText(exp.position || '', {
                     x: margin,
                     y: yPosition,
@@ -1725,56 +1788,86 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                     font: timesRomanBold,
                     color: rgb(0, 0, 0),
                   });
-                  yPosition -= 15;
-
-                  const companyLine = [exp.company, exp.location].filter(Boolean).join(' • ');
-                  if (companyLine) {
-                    page.drawText(companyLine, {
-                      x: margin,
-                      y: yPosition,
-                      size: 10,
-                      font: timesRomanFont,
-                      color: rgb(0.3, 0.3, 0.3),
-                    });
-                    yPosition -= 15;
-                  }
-
-                  // Dates
-                  const dateRange = `${exp.startDate || ''} - ${exp.endDate || 'Present'}`;
+                  
+                  // Dates aligned to the right
+                  const dateRange = `${exp.startDate || ''} — ${exp.endDate || 'Present'}`;
+                  const dateWidth = timesRomanFont.widthOfTextAtSize(dateRange, 9);
                   page.drawText(dateRange, {
-                    x: margin,
+                    x: rightMargin - dateWidth,
                     y: yPosition,
                     size: 9,
                     font: timesRomanFont,
-                    color: rgb(0.3, 0.3, 0.3),
+                    color: rgb(0.4, 0.4, 0.4),
                   });
-                  yPosition -= 15;
+                  yPosition -= 14;
 
-                  // Bullets
+                  // Company
+                  page.drawText(exp.company || '', {
+                    x: margin,
+                    y: yPosition,
+                    size: 10,
+                    font: timesRomanFont,
+                    color: rgb(0.2, 0.2, 0.2),
+                  });
+                  yPosition -= 12;
+
+                  // Bullets with proper indentation
                   if (exp.bullets && Array.isArray(exp.bullets)) {
+                    yPosition -= 2;
                     for (const bullet of exp.bullets) {
                       if (yPosition < 50) {
                         page = pdfDoc.addPage([612, 792]);
                         yPosition = height - 50;
                       }
-                      const bulletLines = bullet.match(/.{1,75}(\s|$)/g) || [];
+                      
+                      // Wrap text to fit page width
+                      const maxWidth = rightMargin - margin - 15; // Leave space for bullet
+                      const bulletLines = [];
+                      const words = bullet.split(' ');
+                      let currentLine = '';
+                      
+                      for (const word of words) {
+                        const testLine = currentLine ? `${currentLine} ${word}` : word;
+                        const testWidth = timesRomanFont.widthOfTextAtSize(testLine, 9.5);
+                        
+                        if (testWidth > maxWidth && currentLine) {
+                          bulletLines.push(currentLine);
+                          currentLine = word;
+                        } else {
+                          currentLine = testLine;
+                        }
+                      }
+                      if (currentLine) bulletLines.push(currentLine);
+                      
+                      // Draw bullet and wrapped lines
                       for (let i = 0; i < bulletLines.length; i++) {
                         if (yPosition < 50) {
                           page = pdfDoc.addPage([612, 792]);
                           yPosition = height - 50;
                         }
-                        const prefix = i === 0 ? '• ' : '  ';
-                        page.drawText(prefix + bulletLines[i].trim(), {
-                          x: margin,
+                        
+                        if (i === 0) {
+                          page.drawText('•', {
+                            x: margin + 5,
+                            y: yPosition,
+                            size: 9.5,
+                            font: timesRomanFont,
+                            color: rgb(0, 0, 0),
+                          });
+                        }
+                        
+                        page.drawText(bulletLines[i], {
+                          x: margin + 15,
                           y: yPosition,
-                          size: 10,
+                          size: 9.5,
                           font: timesRomanFont,
-                          color: rgb(0, 0, 0),
+                          color: rgb(0.2, 0.2, 0.2),
                         });
-                        yPosition -= lineHeight;
+                        yPosition -= 13;
                       }
                     }
                   }
+                  yPosition -= 5; // Extra space after experience entry
                 }
               } else if (section.section_type === 'education') {
                 const edu = section.content;
@@ -1784,6 +1877,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                     yPosition = height - 50;
                   }
 
+                  // Degree (left) and Year (right)
                   page.drawText(edu.degree || '', {
                     x: margin,
                     y: yPosition,
@@ -1791,30 +1885,28 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                     font: timesRomanBold,
                     color: rgb(0, 0, 0),
                   });
-                  yPosition -= 15;
-
-                  const institutionLine = [edu.institution, edu.location].filter(Boolean).join(' • ');
-                  if (institutionLine) {
-                    page.drawText(institutionLine, {
-                      x: margin,
-                      y: yPosition,
-                      size: 10,
-                      font: timesRomanFont,
-                      color: rgb(0.3, 0.3, 0.3),
-                    });
-                    yPosition -= 15;
-                  }
-
+                  
                   if (edu.year) {
+                    const yearWidth = timesRomanFont.widthOfTextAtSize(edu.year, 9);
                     page.drawText(edu.year, {
-                      x: margin,
+                      x: rightMargin - yearWidth,
                       y: yPosition,
                       size: 9,
                       font: timesRomanFont,
-                      color: rgb(0.3, 0.3, 0.3),
+                      color: rgb(0.4, 0.4, 0.4),
                     });
-                    yPosition -= 15;
                   }
+                  yPosition -= 14;
+
+                  // Institution
+                  page.drawText(edu.institution || '', {
+                    x: margin,
+                    y: yPosition,
+                    size: 10,
+                    font: timesRomanFont,
+                    color: rgb(0.2, 0.2, 0.2),
+                  });
+                  yPosition -= 18;
                 }
               } else if (section.section_type === 'projects') {
                 const proj = section.content;
@@ -1824,6 +1916,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                     yPosition = height - 50;
                   }
 
+                  // Project name
                   page.drawText(proj.name || '', {
                     x: margin,
                     y: yPosition,
@@ -1831,46 +1924,103 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                     font: timesRomanBold,
                     color: rgb(0, 0, 0),
                   });
-                  yPosition -= 15;
+                  yPosition -= 14;
 
+                  // Description
                   if (proj.description) {
-                    const descLines = proj.description.match(/.{1,80}(\s|$)/g) || [];
-                    for (const line of descLines) {
+                    const maxWidth = rightMargin - margin;
+                    const words = proj.description.split(' ');
+                    let currentLine = '';
+                    const lines = [];
+                    
+                    for (const word of words) {
+                      const testLine = currentLine ? `${currentLine} ${word}` : word;
+                      const testWidth = timesRomanFont.widthOfTextAtSize(testLine, 9.5);
+                      
+                      if (testWidth > maxWidth && currentLine) {
+                        lines.push(currentLine);
+                        currentLine = word;
+                      } else {
+                        currentLine = testLine;
+                      }
+                    }
+                    if (currentLine) lines.push(currentLine);
+                    
+                    for (const line of lines) {
                       if (yPosition < 50) {
                         page = pdfDoc.addPage([612, 792]);
                         yPosition = height - 50;
                       }
-                      page.drawText(line.trim(), {
+                      page.drawText(line, {
                         x: margin,
                         y: yPosition,
-                        size: 10,
+                        size: 9.5,
                         font: timesRomanFont,
-                        color: rgb(0, 0, 0),
+                        color: rgb(0.2, 0.2, 0.2),
                       });
-                      yPosition -= lineHeight;
+                      yPosition -= 13;
                     }
                   }
 
+                  // Bullets
                   if (proj.bullets && Array.isArray(proj.bullets)) {
+                    yPosition -= 2;
                     for (const bullet of proj.bullets) {
                       if (yPosition < 50) {
                         page = pdfDoc.addPage([612, 792]);
                         yPosition = height - 50;
                       }
-                      page.drawText('• ' + bullet, {
-                        x: margin,
-                        y: yPosition,
-                        size: 10,
-                        font: timesRomanFont,
-                        color: rgb(0, 0, 0),
-                      });
-                      yPosition -= lineHeight;
+                      
+                      const maxWidth = rightMargin - margin - 15;
+                      const words = bullet.split(' ');
+                      let currentLine = '';
+                      const bulletLines = [];
+                      
+                      for (const word of words) {
+                        const testLine = currentLine ? `${currentLine} ${word}` : word;
+                        const testWidth = timesRomanFont.widthOfTextAtSize(testLine, 9.5);
+                        
+                        if (testWidth > maxWidth && currentLine) {
+                          bulletLines.push(currentLine);
+                          currentLine = word;
+                        } else {
+                          currentLine = testLine;
+                        }
+                      }
+                      if (currentLine) bulletLines.push(currentLine);
+                      
+                      for (let i = 0; i < bulletLines.length; i++) {
+                        if (yPosition < 50) {
+                          page = pdfDoc.addPage([612, 792]);
+                          yPosition = height - 50;
+                        }
+                        
+                        if (i === 0) {
+                          page.drawText('•', {
+                            x: margin + 5,
+                            y: yPosition,
+                            size: 9.5,
+                            font: timesRomanFont,
+                            color: rgb(0, 0, 0),
+                          });
+                        }
+                        
+                        page.drawText(bulletLines[i], {
+                          x: margin + 15,
+                          y: yPosition,
+                          size: 9.5,
+                          font: timesRomanFont,
+                          color: rgb(0.2, 0.2, 0.2),
+                        });
+                        yPosition -= 13;
+                      }
                     }
                   }
+                  yPosition -= 5;
                 }
               }
 
-              yPosition -= 15; // Space between sections
+              yPosition -= 8; // Space between sections
             }
           }
         } else {
@@ -1882,11 +2032,11 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
         page.drawText('Bianca Starling', {
           x: margin,
           y: yPosition,
-          size: 16,
+          size: 18,
           font: timesRomanBold,
           color: rgb(0, 0, 0),
         });
-        yPosition -= 30;
+        yPosition -= 35;
 
         // Date
         const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -1895,9 +2045,9 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
           y: yPosition,
           size: 10,
           font: timesRomanFont,
-          color: rgb(0, 0, 0),
+          color: rgb(0.2, 0.2, 0.2),
         });
-        yPosition -= 25;
+        yPosition -= 28;
 
         // Recipient
         if (content.recipient_name || content.recipient_title || jobCompany) {
@@ -1907,9 +2057,9 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
               y: yPosition,
               size: 10,
               font: timesRomanFont,
-              color: rgb(0, 0, 0),
+              color: rgb(0.2, 0.2, 0.2),
             });
-            yPosition -= lineHeight;
+            yPosition -= 14;
           }
           
           if (content.recipient_title) {
@@ -1918,9 +2068,9 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
               y: yPosition,
               size: 10,
               font: timesRomanFont,
-              color: rgb(0, 0, 0),
+              color: rgb(0.2, 0.2, 0.2),
             });
-            yPosition -= lineHeight;
+            yPosition -= 14;
           }
           
           if (jobCompany) {
@@ -1929,9 +2079,9 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
               y: yPosition,
               size: 10,
               font: timesRomanFont,
-              color: rgb(0, 0, 0),
+              color: rgb(0.2, 0.2, 0.2),
             });
-            yPosition -= lineHeight;
+            yPosition -= 14;
           }
           
           if (content.company_address) {
@@ -1940,12 +2090,12 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
               y: yPosition,
               size: 10,
               font: timesRomanFont,
-              color: rgb(0, 0, 0),
+              color: rgb(0.2, 0.2, 0.2),
             });
-            yPosition -= lineHeight;
+            yPosition -= 14;
           }
           
-          yPosition -= 10;
+          yPosition -= 14;
         }
 
         // Salutation
@@ -1955,76 +2105,68 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
         page.drawText(salutation, {
           x: margin,
           y: yPosition,
-          size: 10,
+          size: 11,
           font: timesRomanFont,
-          color: rgb(0, 0, 0),
+          color: rgb(0.2, 0.2, 0.2),
         });
-        yPosition -= 25;
+        yPosition -= 28;
 
-        // Opening paragraph
-        if (content.opening_paragraph) {
-          const lines = content.opening_paragraph.match(/.{1,80}(\s|$)/g) || [];
+        // Helper function to wrap and draw paragraph
+        const drawParagraph = (text: string) => {
+          const maxWidth = rightMargin - margin;
+          const words = text.split(' ');
+          let currentLine = '';
+          const lines = [];
+          
+          for (const word of words) {
+            const testLine = currentLine ? `${currentLine} ${word}` : word;
+            const testWidth = timesRomanFont.widthOfTextAtSize(testLine, 11);
+            
+            if (testWidth > maxWidth && currentLine) {
+              lines.push(currentLine);
+              currentLine = word;
+            } else {
+              currentLine = testLine;
+            }
+          }
+          if (currentLine) lines.push(currentLine);
+          
           for (const line of lines) {
             if (yPosition < 50) {
               page = pdfDoc.addPage([612, 792]);
               yPosition = height - 50;
             }
-            page.drawText(line.trim(), {
+            page.drawText(line, {
               x: margin,
               y: yPosition,
-              size: 10,
+              size: 11,
               font: timesRomanFont,
-              color: rgb(0, 0, 0),
+              color: rgb(0.2, 0.2, 0.2),
             });
-            yPosition -= lineHeight;
+            yPosition -= 16;
           }
-          yPosition -= 10;
+          yPosition -= 8; // Space between paragraphs
+        };
+
+        // Opening paragraph
+        if (content.opening_paragraph) {
+          drawParagraph(content.opening_paragraph);
         }
 
         // Body paragraphs
         if (content.body_paragraphs && Array.isArray(content.body_paragraphs)) {
           for (const paragraph of content.body_paragraphs) {
-            const lines = paragraph.match(/.{1,80}(\s|$)/g) || [];
-            for (const line of lines) {
-              if (yPosition < 50) {
-                page = pdfDoc.addPage([612, 792]);
-                yPosition = height - 50;
-              }
-              page.drawText(line.trim(), {
-                x: margin,
-                y: yPosition,
-                size: 10,
-                font: timesRomanFont,
-                color: rgb(0, 0, 0),
-              });
-              yPosition -= lineHeight;
-            }
-            yPosition -= 10;
+            drawParagraph(paragraph);
           }
         }
 
         // Closing paragraph
         if (content.closing_paragraph) {
-          const lines = content.closing_paragraph.match(/.{1,80}(\s|$)/g) || [];
-          for (const line of lines) {
-            if (yPosition < 50) {
-              page = pdfDoc.addPage([612, 792]);
-              yPosition = height - 50;
-            }
-            page.drawText(line.trim(), {
-              x: margin,
-              y: yPosition,
-              size: 10,
-              font: timesRomanFont,
-              color: rgb(0, 0, 0),
-            });
-            yPosition -= lineHeight;
-          }
-          yPosition -= 10;
+          drawParagraph(content.closing_paragraph);
         }
 
         // Closing
-        yPosition -= 10;
+        yPosition -= 5;
         if (yPosition < 80) {
           page = pdfDoc.addPage([612, 792]);
           yPosition = height - 50;
@@ -2032,17 +2174,17 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
         page.drawText('Sincerely,', {
           x: margin,
           y: yPosition,
-          size: 10,
+          size: 11,
           font: timesRomanFont,
-          color: rgb(0, 0, 0),
+          color: rgb(0.2, 0.2, 0.2),
         });
-        yPosition -= 25;
+        yPosition -= 30;
         page.drawText('Bianca Starling', {
           x: margin,
           y: yPosition,
-          size: 10,
+          size: 11,
           font: timesRomanFont,
-          color: rgb(0, 0, 0),
+          color: rgb(0.2, 0.2, 0.2),
         });
       }
 
