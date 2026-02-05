@@ -429,6 +429,9 @@ export default function HomePage() {
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
             Experience
           </h3>
+          <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
+            Experience
+          </h4>
           <div className="space-y-12">
             {portfolioData.experiences.map((exp, idx) => (
               <div
@@ -474,6 +477,9 @@ export default function HomePage() {
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
             Work
           </h3>
+          <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
+            Portfolio Projects
+          </h4>
           <ProjectGrid projects={portfolioData.projects} onProjectClick={setModalProject} />
           {modalProject && (
             <ProjectModal project={modalProject} onClose={() => setModalProject(null)} />
@@ -485,6 +491,9 @@ export default function HomePage() {
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
             Skills
           </h3>
+          <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
+            Skills & Expertise
+          </h4>
           
           {/* Skills Grid */}
           <div className="grid gap-6 md:grid-cols-2">
@@ -593,6 +602,9 @@ export default function HomePage() {
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
             Contact
           </h3>
+          <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
+            Get In Touch
+          </h4>
           <div className="max-w-lg">
             <p className="text-muted leading-relaxed mb-6">
               Open to discussing product leadership roles, AI product strategy, and interesting 
