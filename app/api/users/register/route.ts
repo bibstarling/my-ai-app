@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { getSupabaseServiceRole } from '@/lib/supabase-server';
 
 /**
@@ -32,7 +32,7 @@ export async function POST() {
     }
 
     // Get user info from Clerk
-    const { user } = await auth();
+    const user = await currentUser();
     
     // Create new user record
     const { data: newUser, error: insertError } = await supabase
