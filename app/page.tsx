@@ -14,6 +14,130 @@ const navItems = [
   { id: 'contact', label: 'Contact' },
 ];
 
+// Extract unique categories from project tags
+const CATEGORIES = [
+  { id: 'all', label: 'All Projects' },
+  { id: 'ai', label: 'AI & Discovery' },
+  { id: 'community', label: 'Community & Engagement' },
+  { id: 'platform', label: 'Platform & Integration' },
+  { id: 'edtech', label: 'EdTech' },
+  { id: 'discovery', label: 'Research & Discovery' },
+];
+
+function getCategoryForProject(project: PortfolioProject): string[] {
+  const categories: string[] = ['all'];
+  const tagString = project.tags.join(' ').toLowerCase();
+  
+  if (tagString.includes('ai') || tagString.includes('semantic') || tagString.includes('vector') || tagString.includes('chatgpt')) {
+    categories.push('ai');
+  }
+  if (tagString.includes('community') || tagString.includes('engagement') || tagString.includes('feed')) {
+    categories.push('community');
+  }
+  if (tagString.includes('platform') || tagString.includes('integration') || tagString.includes('cms') || tagString.includes('marketplace')) {
+    categories.push('platform');
+  }
+  if (tagString.includes('edtech') || tagString.includes('education') || tagString.includes('learning')) {
+    categories.push('edtech');
+  }
+  if (tagString.includes('discovery') || tagString.includes('research') || tagString.includes('qualitative')) {
+    categories.push('discovery');
+  }
+  
+  return categories;
+}
+
+function ProjectGrid({
+  projects,
+  onProjectClick,
+}: {
+  projects: PortfolioProject[];
+  onProjectClick: (project: PortfolioProject) => void;
+}) {
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
+  const filteredProjects = projects.filter((project) => {
+    if (selectedCategory === 'all') return true;
+    return getCategoryForProject(project).includes(selectedCategory);
+  });
+
+  return (
+    <div>
+      {/* Category Tabs */}
+      <div className="mb-8 flex flex-wrap gap-2">
+        {CATEGORIES.map((category) => (
+          <button
+            key={category.id}
+            onClick={() => setSelectedCategory(category.id)}
+            className={`rounded-full px-4 py-2 text-xs font-medium uppercase tracking-wider transition-all ${
+              selectedCategory === category.id
+                ? 'bg-accent text-white shadow-sm'
+                : 'bg-muted/20 text-muted hover:bg-muted/30 hover:text-foreground'
+            }`}
+          >
+            {category.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Masonry Grid */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {filteredProjects.map((project) => (
+          <div
+            key={project.id}
+            role="button"
+            tabIndex={0}
+            onClick={() => onProjectClick(project)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onProjectClick(project);
+              }
+            }}
+            className="group relative rounded-lg border border-border bg-white p-6 transition-all hover:border-accent hover:shadow-lg cursor-pointer"
+          >
+            <p className="text-xs font-medium text-muted uppercase tracking-wider">
+              {project.company}
+            </p>
+            <h4 className="mt-2 font-medium text-foreground group-hover:text-accent transition-colors leading-snug">
+              {project.title}
+            </h4>
+            <p className="mt-3 text-sm text-muted leading-relaxed line-clamp-3">
+              {project.cardTeaser}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {project.tags.slice(0, 3).map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent"
+                >
+                  {tag}
+                </span>
+              ))}
+              {project.tags.length > 3 && (
+                <span className="rounded-full bg-muted/20 px-3 py-1 text-xs font-medium text-muted">
+                  +{project.tags.length - 3}
+                </span>
+              )}
+            </div>
+            <div className="mt-4 pt-4 border-t border-border">
+              <p className="text-xs font-medium text-accent line-clamp-2">
+                {project.outcome}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {filteredProjects.length === 0 && (
+        <div className="py-12 text-center text-muted">
+          <p>No projects found in this category.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ProjectModal({
   project,
   onClose,
@@ -289,38 +413,7 @@ export default function HomePage() {
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
             Work
           </h3>
-          <div className="space-y-12">
-            {portfolioData.projects.map((project) => (
-              <div
-                key={project.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => setModalProject(project)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setModalProject(project); } }}
-                className="group relative grid gap-4 pb-1 transition-all cursor-pointer"
-              >
-                <div className="absolute -inset-x-4 -inset-y-4 z-0 hidden rounded-md transition-all group-hover:bg-card/50 group-hover:shadow-[inset_0_1px_0_0_rgba(148,163,184,0.1)] lg:block" />
-                <div className="z-10">
-                  <p className="text-xs font-medium text-muted uppercase tracking-wider">{project.company}</p>
-                  <h4 className="mt-1 font-medium text-foreground group-hover:text-accent transition-colors">
-                    {project.title}
-                  </h4>
-                  <p className="mt-2 text-sm text-muted leading-relaxed">{project.cardTeaser}</p>
-                  <p className="mt-3 text-sm font-medium text-accent">{project.outcome}</p>
-                  <ul className="mt-4 flex flex-wrap gap-2">
-                    {project.tags.slice(0, 5).map((tag) => (
-                      <li
-                        key={tag}
-                        className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent"
-                      >
-                        {tag}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            ))}
-          </div>
+          <ProjectGrid projects={portfolioData.projects} onProjectClick={setModalProject} />
           {modalProject && (
             <ProjectModal project={modalProject} onClose={() => setModalProject(null)} />
           )}
