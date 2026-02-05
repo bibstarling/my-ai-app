@@ -4,8 +4,7 @@ import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Download, Save, Eye, Sparkles, Lightbulb } from 'lucide-react';
 import type { CoverLetter } from '@/lib/types/cover-letter';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+// PDF generation removed - use the download button in the job card modal instead
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -25,33 +24,11 @@ export default function CoverLetterEditPage({ params, searchParams }: PageProps)
     
     setDownloading(true);
     try {
-      const letterElement = document.getElementById('cover-letter-content');
-      if (!letterElement) {
-        throw new Error('Cover letter content not found');
-      }
-
-      const canvas = await html2canvas(letterElement, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-      });
-
-      const imgWidth = 210;
-      const pageHeight = 297;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgData = canvas.toDataURL('image/png');
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-
-      const companyName = coverLetter.job_company || 'company';
-      const filename = `coverletter_biancastarling_${companyName.replace(/[^a-z0-9]/gi, '').toLowerCase()}.pdf`;
-
-      pdf.save(filename);
+      // Use the browser's print dialog for PDF generation
+      window.print();
     } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
+      console.error('Error opening print dialog:', error);
+      alert('Failed to open print dialog. Please use Ctrl+P or Cmd+P to print.');
     } finally {
       setDownloading(false);
     }

@@ -4,8 +4,7 @@ import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Download, Mail, Phone, MapPin, Linkedin, Globe } from 'lucide-react';
 import type { ResumeWithSections, ResumeSection, ExperienceContent, EducationContent, SkillsContent, SummaryContent, ProjectContent } from '@/lib/types/resume';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+// PDF generation removed - use the download button in the job card modal instead
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -24,53 +23,11 @@ export default function ResumePreviewPage({ params, searchParams }: PageProps) {
     
     setDownloading(true);
     try {
-      const resumeElement = document.getElementById('resume-content');
-      if (!resumeElement) {
-        throw new Error('Resume content not found');
-      }
-
-      // Generate canvas from HTML
-      const canvas = await html2canvas(resumeElement, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-      });
-
-      // Calculate PDF dimensions
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      let position = 0;
-
-      // Add image to PDF
-      const imgData = canvas.toDataURL('image/png');
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      // Add additional pages if needed
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-
-      // Generate filename
-      const fullName = resume.full_name || 'resume';
-      const title = resume.title || '';
-      const companyMatch = title.match(/at\s+(.+)$/i);
-      const companyName = companyMatch ? companyMatch[1].replace(/[^a-z0-9]/gi, '').toLowerCase() : 'company';
-      const filename = `resume_${fullName.toLowerCase().replace(/\s+/g, '')}_${companyName}.pdf`;
-
-      // Download PDF
-      pdf.save(filename);
+      // Use the browser's print dialog for PDF generation
+      window.print();
     } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF. Please try using the print dialog instead.');
+      console.error('Error opening print dialog:', error);
+      alert('Failed to open print dialog. Please use Ctrl+P or Cmd+P to print.');
     } finally {
       setDownloading(false);
     }
