@@ -10,6 +10,7 @@ const navItems = [
   { id: 'about', label: 'About' },
   { id: 'experience', label: 'Experience' },
   { id: 'work', label: 'Work' },
+  { id: 'approach', label: 'How I Work' },
   { id: 'skills', label: 'Skills' },
   { id: 'articles', label: 'Articles & Talks' },
   { id: 'contact', label: 'Contact' },
@@ -478,6 +479,162 @@ export default function HomePage() {
           {modalProject && (
             <ProjectModal project={modalProject} onClose={() => setModalProject(null)} />
           )}
+        </section>
+
+        {/* How I Work Section */}
+        <section id="approach" className="mb-24 scroll-mt-24 lg:mb-36">
+          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
+            How I Work
+          </h3>
+          <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
+            How I Work
+          </h4>
+          
+          <div className="space-y-6">
+            <p className="text-muted leading-relaxed">
+              I'm a high-agency builder who takes on complex, ambiguous projects and ships fast. 
+              When priorities shift mid-flight, I adapt quickly and keep multiple initiatives moving forward. 
+              I don't wait for perfect conditions—I find creative ways to ship with the resources I have.
+            </p>
+            <p className="text-muted leading-relaxed">
+              My approach: Run discovery that actually informs decisions. Work closely with engineering to 
+              figure out what's possible. Build the right-sized solution, not the perfect one. Ship fast, 
+              learn fast, iterate.
+            </p>
+          </div>
+
+          {/* PM Positioning */}
+          <div className="mt-12 rounded-lg border border-border bg-white p-6 lg:p-8">
+            <div className="mb-6">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-accent mb-2">
+                What I Bring to the Table
+              </h4>
+              <p className="text-sm text-muted">
+                Rated "Exceeding High Expectations" for managing behemoth projects through organizational change.
+              </p>
+            </div>
+            <ul className="space-y-3">
+              {portfolioData.superpowers.map((superpower, idx) => (
+                <li key={idx} className="flex items-start gap-3 text-sm">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                  <p className="leading-relaxed text-foreground">{superpower}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* What I'm Good At */}
+          <div className="mt-8 grid gap-6 md:grid-cols-2">
+            <div className="rounded-lg border border-border bg-white p-6">
+              <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-accent">
+                I Excel At
+              </h4>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-3 text-sm">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                  <p className="leading-relaxed text-foreground">
+                    <span className="font-medium">0-to-1 products:</span> Build from nothing, ship fast, 
+                    prove value quickly
+                  </p>
+                </li>
+                <li className="flex items-start gap-3 text-sm">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                  <p className="leading-relaxed text-foreground">
+                    <span className="font-medium">Ambiguous problems:</span> Thrive when the path isn't clear, 
+                    frame problems, find creative solutions
+                  </p>
+                </li>
+                <li className="flex items-start gap-3 text-sm">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                  <p className="leading-relaxed text-foreground">
+                    <span className="font-medium">Scrappy execution:</span> Ship with limited resources through 
+                    creative problem-solving
+                  </p>
+                </li>
+                <li className="flex items-start gap-3 text-sm">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                  <p className="leading-relaxed text-foreground">
+                    <span className="font-medium">Multiple initiatives:</span> Juggle behemoth projects 
+                    simultaneously without creating bottlenecks
+                  </p>
+                </li>
+              </ul>
+            </div>
+
+            <div className="rounded-lg border border-border bg-white p-6">
+              <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-accent">
+                What I Value
+              </h4>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-3 text-sm">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                  <p className="leading-relaxed text-foreground">
+                    <span className="font-medium">Bias to action:</span> Ship and learn beats planning to perfection
+                  </p>
+                </li>
+                <li className="flex items-start gap-3 text-sm">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                  <p className="leading-relaxed text-foreground">
+                    <span className="font-medium">User reality:</span> Discovery that connects to actual behavior, 
+                    not just opinions
+                  </p>
+                </li>
+                <li className="flex items-start gap-3 text-sm">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                  <p className="leading-relaxed text-foreground">
+                    <span className="font-medium">Measurable outcomes:</span> Real metrics over vanity numbers
+                  </p>
+                </li>
+                <li className="flex items-start gap-3 text-sm">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                  <p className="leading-relaxed text-foreground">
+                    <span className="font-medium">Cross-functional impact:</span> Unblock teams beyond my core role, 
+                    act as a force multiplier
+                  </p>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Ideal Environments */}
+          <div className="mt-8 rounded-lg bg-gradient-to-br from-accent/5 via-transparent to-transparent border border-border p-6 lg:p-8">
+            <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-accent">
+              Where I Thrive
+            </h4>
+            <p className="text-sm text-muted leading-relaxed mb-4">
+              I'm most valuable in environments that need fast execution through ambiguity:
+            </p>
+            <ul className="space-y-2">
+              <li className="flex items-start gap-3 text-sm">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                <p className="leading-relaxed text-foreground">
+                  <span className="font-medium">Early-stage startups</span> that need to prove value quickly with 
+                  limited resources
+                </p>
+              </li>
+              <li className="flex items-start gap-3 text-sm">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                <p className="leading-relaxed text-foreground">
+                  <span className="font-medium">0-to-1 teams at scale-ups</span> launching new product lines or 
+                  experimental initiatives
+                </p>
+              </li>
+              <li className="flex items-start gap-3 text-sm">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                <p className="leading-relaxed text-foreground">
+                  <span className="font-medium">AI-first companies</span> building products where the path isn't 
+                  obvious and iteration is key
+                </p>
+              </li>
+              <li className="flex items-start gap-3 text-sm">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                <p className="leading-relaxed text-foreground">
+                  <span className="font-medium">Growth-stage companies</span> navigating rapid scaling and 
+                  multiple pivots
+                </p>
+              </li>
+            </ul>
+          </div>
         </section>
 
         {/* Skills Section */}
