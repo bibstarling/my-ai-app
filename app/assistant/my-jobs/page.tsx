@@ -23,7 +23,9 @@ import {
   CheckCircle,
   AlertCircle,
 } from 'lucide-react';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { pdf } from '@react-pdf/renderer';
+import { ResumePDF } from './ResumePDF';
+import { CoverLetterPDF } from './CoverLetterPDF';
 import {
   DndContext,
   DragEndEvent,
@@ -1610,16 +1612,13 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
     setDownloading(true);
     try {
       console.log('Starting PDF generation for type:', type);
-      console.log('Content structure:', {
-        hasContent: !!content,
-        contentKeys: content ? Object.keys(content) : [],
-        sectionsCount: content?.sections?.length
-      });
       
-      // Create a new PDF document
-      const pdfDoc = await PDFDocument.create();
-      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-      const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      // Generate PDF using @react-pdf/renderer
+      const PDFComponent = type === 'resume' 
+        ? <ResumePDF resume={content} />
+        : <CoverLetterPDF coverLetter={content} />;
+      
+      const blob = await pdf(PDFComponent).toBlob();
       
       // Helper function to safely draw text (handles null/undefined and special characters)
       // WinAnsi encoding only supports characters 0x20-0x7E and 0xA0-0xFF
