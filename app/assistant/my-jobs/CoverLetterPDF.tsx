@@ -67,11 +67,6 @@ export const CoverLetterPDF = ({ coverLetter }: any) => {
             <Text style={styles.paragraph}>{coverLetter.closing_paragraph}</Text>
           )}
         </View>
-
-        <Text style={styles.signature}>
-          Sincerely,{'\n'}
-          Bianca Starling
-        </Text>
       </Page>
     </Document>
   );
