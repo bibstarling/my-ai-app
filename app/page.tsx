@@ -556,6 +556,9 @@ export default function HomePage() {
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
             Articles & Talks
           </h3>
+          <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
+            Speaking & Publications
+          </h4>
           <div className="space-y-4">
             {portfolioData.articlesAndTalks.map((item, idx) => (
               <a
