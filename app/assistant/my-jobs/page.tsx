@@ -1620,242 +1620,273 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
       const margin = 50;
       const lineHeight = 15;
 
-      if (type === 'resume') {
-        // Header - Name
-        const fullName = content.full_name || 'Resume';
-        page.drawText(fullName, {
-          x: margin,
-          y: yPosition,
-          size: 24,
-          font: timesRomanBold,
-          color: rgb(0, 0, 0),
-        });
-        yPosition -= 30;
-
-        // Contact Info
-        const contactInfo = [
-          content.email,
-          content.phone,
-          content.location,
-          content.linkedin_url,
-          content.portfolio_url
-        ].filter(Boolean).join(' • ');
-        
-        if (contactInfo) {
-          page.drawText(contactInfo, {
+        if (type === 'resume') {
+          // Header - Name
+          const fullName = content.full_name || 'Resume';
+          page.drawText(fullName, {
             x: margin,
             y: yPosition,
-            size: 10,
-            font: timesRomanFont,
-            color: rgb(0.3, 0.3, 0.3),
-          });
-          yPosition -= 25;
-        }
-
-        // Professional Summary
-        if (content.professional_summary) {
-          page.drawText('PROFESSIONAL SUMMARY', {
-            x: margin,
-            y: yPosition,
-            size: 12,
+            size: 24,
             font: timesRomanBold,
             color: rgb(0, 0, 0),
           });
-          yPosition -= 20;
+          yPosition -= 30;
 
-          const summaryLines = content.professional_summary.match(/.{1,80}(\s|$)/g) || [];
-          for (const line of summaryLines) {
-            if (yPosition < 50) {
-              page = pdfDoc.addPage([612, 792]);
-              yPosition = height - 50;
-            }
-            page.drawText(line.trim(), {
+          // Contact Info
+          const contactInfo = [
+            content.email,
+            content.phone,
+            content.location,
+            content.linkedin_url,
+            content.portfolio_url
+          ].filter(Boolean).join(' • ');
+
+          if (contactInfo) {
+            page.drawText(contactInfo, {
               x: margin,
               y: yPosition,
               size: 10,
               font: timesRomanFont,
-              color: rgb(0, 0, 0),
+              color: rgb(0.3, 0.3, 0.3),
             });
-            yPosition -= lineHeight;
+            yPosition -= 25;
           }
-          yPosition -= 10;
-        }
 
-        // Skills
-        if (content.sections?.find((s: any) => s.type === 'skills')) {
-          const skillsSection = content.sections.find((s: any) => s.type === 'skills');
-          if (yPosition < 50) {
-            page = pdfDoc.addPage([612, 792]);
-            yPosition = height - 50;
-          }
-          
-          page.drawText('SKILLS', {
-            x: margin,
-            y: yPosition,
-            size: 12,
-            font: timesRomanBold,
-            color: rgb(0, 0, 0),
-          });
-          yPosition -= 20;
-
-          const skillsText = skillsSection.items?.map((item: any) => item.text).join(', ') || '';
-          const skillsLines = skillsText.match(/.{1,80}(\s|$)/g) || [];
-          for (const line of skillsLines) {
-            if (yPosition < 50) {
-              page = pdfDoc.addPage([612, 792]);
-              yPosition = height - 50;
-            }
-            page.drawText(line.trim(), {
-              x: margin,
-              y: yPosition,
-              size: 10,
-              font: timesRomanFont,
-              color: rgb(0, 0, 0),
-            });
-            yPosition -= lineHeight;
-          }
-          yPosition -= 10;
-        }
-
-        // Experience
-        const experienceSection = content.sections?.find((s: any) => s.type === 'experience');
-        if (experienceSection?.items) {
-          if (yPosition < 50) {
-            page = pdfDoc.addPage([612, 792]);
-            yPosition = height - 50;
-          }
-          
-          page.drawText('EXPERIENCE', {
-            x: margin,
-            y: yPosition,
-            size: 12,
-            font: timesRomanBold,
-            color: rgb(0, 0, 0),
-          });
-          yPosition -= 20;
-
-          for (const item of experienceSection.items) {
-            if (yPosition < 100) {
-              page = pdfDoc.addPage([612, 792]);
-              yPosition = height - 50;
-            }
-
-            page.drawText(item.title || '', {
-              x: margin,
-              y: yPosition,
-              size: 11,
-              font: timesRomanBold,
-              color: rgb(0, 0, 0),
-            });
-            yPosition -= 15;
-
-            if (item.subtitle) {
-              page.drawText(item.subtitle, {
-                x: margin,
-                y: yPosition,
-                size: 10,
-                font: timesRomanFont,
-                color: rgb(0.3, 0.3, 0.3),
-              });
-              yPosition -= 15;
-            }
-
-            if (item.text) {
-              const textLines = item.text.match(/.{1,80}(\s|$)/g) || [];
-              for (const line of textLines) {
-                if (yPosition < 50) {
-                  page = pdfDoc.addPage([612, 792]);
-                  yPosition = height - 50;
-                }
-                page.drawText(line.trim(), {
-                  x: margin,
-                  y: yPosition,
-                  size: 10,
-                  font: timesRomanFont,
-                  color: rgb(0, 0, 0),
-                });
-                yPosition -= lineHeight;
+          // Process sections in order
+          if (content.sections && Array.isArray(content.sections)) {
+            for (const section of content.sections) {
+              const sectionTitle = (section.title || section.section_type).toUpperCase();
+              
+              if (yPosition < 100) {
+                page = pdfDoc.addPage([612, 792]);
+                yPosition = height - 50;
               }
-            }
-            yPosition -= 10;
-          }
-        }
 
-        // Education
-        const educationSection = content.sections?.find((s: any) => s.type === 'education');
-        if (educationSection?.items) {
-          if (yPosition < 50) {
-            page = pdfDoc.addPage([612, 792]);
-            yPosition = height - 50;
-          }
-          
-          page.drawText('EDUCATION', {
-            x: margin,
-            y: yPosition,
-            size: 12,
-            font: timesRomanBold,
-            color: rgb(0, 0, 0),
-          });
-          yPosition -= 20;
-
-          for (const item of educationSection.items) {
-            if (yPosition < 80) {
-              page = pdfDoc.addPage([612, 792]);
-              yPosition = height - 50;
-            }
-
-            page.drawText(item.title || '', {
-              x: margin,
-              y: yPosition,
-              size: 11,
-              font: timesRomanBold,
-              color: rgb(0, 0, 0),
-            });
-            yPosition -= 15;
-
-            if (item.subtitle) {
-              page.drawText(item.subtitle, {
+              // Section header
+              page.drawText(sectionTitle, {
                 x: margin,
                 y: yPosition,
-                size: 10,
-                font: timesRomanFont,
-                color: rgb(0.3, 0.3, 0.3),
+                size: 12,
+                font: timesRomanBold,
+                color: rgb(0, 0, 0),
               });
               yPosition -= 20;
+
+              // Handle different section types
+              if (section.section_type === 'summary') {
+                const summaryText = section.content?.text || '';
+                const summaryLines = summaryText.match(/.{1,80}(\s|$)/g) || [];
+                for (const line of summaryLines) {
+                  if (yPosition < 50) {
+                    page = pdfDoc.addPage([612, 792]);
+                    yPosition = height - 50;
+                  }
+                  page.drawText(line.trim(), {
+                    x: margin,
+                    y: yPosition,
+                    size: 10,
+                    font: timesRomanFont,
+                    color: rgb(0, 0, 0),
+                  });
+                  yPosition -= lineHeight;
+                }
+              } else if (section.section_type === 'skills') {
+                const skillItems = section.content?.items || [];
+                const skillsText = skillItems.join(', ');
+                const skillsLines = skillsText.match(/.{1,80}(\s|$)/g) || [];
+                for (const line of skillsLines) {
+                  if (yPosition < 50) {
+                    page = pdfDoc.addPage([612, 792]);
+                    yPosition = height - 50;
+                  }
+                  page.drawText(line.trim(), {
+                    x: margin,
+                    y: yPosition,
+                    size: 10,
+                    font: timesRomanFont,
+                    color: rgb(0, 0, 0),
+                  });
+                  yPosition -= lineHeight;
+                }
+              } else if (section.section_type === 'experience') {
+                // Experience is stored as single content object
+                const exp = section.content;
+                if (exp) {
+                  if (yPosition < 120) {
+                    page = pdfDoc.addPage([612, 792]);
+                    yPosition = height - 50;
+                  }
+
+                  // Position and Company
+                  page.drawText(exp.position || '', {
+                    x: margin,
+                    y: yPosition,
+                    size: 11,
+                    font: timesRomanBold,
+                    color: rgb(0, 0, 0),
+                  });
+                  yPosition -= 15;
+
+                  const companyLine = [exp.company, exp.location].filter(Boolean).join(' • ');
+                  if (companyLine) {
+                    page.drawText(companyLine, {
+                      x: margin,
+                      y: yPosition,
+                      size: 10,
+                      font: timesRomanFont,
+                      color: rgb(0.3, 0.3, 0.3),
+                    });
+                    yPosition -= 15;
+                  }
+
+                  // Dates
+                  const dateRange = `${exp.startDate || ''} - ${exp.endDate || 'Present'}`;
+                  page.drawText(dateRange, {
+                    x: margin,
+                    y: yPosition,
+                    size: 9,
+                    font: timesRomanFont,
+                    color: rgb(0.3, 0.3, 0.3),
+                  });
+                  yPosition -= 15;
+
+                  // Bullets
+                  if (exp.bullets && Array.isArray(exp.bullets)) {
+                    for (const bullet of exp.bullets) {
+                      if (yPosition < 50) {
+                        page = pdfDoc.addPage([612, 792]);
+                        yPosition = height - 50;
+                      }
+                      const bulletLines = bullet.match(/.{1,75}(\s|$)/g) || [];
+                      for (let i = 0; i < bulletLines.length; i++) {
+                        if (yPosition < 50) {
+                          page = pdfDoc.addPage([612, 792]);
+                          yPosition = height - 50;
+                        }
+                        const prefix = i === 0 ? '• ' : '  ';
+                        page.drawText(prefix + bulletLines[i].trim(), {
+                          x: margin,
+                          y: yPosition,
+                          size: 10,
+                          font: timesRomanFont,
+                          color: rgb(0, 0, 0),
+                        });
+                        yPosition -= lineHeight;
+                      }
+                    }
+                  }
+                }
+              } else if (section.section_type === 'education') {
+                const edu = section.content;
+                if (edu) {
+                  if (yPosition < 80) {
+                    page = pdfDoc.addPage([612, 792]);
+                    yPosition = height - 50;
+                  }
+
+                  page.drawText(edu.degree || '', {
+                    x: margin,
+                    y: yPosition,
+                    size: 11,
+                    font: timesRomanBold,
+                    color: rgb(0, 0, 0),
+                  });
+                  yPosition -= 15;
+
+                  const institutionLine = [edu.institution, edu.location].filter(Boolean).join(' • ');
+                  if (institutionLine) {
+                    page.drawText(institutionLine, {
+                      x: margin,
+                      y: yPosition,
+                      size: 10,
+                      font: timesRomanFont,
+                      color: rgb(0.3, 0.3, 0.3),
+                    });
+                    yPosition -= 15;
+                  }
+
+                  if (edu.year) {
+                    page.drawText(edu.year, {
+                      x: margin,
+                      y: yPosition,
+                      size: 9,
+                      font: timesRomanFont,
+                      color: rgb(0.3, 0.3, 0.3),
+                    });
+                    yPosition -= 15;
+                  }
+                }
+              } else if (section.section_type === 'projects') {
+                const proj = section.content;
+                if (proj) {
+                  if (yPosition < 100) {
+                    page = pdfDoc.addPage([612, 792]);
+                    yPosition = height - 50;
+                  }
+
+                  page.drawText(proj.name || '', {
+                    x: margin,
+                    y: yPosition,
+                    size: 11,
+                    font: timesRomanBold,
+                    color: rgb(0, 0, 0),
+                  });
+                  yPosition -= 15;
+
+                  if (proj.description) {
+                    const descLines = proj.description.match(/.{1,80}(\s|$)/g) || [];
+                    for (const line of descLines) {
+                      if (yPosition < 50) {
+                        page = pdfDoc.addPage([612, 792]);
+                        yPosition = height - 50;
+                      }
+                      page.drawText(line.trim(), {
+                        x: margin,
+                        y: yPosition,
+                        size: 10,
+                        font: timesRomanFont,
+                        color: rgb(0, 0, 0),
+                      });
+                      yPosition -= lineHeight;
+                    }
+                  }
+
+                  if (proj.bullets && Array.isArray(proj.bullets)) {
+                    for (const bullet of proj.bullets) {
+                      if (yPosition < 50) {
+                        page = pdfDoc.addPage([612, 792]);
+                        yPosition = height - 50;
+                      }
+                      page.drawText('• ' + bullet, {
+                        x: margin,
+                        y: yPosition,
+                        size: 10,
+                        font: timesRomanFont,
+                        color: rgb(0, 0, 0),
+                      });
+                      yPosition -= lineHeight;
+                    }
+                  }
+                }
+              }
+
+              yPosition -= 15; // Space between sections
             }
           }
-        }
-      } else {
+        } else {
         // Cover Letter
         const jobTitle = content.job_title || '';
         const jobCompany = content.job_company || '';
         
-        // Header
-        page.drawText(content.full_name || 'Bianca Starling', {
+        // Header - Use name from Clerk or default
+        page.drawText('Bianca Starling', {
           x: margin,
           y: yPosition,
           size: 16,
           font: timesRomanBold,
           color: rgb(0, 0, 0),
         });
-        yPosition -= 20;
-
-        const contactInfo = [
-          content.email,
-          content.phone,
-          content.location
-        ].filter(Boolean).join(' • ');
-        
-        if (contactInfo) {
-          page.drawText(contactInfo, {
-            x: margin,
-            y: yPosition,
-            size: 9,
-            font: timesRomanFont,
-            color: rgb(0.3, 0.3, 0.3),
-          });
-          yPosition -= 30;
-        }
+        yPosition -= 30;
 
         // Date
         const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -1869,11 +1900,76 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
         yPosition -= 25;
 
         // Recipient
-        if (content.hiring_manager_name || jobCompany) {
-          const recipient = content.hiring_manager_name ? `${content.hiring_manager_name}\n${jobCompany}` : jobCompany;
-          const recipientLines = recipient.split('\n');
-          for (const line of recipientLines) {
-            page.drawText(line, {
+        if (content.recipient_name || content.recipient_title || jobCompany) {
+          if (content.recipient_name) {
+            page.drawText(content.recipient_name, {
+              x: margin,
+              y: yPosition,
+              size: 10,
+              font: timesRomanFont,
+              color: rgb(0, 0, 0),
+            });
+            yPosition -= lineHeight;
+          }
+          
+          if (content.recipient_title) {
+            page.drawText(content.recipient_title, {
+              x: margin,
+              y: yPosition,
+              size: 10,
+              font: timesRomanFont,
+              color: rgb(0, 0, 0),
+            });
+            yPosition -= lineHeight;
+          }
+          
+          if (jobCompany) {
+            page.drawText(jobCompany, {
+              x: margin,
+              y: yPosition,
+              size: 10,
+              font: timesRomanFont,
+              color: rgb(0, 0, 0),
+            });
+            yPosition -= lineHeight;
+          }
+          
+          if (content.company_address) {
+            page.drawText(content.company_address, {
+              x: margin,
+              y: yPosition,
+              size: 10,
+              font: timesRomanFont,
+              color: rgb(0, 0, 0),
+            });
+            yPosition -= lineHeight;
+          }
+          
+          yPosition -= 10;
+        }
+
+        // Salutation
+        const salutation = content.recipient_name
+          ? `Dear ${content.recipient_name},`
+          : 'Dear Hiring Manager,';
+        page.drawText(salutation, {
+          x: margin,
+          y: yPosition,
+          size: 10,
+          font: timesRomanFont,
+          color: rgb(0, 0, 0),
+        });
+        yPosition -= 25;
+
+        // Opening paragraph
+        if (content.opening_paragraph) {
+          const lines = content.opening_paragraph.match(/.{1,80}(\s|$)/g) || [];
+          for (const line of lines) {
+            if (yPosition < 50) {
+              page = pdfDoc.addPage([612, 792]);
+              yPosition = height - 50;
+            }
+            page.drawText(line.trim(), {
               x: margin,
               y: yPosition,
               size: 10,
@@ -1885,23 +1981,9 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
           yPosition -= 10;
         }
 
-        // Salutation
-        const salutation = content.hiring_manager_name 
-          ? `Dear ${content.hiring_manager_name},`
-          : 'Dear Hiring Manager,';
-        page.drawText(salutation, {
-          x: margin,
-          y: yPosition,
-          size: 10,
-          font: timesRomanFont,
-          color: rgb(0, 0, 0),
-        });
-        yPosition -= 25;
-
-        // Letter content
-        if (content.letter_content) {
-          const paragraphs = content.letter_content.split('\n\n');
-          for (const paragraph of paragraphs) {
+        // Body paragraphs
+        if (content.body_paragraphs && Array.isArray(content.body_paragraphs)) {
+          for (const paragraph of content.body_paragraphs) {
             const lines = paragraph.match(/.{1,80}(\s|$)/g) || [];
             for (const line of lines) {
               if (yPosition < 50) {
@@ -1917,8 +1999,28 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
               });
               yPosition -= lineHeight;
             }
-            yPosition -= 10; // Extra space between paragraphs
+            yPosition -= 10;
           }
+        }
+
+        // Closing paragraph
+        if (content.closing_paragraph) {
+          const lines = content.closing_paragraph.match(/.{1,80}(\s|$)/g) || [];
+          for (const line of lines) {
+            if (yPosition < 50) {
+              page = pdfDoc.addPage([612, 792]);
+              yPosition = height - 50;
+            }
+            page.drawText(line.trim(), {
+              x: margin,
+              y: yPosition,
+              size: 10,
+              font: timesRomanFont,
+              color: rgb(0, 0, 0),
+            });
+            yPosition -= lineHeight;
+          }
+          yPosition -= 10;
         }
 
         // Closing
@@ -1935,7 +2037,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
           color: rgb(0, 0, 0),
         });
         yPosition -= 25;
-        page.drawText(content.full_name || 'Bianca Starling', {
+        page.drawText('Bianca Starling', {
           x: margin,
           y: yPosition,
           size: 10,
