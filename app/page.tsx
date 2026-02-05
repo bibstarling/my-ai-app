@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { ArrowUpRight, Linkedin, Mail, X } from 'lucide-react';
 import { portfolioData, type PortfolioProject } from '@/lib/portfolio-data';
 import { useEmbedMode } from '@/app/ClientAuthWrapper';
@@ -345,12 +344,6 @@ export default function HomePage() {
           >
             <Mail className="h-5 w-5" />
           </a>
-          <Link
-            href="/assistant"
-            className="text-xs font-medium text-muted hover:text-accent transition-colors uppercase tracking-wider"
-          >
-            Assistant
-          </Link>
         </div>
       </header>
 
