@@ -58,21 +58,28 @@ export default function MyJobsPage() {
   ];
 
   useEffect(() => {
-    if (isLoaded) {
+    if (isLoaded && user) {
       loadJobs();
     }
-  }, [isLoaded]);
+  }, [isLoaded, user]);
 
   const loadJobs = async () => {
     try {
+      if (!user) {
+        setError('Please sign in to view your jobs');
+        setLoading(false);
+        return;
+      }
+
+      // Get the current user's database record using their Clerk ID
       const { data: userData } = await supabase
         .from('users')
         .select('id')
-        .limit(1)
+        .eq('clerk_id', user.id)
         .maybeSingle();
 
       if (!userData) {
-        setError('User not found');
+        setError('User not found. Please contact support.');
         setLoading(false);
         return;
       }
