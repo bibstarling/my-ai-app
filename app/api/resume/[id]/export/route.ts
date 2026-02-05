@@ -41,11 +41,23 @@ export async function GET(req: Request, context: RouteContext) {
     // Generate HTML
     const html = generateResumeHTML(resume, sections || []);
 
+    // Create filename with format: resume_biancastarling_companyname.html
+    const fullName = (resume.full_name as string || 'candidate').toLowerCase().replace(/\s+/g, '');
+    
+    // Extract company name from resume title (format: "Job Title at Company Name")
+    const title = resume.title as string || '';
+    const companyMatch = title.match(/at\s+(.+)$/i);
+    const companyName = companyMatch 
+      ? companyMatch[1].replace(/[^a-z0-9]/gi, '').toLowerCase()
+      : 'company';
+    
+    const filename = `resume_${fullName}_${companyName}.html`;
+
     // Return HTML with print-friendly CSS
     return new NextResponse(html, {
       headers: {
         'Content-Type': 'text/html',
-        'Content-Disposition': `inline; filename="${resume.title.replace(/[^a-z0-9]/gi, '_')}.html"`,
+        'Content-Disposition': `inline; filename="${filename}"`,
       },
     });
   } catch (error) {

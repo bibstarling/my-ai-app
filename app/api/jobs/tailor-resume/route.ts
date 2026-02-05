@@ -37,8 +37,8 @@ export async function POST(request: Request) {
     // Get portfolio data
     const portfolio = portfolioData;
 
-    // Generate tailored resume with AI
-    const prompt = `You are an expert resume writer. Create a tailored resume for this job application.
+    // Generate tailored resume with AI optimized for ATS systems
+    const prompt = `You are an ATS-optimized resume writer. Create a tailored resume that will score highly in Applicant Tracking Systems while appealing to human recruiters.
 
 JOB INFORMATION:
 Title: ${jobTitle}
@@ -48,11 +48,50 @@ Description: ${jobDescription}
 CANDIDATE PORTFOLIO:
 ${JSON.stringify(portfolio, null, 2)}
 
-Generate a tailored resume that:
-1. Emphasizes relevant experience and skills from the portfolio
-2. Uses keywords from the job description
-3. Structures content to match what this role requires
-4. Maintains authenticity while optimizing for ATS
+CRITICAL ATS OPTIMIZATION REQUIREMENTS:
+
+1. KEYWORD OPTIMIZATION (Highest Priority):
+   - Extract ALL important keywords from job description (tools, technologies, methodologies, skills)
+   - Use EXACT phrases from job description where possible (e.g., if job says "machine learning", use "machine learning" not "ML")
+   - Include both spelled-out terms AND acronyms (e.g., "Product Management (PM)")
+   - Repeat critical keywords naturally across multiple sections (summary, experience, skills)
+   - Use industry-standard terminology, not creative variations
+
+2. REQUIRED QUALIFICATIONS (Must Pass):
+   - Address EVERY required qualification explicitly
+   - Match years of experience exactly as stated
+   - Include required education/certifications prominently
+   - Use phrases like "5+ years of experience in [exact requirement]"
+
+3. ATS-FRIENDLY FORMATTING:
+   - Use standard section headers: "Professional Summary", "Experience", "Skills", "Education"
+   - Start experience bullets with strong action verbs
+   - Include quantifiable metrics and achievements (numbers, percentages, scale)
+   - Keep consistent date formats
+   - Use simple, parseable structure (no tables, columns, graphics)
+
+4. KEYWORD DENSITY & PLACEMENT:
+   - Summary: Pack with relevant keywords and value proposition
+   - Experience: Weave keywords naturally into achievement bullets
+   - Skills: List all relevant keywords explicitly
+   - Include technical skills, soft skills, and domain expertise
+
+5. STRATEGIC CONTENT:
+   - Tailor job titles if similar (e.g., "Senior Product Manager" if applying for similar role)
+   - Highlight relevant projects that match job requirements
+   - Quantify impact wherever possible (users, revenue, efficiency gains)
+   - Mirror language and tone from job description
+
+6. PORTFOLIO URL REQUIREMENT:
+   - MUST include ${portfolio.websiteUrl} in contact information
+   - Place prominently with email, phone, LinkedIn
+
+CRITICAL FOR RECRUITERS:
+- Keep authentic and honest (no fabrication)
+- Tell compelling story of relevant experience
+- Show clear progression and growth
+- Demonstrate impact and results
+- Make it easy to see "why this person fits"
 
 Return ONLY valid JSON in this exact format:
 {

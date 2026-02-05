@@ -17,6 +17,11 @@ import {
   Kanban,
   Download,
   GripVertical,
+  Plus,
+  ChevronDown,
+  ChevronUp,
+  CheckCircle,
+  AlertCircle,
 } from 'lucide-react';
 import {
   DndContext,
@@ -48,6 +53,7 @@ type TrackedJob = {
   status: 'saved' | 'applied' | 'interview' | 'offer' | 'rejected' | 'archived';
   tailored_resume_id: string | null;
   tailored_cover_letter_id: string | null;
+  match_percentage: number | null;
   notes: string | null;
   applied_date: string | null;
   interview_date: string | null;
@@ -72,6 +78,24 @@ export default function MyJobsPage() {
   const [isDragging, setIsDragging] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const autoScrollInterval = useRef<NodeJS.Timeout | null>(null);
+  const [showAddJobModal, setShowAddJobModal] = useState(false);
+  const [addingJob, setAddingJob] = useState(false);
+  const [tailoringJob, setTailoringJob] = useState<string | null>(null);
+  const [tailorOptions, setTailorOptions] = useState<{
+    jobId: string;
+    generateResume: boolean;
+    generateCoverLetter: boolean;
+  } | null>(null);
+  const [calculatingMatch, setCalculatingMatch] = useState<string | null>(null);
+  const [matchDetails, setMatchDetails] = useState<{
+    jobId: string;
+    reasoning: string;
+    strengths: string[];
+    gaps: string[];
+    ats_keywords_matched: string[];
+    ats_keywords_missing: string[];
+  } | null>(null);
+  const [showMatchDetails, setShowMatchDetails] = useState(false);
 
   const statuses = useMemo<Array<{ id: TrackedJob['status']; label: string; color: string }>>(
     () => [
@@ -168,6 +192,319 @@ export default function MyJobsPage() {
     }
   }, [jobs, selectedJob]);
 
+  const handleAddJob = async (jobData: {
+    title: string;
+    company: string;
+    location: string;
+    apply_url: string;
+    description: string;
+    job_type?: string;
+    salary?: string;
+  }) => {
+    try {
+      if (!user) {
+        alert('Please sign in to add jobs');
+        return;
+      }
+
+      setAddingJob(true);
+
+      // ALWAYS fetch complete job details from the apply URL if available
+      let finalDescription = jobData.description;
+      let finalJobType = jobData.job_type;
+      let finalSalary = jobData.salary;
+
+      if (jobData.apply_url && jobData.apply_url !== '#') {
+        try {
+          const fetchResponse = await fetch('/api/jobs/extract', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: jobData.apply_url }),
+          });
+
+          if (fetchResponse.ok) {
+            const fetchData = await fetchResponse.json();
+            if (fetchData.success && fetchData.job) {
+              // Use fetched description if it's more complete
+              if (fetchData.job.description && fetchData.job.description.length > finalDescription.length) {
+                finalDescription = fetchData.job.description;
+              }
+              // Fill in missing data
+              if (!finalJobType && fetchData.job.job_type) {
+                finalJobType = fetchData.job.job_type;
+              }
+              if (!finalSalary && fetchData.job.salary) {
+                finalSalary = fetchData.job.salary;
+              }
+            }
+          }
+        } catch (fetchErr) {
+          console.warn('Could not fetch additional job details, using provided description:', fetchErr);
+          // Continue with provided description if fetch fails
+        }
+      }
+
+      const { data, error: insertError } = await supabase
+        .from('tracked_jobs')
+        .insert({
+          clerk_id: user.id,
+          title: jobData.title,
+          company: jobData.company,
+          location: jobData.location,
+          job_type: finalJobType || null,
+          salary: finalSalary || null,
+          description: finalDescription,
+          apply_url: jobData.apply_url,
+          skills: [],
+          status: 'saved',
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      // Reload jobs to show the new one
+      await loadJobs();
+      setShowAddJobModal(false);
+      alert('Job added successfully!');
+    } catch (err) {
+      console.error('Error adding job:', err);
+      alert('Failed to add job. Please try again.');
+    } finally {
+      setAddingJob(false);
+    }
+  };
+
+  const handleCalculateMatch = async (jobId: string) => {
+    try {
+      setCalculatingMatch(jobId);
+      
+      const job = jobs.find((j) => j.id === jobId);
+      if (!job) {
+        throw new Error('Job not found');
+      }
+      
+      if (!job.tailored_resume_id && !job.tailored_cover_letter_id) {
+        alert('Please generate tailored content first before calculating match');
+        setCalculatingMatch(null);
+        return;
+      }
+
+      console.log('Calculating match for job:', jobId);
+      const matchResponse = await fetch('/api/jobs/calculate-match', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId }),
+      });
+
+      console.log('Manual match calculation response status:', matchResponse.status);
+
+      if (!matchResponse.ok) {
+        const contentType = matchResponse.headers.get('content-type');
+        console.log('Error response content-type:', contentType);
+        
+        try {
+          const errorData = await matchResponse.json();
+          console.error('Match calculation API error:', errorData);
+          throw new Error(errorData.error || errorData.details || 'Failed to calculate match');
+        } catch (parseErr) {
+          const textError = await matchResponse.text();
+          console.error('Match calculation failed (non-JSON):', textError);
+          throw new Error(`Failed to calculate match: ${matchResponse.statusText}`);
+        }
+      }
+
+      const matchData = await matchResponse.json();
+      console.log(`Match calculated: ${matchData.percentage}%`, matchData);
+
+      // Store match details for the expandable section
+      setMatchDetails({
+        jobId,
+        reasoning: matchData.reasoning || '',
+        strengths: matchData.strengths || [],
+        gaps: matchData.gaps || [],
+        ats_keywords_matched: matchData.ats_keywords_matched || [],
+        ats_keywords_missing: matchData.ats_keywords_missing || [],
+      });
+
+      // Small delay to ensure database has been updated
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Reload jobs to show the match
+      await loadJobs();
+      
+      // Update selected job if it's open
+      if (selectedJob?.id === jobId) {
+        // Find the updated job from the reloaded list
+        const updatedJobs = await supabase
+          .from('tracked_jobs')
+          .select('*')
+          .eq('id', jobId)
+          .single();
+        
+        if (updatedJobs.data) {
+          setSelectedJob(updatedJobs.data as TrackedJob);
+        }
+      }
+
+      alert(`Match calculated: ${matchData.percentage}% - ${getMatchLabel(matchData.percentage)}`);
+    } catch (err) {
+      console.error('Error calculating match:', err);
+      alert(`Failed to calculate match: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setCalculatingMatch(null);
+    }
+  };
+
+  const handleGenerateTailoredContent = async (
+    jobId: string,
+    generateResume: boolean,
+    generateCoverLetter: boolean
+  ) => {
+    try {
+      if (!user) {
+        alert('Please sign in to generate content');
+        return;
+      }
+
+      setTailoringJob(jobId);
+
+      const job = jobs.find((j) => j.id === jobId);
+      if (!job) throw new Error('Job not found');
+
+      let resumeId = job.tailored_resume_id;
+      let coverLetterId = job.tailored_cover_letter_id;
+
+      if (generateResume && !resumeId) {
+        const resumeRes = await fetch('/api/jobs/tailor-resume', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jobDescription: job.description,
+            jobTitle: job.title,
+            company: job.company,
+          }),
+        });
+
+        if (resumeRes.ok) {
+          const resumeData = await resumeRes.json();
+          resumeId = resumeData.resumeId;
+        } else {
+          throw new Error('Failed to generate resume');
+        }
+      }
+
+      if (generateCoverLetter && !coverLetterId) {
+        const clRes = await fetch('/api/jobs/tailor-cover-letter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jobDescription: job.description,
+            jobTitle: job.title,
+            company: job.company,
+          }),
+        });
+
+        if (clRes.ok) {
+          const clData = await clRes.json();
+          coverLetterId = clData.coverLetterId;
+        } else {
+          throw new Error('Failed to generate cover letter');
+        }
+      }
+
+      // Update the job with the new content IDs
+      const updateData: any = {};
+      if (resumeId) updateData.tailored_resume_id = resumeId;
+      if (coverLetterId) updateData.tailored_cover_letter_id = coverLetterId;
+
+      if (Object.keys(updateData).length > 0) {
+        const { error: updateError } = await supabase
+          .from('tracked_jobs')
+          .update(updateData)
+          .eq('id', jobId);
+
+        if (updateError) throw updateError;
+      }
+
+      // Calculate match percentage after generating content
+      let matchCalculated = false;
+      try {
+        console.log('Starting match calculation for job:', jobId);
+        const matchResponse = await fetch('/api/jobs/calculate-match', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jobId }),
+        });
+
+        console.log('Match calculation response status:', matchResponse.status);
+
+        if (matchResponse.ok) {
+          const matchData = await matchResponse.json();
+          console.log(`Match percentage calculated: ${matchData.percentage}%`, matchData);
+          matchCalculated = true;
+        } else {
+          // Try to parse error response
+          const contentType = matchResponse.headers.get('content-type');
+          console.log('Error response content-type:', contentType);
+          
+          try {
+            const errorData = await matchResponse.json();
+            console.error('Match calculation failed:', {
+              status: matchResponse.status,
+              statusText: matchResponse.statusText,
+              error: errorData,
+            });
+          } catch (parseErr) {
+            const textError = await matchResponse.text();
+            console.error('Match calculation failed (non-JSON):', {
+              status: matchResponse.status,
+              statusText: matchResponse.statusText,
+              body: textError,
+            });
+          }
+        }
+      } catch (matchErr) {
+        console.error('Error calculating match percentage:', {
+          error: matchErr,
+          message: matchErr instanceof Error ? matchErr.message : String(matchErr),
+          stack: matchErr instanceof Error ? matchErr.stack : undefined,
+        });
+      }
+
+      // Small delay to ensure database has been updated
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Reload jobs to show updated content (with match percentage if calculated)
+      await loadJobs();
+      
+      // Update selected job if it's open
+      if (selectedJob?.id === jobId) {
+        const { data: updatedJob } = await supabase
+          .from('tracked_jobs')
+          .select('*')
+          .eq('id', jobId)
+          .single();
+        
+        if (updatedJob) {
+          setSelectedJob(updatedJob as TrackedJob);
+        }
+      }
+      
+      setTailorOptions(null);
+      
+      const message = matchCalculated 
+        ? 'Tailored content generated and match calculated successfully!'
+        : 'Tailored content generated! (Match calculation pending - try the Calculate Match button)';
+      alert(message);
+    } catch (err) {
+      console.error('Error generating tailored content:', err);
+      alert('Failed to generate tailored content. Please try again.');
+    } finally {
+      setTailoringJob(null);
+    }
+  };
+
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);
     setIsDragging(true);
@@ -247,6 +584,22 @@ export default function MyJobsPage() {
     [activeId, jobs]
   );
 
+  const getMatchColor = (percentage: number | null) => {
+    if (!percentage) return 'bg-gray-100 text-gray-600 border-gray-200';
+    if (percentage >= 80) return 'bg-green-100 text-green-700 border-green-300';
+    if (percentage >= 65) return 'bg-blue-100 text-blue-700 border-blue-300';
+    if (percentage >= 50) return 'bg-yellow-100 text-yellow-700 border-yellow-300';
+    return 'bg-orange-100 text-orange-700 border-orange-300';
+  };
+
+  const getMatchLabel = (percentage: number | null) => {
+    if (!percentage) return 'Not calculated';
+    if (percentage >= 80) return 'Strong Match';
+    if (percentage >= 65) return 'Good Match';
+    if (percentage >= 50) return 'Moderate Match';
+    return 'Weak Match';
+  };
+
   if (!isLoaded || loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -289,11 +642,20 @@ export default function MyJobsPage() {
       <main className="flex-1">
         <div className="mx-auto max-w-7xl px-6 py-8">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground">My Jobs</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Track your job applications and generated content
-            </p>
+          <div className="mb-8 flex items-start justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">My Jobs</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Track your job applications and generated content
+              </p>
+            </div>
+            <button
+              onClick={() => setShowAddJobModal(true)}
+              className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground hover:opacity-90 transition-opacity"
+            >
+              <Plus className="h-4 w-4" />
+              Add Job Manually
+            </button>
           </div>
 
           {error ? (
@@ -340,6 +702,7 @@ export default function MyJobsPage() {
                       onJobClick={setSelectedJob}
                       onStatusChange={updateJobStatus}
                       statuses={statuses}
+                      getMatchColor={getMatchColor}
                     />
                   );
                 })}
@@ -365,22 +728,223 @@ export default function MyJobsPage() {
       {/* Job Detail Modal */}
       {selectedJob && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setSelectedJob(null)}>
-          <div className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-6 flex items-start justify-between">
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-foreground">{selectedJob.title}</h2>
-                <p className="text-lg text-muted-foreground mt-1">{selectedJob.company}</p>
-                <p className="text-sm text-muted-foreground mt-1">{selectedJob.location}</p>
+          <div className="w-full max-w-2xl max-h-[85vh] flex flex-col rounded-xl border border-border bg-card shadow-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            {/* Sticky Header with Actions */}
+            <div className="sticky top-0 z-10 bg-card border-b border-border p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold text-foreground">{selectedJob.title}</h2>
+                  <p className="text-lg text-muted-foreground mt-1">{selectedJob.company}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{selectedJob.location}</p>
+                </div>
+                <button
+                  onClick={() => setSelectedJob(null)}
+                  className="rounded-lg p-2 text-muted hover:bg-muted/50 hover:text-foreground transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
               </div>
-              <button
-                onClick={() => setSelectedJob(null)}
-                className="rounded-lg p-2 text-muted hover:bg-muted/50 hover:text-foreground transition-colors"
-              >
-                <X className="h-5 w-5" />
-              </button>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap gap-2">
+                {selectedJob.tailored_resume_id && (
+                  <button
+                    onClick={() => setPreviewModal({ type: 'resume', id: selectedJob.tailored_resume_id! })}
+                    className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:border-accent hover:bg-accent/5 transition-colors"
+                  >
+                    <FileText className="h-4 w-4" />
+                    Resume
+                  </button>
+                )}
+                {selectedJob.tailored_cover_letter_id && (
+                  <button
+                    onClick={() => setPreviewModal({ type: 'cover-letter', id: selectedJob.tailored_cover_letter_id! })}
+                    className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:border-accent hover:bg-accent/5 transition-colors"
+                  >
+                    <FileText className="h-4 w-4" />
+                    Cover Letter
+                  </button>
+                )}
+                {(!selectedJob.tailored_resume_id || !selectedJob.tailored_cover_letter_id) && (
+                  <button
+                    onClick={() => setTailorOptions({
+                      jobId: selectedJob.id,
+                      generateResume: !selectedJob.tailored_resume_id,
+                      generateCoverLetter: !selectedJob.tailored_cover_letter_id,
+                    })}
+                    disabled={tailoringJob === selectedJob.id}
+                    className="flex items-center gap-2 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    {tailoringJob === selectedJob.id ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4" />
+                        Generate {!selectedJob.tailored_resume_id && !selectedJob.tailored_cover_letter_id
+                          ? 'Content'
+                          : !selectedJob.tailored_resume_id
+                          ? 'Resume'
+                          : 'Cover Letter'}
+                      </>
+                    )}
+                  </button>
+                )}
+                {(selectedJob.tailored_resume_id || selectedJob.tailored_cover_letter_id) && (
+                  <button
+                    onClick={() => handleCalculateMatch(selectedJob.id)}
+                    disabled={calculatingMatch === selectedJob.id}
+                    className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:border-accent hover:bg-accent/5 transition-colors disabled:opacity-50"
+                  >
+                    {calculatingMatch === selectedJob.id ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Calculating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4" />
+                        {selectedJob.match_percentage !== null ? 'Recalculate' : 'Calculate'} Match
+                      </>
+                    )}
+                  </button>
+                )}
+                {selectedJob.apply_url && selectedJob.apply_url !== '#' && (
+                  <a
+                    href={selectedJob.apply_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 transition-opacity ml-auto"
+                  >
+                    Apply
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                )}
+              </div>
             </div>
 
-            <div className="space-y-6">
+            {/* Scrollable Content */}
+            <div className="overflow-y-auto p-6 space-y-6">
+              {/* Match Percentage with Expandable Details */}
+              {selectedJob.match_percentage !== null && (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-semibold text-foreground">Job Match</h3>
+                    {matchDetails?.jobId === selectedJob.id && (
+                      <button
+                        onClick={() => setShowMatchDetails(!showMatchDetails)}
+                        className="flex items-center gap-1 text-xs text-muted hover:text-foreground transition-colors"
+                      >
+                        {showMatchDetails ? (
+                          <>
+                            <ChevronUp className="h-4 w-4" />
+                            Hide Details
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="h-4 w-4" />
+                            Show Details
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                  <div className={`rounded-lg border px-4 py-3 ${getMatchColor(selectedJob.match_percentage)}`}>
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl leading-none">✓</span>
+                      <div>
+                        <div className="text-lg font-bold">{selectedJob.match_percentage}%</div>
+                        <div className="text-xs opacity-80">{getMatchLabel(selectedJob.match_percentage)}</div>
+                      </div>
+                    </div>
+
+                    {/* Expandable Match Details */}
+                    {showMatchDetails && matchDetails?.jobId === selectedJob.id && (
+                      <div className="mt-4 pt-4 border-t border-current/20 space-y-4">
+                        {/* Reasoning */}
+                        {matchDetails.reasoning && (
+                          <div>
+                            <h4 className="text-xs font-semibold mb-1 opacity-90">ATS Analysis</h4>
+                            <p className="text-xs opacity-80 leading-relaxed">{matchDetails.reasoning}</p>
+                          </div>
+                        )}
+
+                        {/* Strengths */}
+                        {matchDetails.strengths.length > 0 && (
+                          <div>
+                            <h4 className="text-xs font-semibold mb-2 opacity-90 flex items-center gap-1">
+                              <CheckCircle className="h-3 w-3" />
+                              Strengths
+                            </h4>
+                            <ul className="space-y-1">
+                              {matchDetails.strengths.map((strength, idx) => (
+                                <li key={idx} className="text-xs opacity-80 flex items-start gap-2">
+                                  <span className="mt-0.5">•</span>
+                                  <span>{strength}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Gaps */}
+                        {matchDetails.gaps.length > 0 && (
+                          <div>
+                            <h4 className="text-xs font-semibold mb-2 opacity-90 flex items-center gap-1">
+                              <AlertCircle className="h-3 w-3" />
+                              Areas to Improve
+                            </h4>
+                            <ul className="space-y-1">
+                              {matchDetails.gaps.map((gap, idx) => (
+                                <li key={idx} className="text-xs opacity-80 flex items-start gap-2">
+                                  <span className="mt-0.5">•</span>
+                                  <span>{gap}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Keywords Matched */}
+                        {matchDetails.ats_keywords_matched.length > 0 && (
+                          <div>
+                            <h4 className="text-xs font-semibold mb-2 opacity-90">Matched Keywords ({matchDetails.ats_keywords_matched.length})</h4>
+                            <div className="flex flex-wrap gap-1">
+                              {matchDetails.ats_keywords_matched.slice(0, 10).map((keyword, idx) => (
+                                <span key={idx} className="text-xs bg-current/10 px-2 py-0.5 rounded">
+                                  {keyword}
+                                </span>
+                              ))}
+                              {matchDetails.ats_keywords_matched.length > 10 && (
+                                <span className="text-xs opacity-70 px-2 py-0.5">
+                                  +{matchDetails.ats_keywords_matched.length - 10} more
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Missing Keywords */}
+                        {matchDetails.ats_keywords_missing.length > 0 && (
+                          <div>
+                            <h4 className="text-xs font-semibold mb-2 opacity-90">Missing Keywords</h4>
+                            <div className="flex flex-wrap gap-1">
+                              {matchDetails.ats_keywords_missing.map((keyword, idx) => (
+                                <span key={idx} className="text-xs bg-current/10 px-2 py-0.5 rounded">
+                                  {keyword}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Status Dropdown */}
               <div>
                 <h3 className="mb-2 text-sm font-semibold text-foreground">Status</h3>
@@ -427,46 +991,6 @@ export default function MyJobsPage() {
                 <h3 className="mb-2 text-sm font-semibold text-foreground">Description</h3>
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{selectedJob.description}</p>
               </div>
-
-              {(selectedJob.tailored_resume_id || selectedJob.tailored_cover_letter_id) && (
-                <div>
-                  <h3 className="mb-3 text-sm font-semibold text-foreground">Generated Content</h3>
-                  <div className="flex gap-3">
-                    {selectedJob.tailored_resume_id && (
-                      <button
-                        onClick={() => setPreviewModal({ type: 'resume', id: selectedJob.tailored_resume_id! })}
-                        className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:border-accent hover:bg-accent/5 transition-colors"
-                      >
-                        <FileText className="h-4 w-4" />
-                        Preview Resume
-                      </button>
-                    )}
-                    {selectedJob.tailored_cover_letter_id && (
-                      <button
-                        onClick={() => setPreviewModal({ type: 'cover-letter', id: selectedJob.tailored_cover_letter_id! })}
-                        className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:border-accent hover:bg-accent/5 transition-colors"
-                      >
-                        <FileText className="h-4 w-4" />
-                        Preview Cover Letter
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {selectedJob.apply_url && selectedJob.apply_url !== '#' && (
-                <div className="pt-4 border-t border-border">
-                  <a
-                    href={selectedJob.apply_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-6 py-3 font-medium text-accent-foreground hover:opacity-90 transition-opacity"
-                  >
-                    Apply to Job
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -480,6 +1004,440 @@ export default function MyJobsPage() {
           onClose={() => setPreviewModal(null)}
         />
       )}
+
+      {/* Add Job Manually Modal */}
+      {showAddJobModal && (
+        <AddJobModal
+          onClose={() => setShowAddJobModal(false)}
+          onSubmit={handleAddJob}
+          isLoading={addingJob}
+        />
+      )}
+
+      {/* Tailor Options Modal */}
+      {tailorOptions && (
+        <TailorOptionsModal
+          jobId={tailorOptions.jobId}
+          initialResume={tailorOptions.generateResume}
+          initialCoverLetter={tailorOptions.generateCoverLetter}
+          isLoading={tailoringJob === tailorOptions.jobId}
+          onClose={() => setTailorOptions(null)}
+          onSubmit={(generateResume, generateCoverLetter) => {
+            handleGenerateTailoredContent(tailorOptions.jobId, generateResume, generateCoverLetter);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// Add Job Modal Component
+function AddJobModal({
+  onClose,
+  onSubmit,
+  isLoading,
+}: {
+  onClose: () => void;
+  onSubmit: (data: {
+    title: string;
+    company: string;
+    location: string;
+    apply_url: string;
+    description: string;
+    job_type?: string;
+    salary?: string;
+  }) => void;
+  isLoading: boolean;
+}) {
+  const [jobUrl, setJobUrl] = useState('');
+  const [fetchingDetails, setFetchingDetails] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    title: '',
+    company: '',
+    location: '',
+    apply_url: '',
+    description: '',
+    job_type: 'Full-time',
+    salary: '',
+  });
+
+  const handleFetchDetails = async () => {
+    if (!jobUrl.trim()) {
+      alert('Please enter a job posting URL');
+      return;
+    }
+
+    setFetchingDetails(true);
+    setFetchError(null);
+
+    try {
+      const response = await fetch('/api/jobs/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: jobUrl.trim() }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch job details');
+      }
+
+      if (data.success && data.job) {
+        setFormData({
+          title: data.job.title || '',
+          company: data.job.company || '',
+          location: data.job.location || '',
+          apply_url: data.job.apply_url || jobUrl.trim(),
+          description: data.job.description || '',
+          job_type: data.job.job_type || 'Full-time',
+          salary: data.job.salary || '',
+        });
+        setFetchError(null);
+      }
+    } catch (err) {
+      console.error('Error fetching job details:', err);
+      setFetchError(err instanceof Error ? err.message : 'Failed to fetch job details');
+    } finally {
+      setFetchingDetails(false);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.title || !formData.company || !formData.location || !formData.apply_url || !formData.description) {
+      alert('Please fill in all required fields');
+      return;
+    }
+    onSubmit(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div
+        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-6 flex items-start justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">Add Job Manually</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Enter job details to track in your pipeline
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-2 text-muted hover:bg-muted/50 hover:text-foreground transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* URL Fetcher */}
+          <div className="rounded-lg border-2 border-dashed border-accent/30 bg-accent/5 p-4">
+            <label htmlFor="job_url" className="block text-sm font-medium text-foreground mb-2">
+              Quick Start: Fetch from URL
+            </label>
+            <p className="text-xs text-muted-foreground mb-3">
+              Paste a job posting URL (LinkedIn, Indeed, company website, etc.) and we'll automatically extract the details
+            </p>
+            <div className="flex gap-2">
+              <input
+                id="job_url"
+                type="url"
+                value={jobUrl}
+                onChange={(e) => setJobUrl(e.target.value)}
+                placeholder="https://linkedin.com/jobs/view/12345..."
+                className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+                disabled={fetchingDetails}
+              />
+              <button
+                type="button"
+                onClick={handleFetchDetails}
+                disabled={fetchingDetails || !jobUrl.trim()}
+                className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              >
+                {fetchingDetails ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Fetching...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4" />
+                    Fetch Details
+                  </>
+                )}
+              </button>
+            </div>
+            {fetchError && (
+              <p className="mt-2 text-xs text-red-400">{fetchError}</p>
+            )}
+          </div>
+
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border"></div>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">Or fill manually</span>
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="title" className="block text-sm font-medium text-foreground mb-1">
+              Job Title <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="title"
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              placeholder="e.g. Senior Product Manager"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="company" className="block text-sm font-medium text-foreground mb-1">
+              Company <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="company"
+              type="text"
+              value={formData.company}
+              onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+              placeholder="e.g. Acme Corp"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="location" className="block text-sm font-medium text-foreground mb-1">
+              Location <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="location"
+              type="text"
+              value={formData.location}
+              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+              placeholder="e.g. Remote, New York, NY"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="apply_url" className="block text-sm font-medium text-foreground mb-1">
+              Apply URL <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="apply_url"
+              type="url"
+              value={formData.apply_url}
+              onChange={(e) => setFormData({ ...formData, apply_url: e.target.value })}
+              placeholder="https://company.com/jobs/123"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="job_type" className="block text-sm font-medium text-foreground mb-1">
+                Job Type
+              </label>
+              <select
+                id="job_type"
+                value={formData.job_type}
+                onChange={(e) => setFormData({ ...formData, job_type: e.target.value })}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+              >
+                <option value="Full-time">Full-time</option>
+                <option value="Part-time">Part-time</option>
+                <option value="Contract">Contract</option>
+                <option value="Freelance">Freelance</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="salary" className="block text-sm font-medium text-foreground mb-1">
+                Salary (optional)
+              </label>
+              <input
+                id="salary"
+                type="text"
+                value={formData.salary}
+                onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
+                placeholder="e.g. $120k - $150k"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="description" className="block text-sm font-medium text-foreground mb-1">
+              Job Description <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Paste the full job description here..."
+              rows={8}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+              required
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              💡 Tip: The system will automatically fetch the complete job description from the Apply URL to ensure accuracy for tailored content generation
+            </p>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Adding Job...
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4" />
+                  Add Job
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// Tailor Options Modal Component
+function TailorOptionsModal({
+  jobId,
+  initialResume,
+  initialCoverLetter,
+  isLoading,
+  onClose,
+  onSubmit,
+}: {
+  jobId: string;
+  initialResume: boolean;
+  initialCoverLetter: boolean;
+  isLoading: boolean;
+  onClose: () => void;
+  onSubmit: (generateResume: boolean, generateCoverLetter: boolean) => void;
+}) {
+  const [generateResume, setGenerateResume] = useState(initialResume);
+  const [generateCoverLetter, setGenerateCoverLetter] = useState(initialCoverLetter);
+
+  const handleSubmit = () => {
+    if (!generateResume && !generateCoverLetter) {
+      alert('Please select at least one option');
+      return;
+    }
+    onSubmit(generateResume, generateCoverLetter);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div
+        className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-start justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-foreground">Generate Tailored Content</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Select what you'd like to generate
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1 text-muted hover:bg-muted/50 hover:text-foreground transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="space-y-3 mb-6">
+          <label className="flex items-start gap-3 rounded-lg border border-border bg-background p-3 cursor-pointer hover:border-accent/50 transition-colors">
+            <input
+              type="checkbox"
+              checked={generateResume}
+              onChange={(e) => setGenerateResume(e.target.checked)}
+              disabled={!initialResume}
+              className="mt-0.5 h-4 w-4 rounded border-border text-accent focus:ring-accent focus:ring-offset-0 disabled:opacity-50"
+            />
+            <div className="flex-1">
+              <div className="font-medium text-foreground">Tailored Resume</div>
+              <div className="text-xs text-muted-foreground">
+                {initialResume ? 'Generate a resume optimized for this role' : 'Already generated'}
+              </div>
+            </div>
+          </label>
+
+          <label className="flex items-start gap-3 rounded-lg border border-border bg-background p-3 cursor-pointer hover:border-accent/50 transition-colors">
+            <input
+              type="checkbox"
+              checked={generateCoverLetter}
+              onChange={(e) => setGenerateCoverLetter(e.target.checked)}
+              disabled={!initialCoverLetter}
+              className="mt-0.5 h-4 w-4 rounded border-border text-accent focus:ring-accent focus:ring-offset-0 disabled:opacity-50"
+            />
+            <div className="flex-1">
+              <div className="font-medium text-foreground">Cover Letter</div>
+              <div className="text-xs text-muted-foreground">
+                {initialCoverLetter ? 'Generate a personalized cover letter' : 'Already generated'}
+              </div>
+            </div>
+          </label>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={isLoading || (!generateResume && !generateCoverLetter)}
+            className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                Generate
+              </>
+            )}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -492,6 +1450,7 @@ const DroppableColumn = memo(function DroppableColumn({
   onJobClick,
   onStatusChange,
   statuses,
+  getMatchColor,
 }: {
   id: string;
   status: { id: TrackedJob['status']; label: string; color: string };
@@ -499,6 +1458,7 @@ const DroppableColumn = memo(function DroppableColumn({
   onJobClick: (job: TrackedJob) => void;
   onStatusChange: (jobId: string, status: TrackedJob['status']) => void;
   statuses: Array<{ id: TrackedJob['status']; label: string; color: string }>;
+  getMatchColor: (percentage: number | null) => string;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id });
 
@@ -520,6 +1480,7 @@ const DroppableColumn = memo(function DroppableColumn({
             onClick={onJobClick}
             onStatusChange={onStatusChange}
             statuses={statuses}
+            getMatchColor={getMatchColor}
           />
         ))}
       </div>
@@ -533,11 +1494,13 @@ const DraggableJobCard = memo(function DraggableJobCard({
   onClick,
   onStatusChange,
   statuses,
+  getMatchColor,
 }: {
   job: TrackedJob;
   onClick: (job: TrackedJob) => void;
   onStatusChange: (jobId: string, status: TrackedJob['status']) => void;
   statuses: Array<{ id: TrackedJob['status']; label: string; color: string }>;
+  getMatchColor: (percentage: number | null) => string;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: job.id,
@@ -569,6 +1532,16 @@ const DraggableJobCard = memo(function DraggableJobCard({
           <p className="text-sm text-muted-foreground line-clamp-1">{job.company}</p>
         </div>
       </div>
+
+      {/* Match Percentage Badge */}
+      {job.match_percentage !== null && (
+        <div className="mt-3 ml-6">
+          <div className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${getMatchColor(job.match_percentage)}`}>
+            <span className="text-lg leading-none">✓</span>
+            <span>{job.match_percentage}% Match</span>
+          </div>
+        </div>
+      )}
 
       {(job.tailored_resume_id || job.tailored_cover_letter_id) && (
         <div className="mt-3 flex gap-1.5 flex-wrap ml-6">
@@ -704,6 +1677,20 @@ function ResumePreview({ resume }: { resume: any }) {
           {resume.email && <span>{resume.email}</span>}
           {resume.phone && <span>• {resume.phone}</span>}
           {resume.location && <span>• {resume.location}</span>}
+          {resume.portfolio_url && (
+            <span>
+              • <a href={resume.portfolio_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                {resume.portfolio_url.replace(/^https?:\/\//, '')}
+              </a>
+            </span>
+          )}
+          {resume.linkedin_url && (
+            <span>
+              • <a href={resume.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                LinkedIn
+              </a>
+            </span>
+          )}
         </div>
       </div>
 

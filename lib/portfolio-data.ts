@@ -41,7 +41,7 @@ export const portfolioData = {
   email: 'bibstarling@gmail.com',
   location: 'Brasília, Brazil',
   linkedinUrl: 'https://linkedin.com/in/biancastarling',
-  websiteUrl: 'www.biancastarling.com',
+  websiteUrl: 'https://www.biancastarling.com',
   
   // PM Positioning - Key differentiators
   performanceLevel: 'Exceeding High Expectations',
@@ -852,14 +852,15 @@ export const portfolioData = {
 
   education: [
     {
-      degree: 'Specialization in Visual Arts',
-      institution: 'SENAC',
-      year: '2012',
-    },
-    {
       degree: 'Bachelor in Product Design & Graphic Design',
       institution: 'University of Brasília',
       year: '2011',
+    },
+    {
+      degree: 'Mechatronics Engineering (Coursework)',
+      institution: 'University of Brasília',
+      year: '2004-2006',
+      description: 'Programming, algorithms, and systems design coursework providing technical foundation for product-engineering collaboration',
     },
   ],
 

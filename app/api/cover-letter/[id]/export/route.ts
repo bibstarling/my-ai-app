@@ -33,10 +33,18 @@ export async function GET(req: Request, context: RouteContext) {
 
     const html = generateCoverLetterHTML(coverLetter);
 
+    // Create filename with format: coverletter_biancastarling_companyname.html
+    const fullName = portfolioData.fullName.toLowerCase().replace(/\s+/g, '');
+    const companyName = (coverLetter.job_company as string || 'company')
+      .replace(/[^a-z0-9]/gi, '')
+      .toLowerCase();
+    
+    const filename = `coverletter_${fullName}_${companyName}.html`;
+
     return new NextResponse(html, {
       headers: {
         'Content-Type': 'text/html',
-        'Content-Disposition': `inline; filename="Cover_Letter_${coverLetter.job_company.replace(/[^a-z0-9]/gi, '_')}.html"`,
+        'Content-Disposition': `inline; filename="${filename}"`,
       },
     });
   } catch (error) {

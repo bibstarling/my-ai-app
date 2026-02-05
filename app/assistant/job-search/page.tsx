@@ -205,6 +205,41 @@ export default function JobSearchPage() {
     setTailoring(true);
     
     try {
+      // ALWAYS fetch complete job details from the apply URL
+      let finalDescription = job.description;
+      let finalJobType = job.type;
+      let finalSalary = job.salary;
+
+      if (job.applyUrl && job.applyUrl !== '#') {
+        try {
+          const fetchResponse = await fetch('/api/jobs/extract', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: job.applyUrl }),
+          });
+
+          if (fetchResponse.ok) {
+            const fetchData = await fetchResponse.json();
+            if (fetchData.success && fetchData.job) {
+              // Use fetched description - it's always more complete than search results
+              if (fetchData.job.description) {
+                finalDescription = fetchData.job.description;
+              }
+              // Fill in missing data
+              if (!finalJobType && fetchData.job.job_type) {
+                finalJobType = fetchData.job.job_type;
+              }
+              if (!finalSalary && fetchData.job.salary) {
+                finalSalary = fetchData.job.salary;
+              }
+            }
+          }
+        } catch (fetchErr) {
+          console.warn('Could not fetch complete job details, using search result description:', fetchErr);
+          // Continue with search result description if fetch fails
+        }
+      }
+
       // Create tracked job using Clerk user ID
       const { data: trackedJob, error: trackError } = await supabase
         .from('tracked_jobs')
@@ -213,10 +248,10 @@ export default function JobSearchPage() {
           title: job.title,
           company: job.company,
           location: job.location,
-          job_type: job.type,
-          salary: job.salary || null,
+          job_type: finalJobType,
+          salary: finalSalary || null,
           posted_date: job.posted || null,
-          description: job.description,
+          description: finalDescription,
           apply_url: job.applyUrl,
           skills: job.skills || [],
           status: 'saved',
@@ -272,8 +307,60 @@ export default function JobSearchPage() {
           })
           .eq('id', trackedJob.id);
       }
+
+      // Calculate match percentage after generating content
+      let matchCalculated = false;
+      if (resumeId || coverLetterId) {
+        try {
+          console.log('Starting match calculation for job:', trackedJob.id);
+          const matchResponse = await fetch('/api/jobs/calculate-match', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ jobId: trackedJob.id }),
+          });
+
+          console.log('Match calculation response status:', matchResponse.status);
+
+          if (matchResponse.ok) {
+            const matchData = await matchResponse.json();
+            console.log(`Match percentage calculated: ${matchData.percentage}%`, matchData);
+            matchCalculated = true;
+          } else {
+            const contentType = matchResponse.headers.get('content-type');
+            console.log('Error response content-type:', contentType);
+            
+            try {
+              const errorData = await matchResponse.json();
+              console.error('Match calculation failed:', {
+                status: matchResponse.status,
+                statusText: matchResponse.statusText,
+                error: errorData,
+              });
+            } catch (parseErr) {
+              const textError = await matchResponse.text();
+              console.error('Match calculation failed (non-JSON):', {
+                status: matchResponse.status,
+                statusText: matchResponse.statusText,
+                body: textError,
+              });
+            }
+          }
+        } catch (matchErr) {
+          console.error('Error calculating match percentage:', {
+            error: matchErr,
+            message: matchErr instanceof Error ? matchErr.message : String(matchErr),
+            stack: matchErr instanceof Error ? matchErr.stack : undefined,
+          });
+        }
+      }
       
-      alert('Job saved to My Jobs with tailored content!');
+      // Small delay to ensure database has been updated
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const message = matchCalculated
+        ? 'Job saved to My Jobs with tailored content and match score!'
+        : 'Job saved to My Jobs with tailored content! (View in My Jobs to calculate match)';
+      alert(message);
       setTailorModal(null);
       setGenerateResume(true);
       setGenerateCoverLetter(true);
@@ -551,7 +638,7 @@ export default function JobSearchPage() {
             
             <div className="space-y-3 mb-6">
               <p className="text-sm text-muted-foreground">
-                Select which content you'd like to generate for this job:
+                We'll fetch the complete job description from the posting URL to ensure your tailored content is accurate. Then select what to generate:
               </p>
               
               <label className="flex items-start gap-3 rounded-lg border border-border bg-background p-3 cursor-pointer hover:border-accent/50 transition-colors">
