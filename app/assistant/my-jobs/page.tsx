@@ -1609,10 +1609,27 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
     
     setDownloading(true);
     try {
+      console.log('Starting PDF generation for type:', type);
+      console.log('Content structure:', {
+        hasContent: !!content,
+        contentKeys: content ? Object.keys(content) : [],
+        sectionsCount: content?.sections?.length
+      });
+      
       // Create a new PDF document
       const pdfDoc = await PDFDocument.create();
       const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
       const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      
+      // Helper function to safely draw text (handles null/undefined and special characters)
+      const safeDrawText = (page: any, text: string, options: any) => {
+        if (!text || typeof text !== 'string') return;
+        // Remove or replace characters that might cause issues
+        const cleanText = text.replace(/[\u0000-\u001F\u007F-\u009F]/g, '').trim();
+        if (cleanText.length > 0) {
+          page.drawText(cleanText, options);
+        }
+      };
       
       let page = pdfDoc.addPage([612, 792]); // US Letter size
       const { width, height } = page.getSize();
@@ -1624,7 +1641,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
         if (type === 'resume') {
           // Header - Name
           const fullName = content.full_name || 'Resume';
-          page.drawText(fullName, {
+          safeDrawText(page, fullName, {
             x: margin,
             y: yPosition,
             size: 28,
@@ -1658,7 +1675,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
               contactLine += contactItems[i];
             }
             
-            page.drawText(contactLine, {
+            safeDrawText(page, contactLine, {
               x: margin,
               y: yPosition,
               size: 9,
@@ -1696,7 +1713,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
               }
 
               // Section header with underline (only once per type)
-              page.drawText(sectionTitle, {
+              safeDrawText(page, sectionTitle, {
                 x: margin,
                 y: yPosition,
                 size: 11,
@@ -1745,7 +1762,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                       page = pdfDoc.addPage([612, 792]);
                       yPosition = height - 50;
                     }
-                    page.drawText(line, {
+                    safeDrawText(page, line, {
                       x: margin,
                       y: yPosition,
                       size: 10,
@@ -1785,7 +1802,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                       page = pdfDoc.addPage([612, 792]);
                       yPosition = height - 50;
                     }
-                    page.drawText(line, {
+                    safeDrawText(page, line, {
                       x: margin,
                       y: yPosition,
                       size: 10,
@@ -1805,7 +1822,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                   }
 
                   // Position (left) and Dates (right)
-                  page.drawText(exp.position || '', {
+                  safeDrawText(page, exp.position || '', {
                     x: margin,
                     y: yPosition,
                     size: 11,
@@ -1816,7 +1833,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                   // Dates aligned to the right
                   const dateRange = `${exp.startDate || ''} — ${exp.endDate || 'Present'}`;
                   const dateWidth = helveticaFont.widthOfTextAtSize(dateRange, 9);
-                  page.drawText(dateRange, {
+                  safeDrawText(page, dateRange, {
                     x: rightMargin - dateWidth,
                     y: yPosition,
                     size: 9,
@@ -1826,7 +1843,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                   yPosition -= 14;
 
                   // Company
-                  page.drawText(exp.company || '', {
+                  safeDrawText(page, exp.company || '', {
                     x: margin,
                     y: yPosition,
                     size: 10,
@@ -1871,7 +1888,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                         }
                         
                         if (i === 0) {
-                          page.drawText('•', {
+                          safeDrawText(page, '•', {
                             x: margin + 5,
                             y: yPosition,
                             size: 9.5,
@@ -1880,7 +1897,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                           });
                         }
                         
-                        page.drawText(bulletLines[i], {
+                        safeDrawText(page, bulletLines[i], {
                           x: margin + 15,
                           y: yPosition,
                           size: 9.5,
@@ -1902,7 +1919,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                   }
 
                   // Degree (left) and Year (right)
-                  page.drawText(edu.degree || '', {
+                  safeDrawText(page, edu.degree || '', {
                     x: margin,
                     y: yPosition,
                     size: 11,
@@ -1912,7 +1929,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                   
                   if (edu.year) {
                     const yearWidth = helveticaFont.widthOfTextAtSize(edu.year, 9);
-                    page.drawText(edu.year, {
+                    safeDrawText(page, edu.year, {
                       x: rightMargin - yearWidth,
                       y: yPosition,
                       size: 9,
@@ -1923,7 +1940,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                   yPosition -= 14;
 
                   // Institution
-                  page.drawText(edu.institution || '', {
+                  safeDrawText(page, edu.institution || '', {
                     x: margin,
                     y: yPosition,
                     size: 10,
@@ -1941,7 +1958,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                   }
 
                   // Project name
-                  page.drawText(proj.name || '', {
+                  safeDrawText(page, proj.name || '', {
                     x: margin,
                     y: yPosition,
                     size: 11,
@@ -1975,7 +1992,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                         page = pdfDoc.addPage([612, 792]);
                         yPosition = height - 50;
                       }
-                      page.drawText(line, {
+                      safeDrawText(page, line, {
                         x: margin,
                         y: yPosition,
                         size: 9.5,
@@ -2020,7 +2037,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                         }
                         
                         if (i === 0) {
-                          page.drawText('•', {
+                          safeDrawText(page, '•', {
                             x: margin + 5,
                             y: yPosition,
                             size: 9.5,
@@ -2029,7 +2046,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                           });
                         }
                         
-                        page.drawText(bulletLines[i], {
+                        safeDrawText(page, bulletLines[i], {
                           x: margin + 15,
                           y: yPosition,
                           size: 9.5,
@@ -2056,7 +2073,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
         const jobCompany = content.job_company || '';
         
         // Header - Use name from Clerk or default
-        page.drawText('Bianca Starling', {
+        safeDrawText(page, 'Bianca Starling', {
           x: margin,
           y: yPosition,
           size: 18,
@@ -2067,7 +2084,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
 
         // Date
         const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-        page.drawText(today, {
+        safeDrawText(page, today, {
           x: margin,
           y: yPosition,
           size: 10,
@@ -2079,7 +2096,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
         // Recipient
         if (content.recipient_name || content.recipient_title || jobCompany) {
           if (content.recipient_name) {
-            page.drawText(content.recipient_name, {
+            safeDrawText(page, content.recipient_name, {
               x: margin,
               y: yPosition,
               size: 10,
@@ -2090,7 +2107,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
           }
           
           if (content.recipient_title) {
-            page.drawText(content.recipient_title, {
+            safeDrawText(page, content.recipient_title, {
               x: margin,
               y: yPosition,
               size: 10,
@@ -2101,7 +2118,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
           }
           
           if (jobCompany) {
-            page.drawText(jobCompany, {
+            safeDrawText(page, jobCompany, {
               x: margin,
               y: yPosition,
               size: 10,
@@ -2112,7 +2129,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
           }
           
           if (content.company_address) {
-            page.drawText(content.company_address, {
+            safeDrawText(page, content.company_address, {
               x: margin,
               y: yPosition,
               size: 10,
@@ -2129,7 +2146,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
         const salutation = content.recipient_name
           ? `Dear ${content.recipient_name},`
           : 'Dear Hiring Manager,';
-        page.drawText(salutation, {
+        safeDrawText(page, salutation, {
           x: margin,
           y: yPosition,
           size: 11,
@@ -2163,7 +2180,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
               page = pdfDoc.addPage([612, 792]);
               yPosition = height - 50;
             }
-            page.drawText(line, {
+            safeDrawText(page, line, {
               x: margin,
               y: yPosition,
               size: 11,
@@ -2198,7 +2215,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
           page = pdfDoc.addPage([612, 792]);
           yPosition = height - 50;
         }
-        page.drawText('Sincerely,', {
+        safeDrawText(page, 'Sincerely,', {
           x: margin,
           y: yPosition,
           size: 11,
@@ -2206,7 +2223,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
           color: rgb(0.2, 0.2, 0.2),
         });
         yPosition -= 30;
-        page.drawText('Bianca Starling', {
+        safeDrawText(page, 'Bianca Starling', {
           x: margin,
           y: yPosition,
           size: 11,
@@ -2239,9 +2256,15 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
+      console.error('Error details:', {
+        message: error?.message,
+        stack: error?.stack,
+        content: content ? 'Content exists' : 'No content',
+        type: type
+      });
+      alert(`Failed to generate PDF: ${error?.message || 'Unknown error'}. Please try again or check the console for details.`);
     } finally {
       setDownloading(false);
     }
