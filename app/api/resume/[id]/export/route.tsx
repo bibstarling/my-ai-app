@@ -129,8 +129,15 @@ export async function GET(req: Request, context: RouteContext) {
     const filename = `resume_${fullName}_${companyName}.pdf`;
 
     // Generate PDF using @react-pdf/renderer
+    console.log('Generating PDF for resume:', id);
+    console.log('Resume data:', { fullName: resume.full_name, title: resume.title });
+    console.log('Sections count:', sections?.length || 0);
+    
     const pdfDocument = generateResumePDF(resume, sections || []);
+    console.log('PDF document created, rendering to buffer...');
+    
     const pdfBuffer = await ReactPDF.renderToBuffer(pdfDocument);
+    console.log('PDF buffer created, size:', pdfBuffer.length);
 
     // Return PDF (convert Buffer to Uint8Array for NextResponse)
     return new NextResponse(new Uint8Array(pdfBuffer), {
@@ -141,8 +148,13 @@ export async function GET(req: Request, context: RouteContext) {
     });
   } catch (error) {
     console.error('GET /api/resume/[id]/export error:', error);
+    console.error('Error details:', error instanceof Error ? error.message : String(error));
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     );
   }
