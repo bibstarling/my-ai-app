@@ -220,14 +220,14 @@ function renderSectionContent(type: string, content: Record<string, unknown>) {
             </View>
             <Text style={styles.itemDate}>{content.year as string || ''}</Text>
           </View>
-          {content.description && <Text style={styles.text}>{content.description as string}</Text>}
+          {content.description ? <Text style={styles.text}>{content.description as string}</Text> : null}
         </View>
       );
       
     case 'skills':
       return (
         <View style={styles.skillsCategory}>
-          {content.category && <Text style={styles.skillsCategoryTitle}>{content.category as string}</Text>}
+          {content.category ? <Text style={styles.skillsCategoryTitle}>{content.category as string}</Text> : null}
           <Text style={styles.text}>
             {Array.isArray(content.items) ? (content.items as string[]).join(' • ') : ''}
           </Text>
@@ -238,7 +238,7 @@ function renderSectionContent(type: string, content: Record<string, unknown>) {
       return (
         <View style={styles.itemContainer}>
           <Text style={styles.itemTitle}>{content.name as string || ''}</Text>
-          {content.description && <Text style={styles.text}>{content.description as string}</Text>}
+          {content.description ? <Text style={styles.text}>{content.description as string}</Text> : null}
           {renderBullets(content.bullets as string[] | undefined)}
         </View>
       );
