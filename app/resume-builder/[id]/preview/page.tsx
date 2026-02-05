@@ -9,7 +9,7 @@ import html2canvas from 'html2canvas';
 
 type PageProps = {
   params: Promise<{ id: string }>;
-  searchParams?: Promise<{ adaptation?: string }>;
+  searchParams?: Promise<{ adaptation?: string; autoDownload?: string }>;
 };
 
 export default function ResumePreviewPage({ params, searchParams }: PageProps) {
