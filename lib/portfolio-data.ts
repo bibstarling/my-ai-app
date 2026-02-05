@@ -37,7 +37,7 @@ export type ArticleOrTalk = {
 export const portfolioData = {
   fullName: 'Bianca Starling',
   title: 'Lead Product Manager',
-  tagline: 'Scrappy, High-Agency Builder | 0-to-1 PM | AI Pioneer',
+  tagline: 'Strategic Builder | 0-to-1 PM | AI Pioneer',
   email: 'bibstarling@gmail.com',
   location: 'Brasília, Brazil',
   linkedinUrl: 'https://linkedin.com/in/biancastarling',
@@ -45,7 +45,7 @@ export const portfolioData = {
   
   // PM Positioning - Key differentiators
   performanceLevel: 'Exceeding High Expectations',
-  pmArchetype: 'Scrappy High-Agency Builder',
+  pmArchetype: 'Strategic High-Agency Builder',
   superpowers: [
     'Resilient through organizational change (adapts quickly and maintains momentum)',
     'Takes on multiple complex initiatives simultaneously with massive ambiguity',
@@ -941,7 +941,7 @@ What I want: Shape where the product goes, not just how we get there. Be in the 
 }
 
 export function getPMPositioning(): string {
-  return `PM ARCHETYPE: Scrappy High-Agency Builder | Exceeding High Expectations
+  return `PM ARCHETYPE: Strategic High-Agency Builder | Exceeding High Expectations
 
 CORE TRAITS:
 - Resilient through change: Adapted quickly after RIF, maintained momentum on behemoth projects
@@ -950,7 +950,7 @@ CORE TRAITS:
 - Strategic thinker: Ready to champion product vision and influence roadmap
 - AI pioneer: Ships practical AI products (ChatGPT App, semantic search), not just strategy
 - Cross-functional force: Supports teams beyond core role with data and quick experiments
-- Creative solver: Finds right-sized solutions with limited resources
+- Creative solver: Finds resourceful, right-sized solutions with limited resources
 
 IDEAL FOR:
 - Startups and 0-to-1 teams needing resilience and fast execution
