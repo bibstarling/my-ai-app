@@ -23,8 +23,7 @@ import {
   CheckCircle,
   AlertCircle,
 } from 'lucide-react';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import {
   DndContext,
   DragEndEvent,
@@ -1610,40 +1609,339 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
     
     setDownloading(true);
     try {
-      // Get the content element
-      const contentElement = document.getElementById('preview-content');
-      if (!contentElement) {
-        throw new Error('Content not found');
-      }
+      // Create a new PDF document
+      const pdfDoc = await PDFDocument.create();
+      const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+      const timesRomanBold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+      
+      let page = pdfDoc.addPage([612, 792]); // US Letter size
+      const { width, height } = page.getSize();
+      let yPosition = height - 50;
+      const margin = 50;
+      const lineHeight = 15;
 
-      // Generate canvas from HTML
-      const canvas = await html2canvas(contentElement, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-      });
+      if (type === 'resume') {
+        // Header - Name
+        const fullName = content.full_name || 'Resume';
+        page.drawText(fullName, {
+          x: margin,
+          y: yPosition,
+          size: 24,
+          font: timesRomanBold,
+          color: rgb(0, 0, 0),
+        });
+        yPosition -= 30;
 
-      // Calculate PDF dimensions
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
+        // Contact Info
+        const contactInfo = [
+          content.email,
+          content.phone,
+          content.location,
+          content.linkedin_url,
+          content.portfolio_url
+        ].filter(Boolean).join(' • ');
+        
+        if (contactInfo) {
+          page.drawText(contactInfo, {
+            x: margin,
+            y: yPosition,
+            size: 10,
+            font: timesRomanFont,
+            color: rgb(0.3, 0.3, 0.3),
+          });
+          yPosition -= 25;
+        }
 
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      let position = 0;
+        // Professional Summary
+        if (content.professional_summary) {
+          page.drawText('PROFESSIONAL SUMMARY', {
+            x: margin,
+            y: yPosition,
+            size: 12,
+            font: timesRomanBold,
+            color: rgb(0, 0, 0),
+          });
+          yPosition -= 20;
 
-      // Add image to PDF
-      const imgData = canvas.toDataURL('image/png');
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+          const summaryLines = content.professional_summary.match(/.{1,80}(\s|$)/g) || [];
+          for (const line of summaryLines) {
+            if (yPosition < 50) {
+              page = pdfDoc.addPage([612, 792]);
+              yPosition = height - 50;
+            }
+            page.drawText(line.trim(), {
+              x: margin,
+              y: yPosition,
+              size: 10,
+              font: timesRomanFont,
+              color: rgb(0, 0, 0),
+            });
+            yPosition -= lineHeight;
+          }
+          yPosition -= 10;
+        }
 
-      // Add additional pages if needed
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+        // Skills
+        if (content.sections?.find((s: any) => s.type === 'skills')) {
+          const skillsSection = content.sections.find((s: any) => s.type === 'skills');
+          if (yPosition < 50) {
+            page = pdfDoc.addPage([612, 792]);
+            yPosition = height - 50;
+          }
+          
+          page.drawText('SKILLS', {
+            x: margin,
+            y: yPosition,
+            size: 12,
+            font: timesRomanBold,
+            color: rgb(0, 0, 0),
+          });
+          yPosition -= 20;
+
+          const skillsText = skillsSection.items?.map((item: any) => item.text).join(', ') || '';
+          const skillsLines = skillsText.match(/.{1,80}(\s|$)/g) || [];
+          for (const line of skillsLines) {
+            if (yPosition < 50) {
+              page = pdfDoc.addPage([612, 792]);
+              yPosition = height - 50;
+            }
+            page.drawText(line.trim(), {
+              x: margin,
+              y: yPosition,
+              size: 10,
+              font: timesRomanFont,
+              color: rgb(0, 0, 0),
+            });
+            yPosition -= lineHeight;
+          }
+          yPosition -= 10;
+        }
+
+        // Experience
+        const experienceSection = content.sections?.find((s: any) => s.type === 'experience');
+        if (experienceSection?.items) {
+          if (yPosition < 50) {
+            page = pdfDoc.addPage([612, 792]);
+            yPosition = height - 50;
+          }
+          
+          page.drawText('EXPERIENCE', {
+            x: margin,
+            y: yPosition,
+            size: 12,
+            font: timesRomanBold,
+            color: rgb(0, 0, 0),
+          });
+          yPosition -= 20;
+
+          for (const item of experienceSection.items) {
+            if (yPosition < 100) {
+              page = pdfDoc.addPage([612, 792]);
+              yPosition = height - 50;
+            }
+
+            page.drawText(item.title || '', {
+              x: margin,
+              y: yPosition,
+              size: 11,
+              font: timesRomanBold,
+              color: rgb(0, 0, 0),
+            });
+            yPosition -= 15;
+
+            if (item.subtitle) {
+              page.drawText(item.subtitle, {
+                x: margin,
+                y: yPosition,
+                size: 10,
+                font: timesRomanFont,
+                color: rgb(0.3, 0.3, 0.3),
+              });
+              yPosition -= 15;
+            }
+
+            if (item.text) {
+              const textLines = item.text.match(/.{1,80}(\s|$)/g) || [];
+              for (const line of textLines) {
+                if (yPosition < 50) {
+                  page = pdfDoc.addPage([612, 792]);
+                  yPosition = height - 50;
+                }
+                page.drawText(line.trim(), {
+                  x: margin,
+                  y: yPosition,
+                  size: 10,
+                  font: timesRomanFont,
+                  color: rgb(0, 0, 0),
+                });
+                yPosition -= lineHeight;
+              }
+            }
+            yPosition -= 10;
+          }
+        }
+
+        // Education
+        const educationSection = content.sections?.find((s: any) => s.type === 'education');
+        if (educationSection?.items) {
+          if (yPosition < 50) {
+            page = pdfDoc.addPage([612, 792]);
+            yPosition = height - 50;
+          }
+          
+          page.drawText('EDUCATION', {
+            x: margin,
+            y: yPosition,
+            size: 12,
+            font: timesRomanBold,
+            color: rgb(0, 0, 0),
+          });
+          yPosition -= 20;
+
+          for (const item of educationSection.items) {
+            if (yPosition < 80) {
+              page = pdfDoc.addPage([612, 792]);
+              yPosition = height - 50;
+            }
+
+            page.drawText(item.title || '', {
+              x: margin,
+              y: yPosition,
+              size: 11,
+              font: timesRomanBold,
+              color: rgb(0, 0, 0),
+            });
+            yPosition -= 15;
+
+            if (item.subtitle) {
+              page.drawText(item.subtitle, {
+                x: margin,
+                y: yPosition,
+                size: 10,
+                font: timesRomanFont,
+                color: rgb(0.3, 0.3, 0.3),
+              });
+              yPosition -= 20;
+            }
+          }
+        }
+      } else {
+        // Cover Letter
+        const jobTitle = content.job_title || '';
+        const jobCompany = content.job_company || '';
+        
+        // Header
+        page.drawText(content.full_name || 'Bianca Starling', {
+          x: margin,
+          y: yPosition,
+          size: 16,
+          font: timesRomanBold,
+          color: rgb(0, 0, 0),
+        });
+        yPosition -= 20;
+
+        const contactInfo = [
+          content.email,
+          content.phone,
+          content.location
+        ].filter(Boolean).join(' • ');
+        
+        if (contactInfo) {
+          page.drawText(contactInfo, {
+            x: margin,
+            y: yPosition,
+            size: 9,
+            font: timesRomanFont,
+            color: rgb(0.3, 0.3, 0.3),
+          });
+          yPosition -= 30;
+        }
+
+        // Date
+        const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        page.drawText(today, {
+          x: margin,
+          y: yPosition,
+          size: 10,
+          font: timesRomanFont,
+          color: rgb(0, 0, 0),
+        });
+        yPosition -= 25;
+
+        // Recipient
+        if (content.hiring_manager_name || jobCompany) {
+          const recipient = content.hiring_manager_name ? `${content.hiring_manager_name}\n${jobCompany}` : jobCompany;
+          const recipientLines = recipient.split('\n');
+          for (const line of recipientLines) {
+            page.drawText(line, {
+              x: margin,
+              y: yPosition,
+              size: 10,
+              font: timesRomanFont,
+              color: rgb(0, 0, 0),
+            });
+            yPosition -= lineHeight;
+          }
+          yPosition -= 10;
+        }
+
+        // Salutation
+        const salutation = content.hiring_manager_name 
+          ? `Dear ${content.hiring_manager_name},`
+          : 'Dear Hiring Manager,';
+        page.drawText(salutation, {
+          x: margin,
+          y: yPosition,
+          size: 10,
+          font: timesRomanFont,
+          color: rgb(0, 0, 0),
+        });
+        yPosition -= 25;
+
+        // Letter content
+        if (content.letter_content) {
+          const paragraphs = content.letter_content.split('\n\n');
+          for (const paragraph of paragraphs) {
+            const lines = paragraph.match(/.{1,80}(\s|$)/g) || [];
+            for (const line of lines) {
+              if (yPosition < 50) {
+                page = pdfDoc.addPage([612, 792]);
+                yPosition = height - 50;
+              }
+              page.drawText(line.trim(), {
+                x: margin,
+                y: yPosition,
+                size: 10,
+                font: timesRomanFont,
+                color: rgb(0, 0, 0),
+              });
+              yPosition -= lineHeight;
+            }
+            yPosition -= 10; // Extra space between paragraphs
+          }
+        }
+
+        // Closing
+        yPosition -= 10;
+        if (yPosition < 80) {
+          page = pdfDoc.addPage([612, 792]);
+          yPosition = height - 50;
+        }
+        page.drawText('Sincerely,', {
+          x: margin,
+          y: yPosition,
+          size: 10,
+          font: timesRomanFont,
+          color: rgb(0, 0, 0),
+        });
+        yPosition -= 25;
+        page.drawText(content.full_name || 'Bianca Starling', {
+          x: margin,
+          y: yPosition,
+          size: 10,
+          font: timesRomanFont,
+          color: rgb(0, 0, 0),
+        });
       }
 
       // Generate filename
@@ -1659,8 +1957,17 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
         filename = `coverletter_biancastarling_${companyName.replace(/[^a-z0-9]/gi, '').toLowerCase()}.pdf`;
       }
 
-      // Download PDF
-      pdf.save(filename);
+      // Save the PDF
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Failed to generate PDF. Please try again.');
