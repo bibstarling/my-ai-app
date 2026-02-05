@@ -844,10 +844,10 @@ export const portfolioData = {
   ],
 
   skills: {
-    strategy: ['AI Strategy & Integrations', 'Product Vision & Roadmapping', 'Marketplace Growth', 'Go-to-Market', 'Experimentation Culture'],
-    discovery: ['Continuous Discovery Habits', 'User Research & Testing', 'Opportunity Mapping', 'Problem Framing', 'Journey Mapping'],
-    technical: ['Multi-Agent Systems (MCP)', 'LLM Integrations', 'Recommendation Systems', 'API Design', 'SQL', 'A/B Testing'],
-    tools: ['Productboard', 'Pendo', 'Mixpanel', 'Maze', 'Builder.io', 'Figma', 'Jira', 'Tableau'],
+    strategy: ['AI Strategy & Vision', '0-to-1 Product Development', 'Platform Strategy', 'Post-Acquisition Integration', 'Marketplace Growth', 'Product Roadmapping'],
+    discovery: ['Continuous Discovery Habits', 'Qualitative Research Systems', 'User Research & Testing', 'Opportunity Framing', 'Multi-Source Insight Synthesis', 'Problem Framing'],
+    technical: ['Semantic Search & Vector Retrieval', 'Multi-Agent Systems (MCP)', 'LLM Integrations', 'Information Architecture & Taxonomy', 'CMS & Publishing Platforms', 'Recommendation Systems', 'API Design'],
+    tools: ['Dovetail', 'Productboard', 'Pendo', 'Mixpanel', 'Maze', 'Algolia', 'Builder.io', 'Figma', 'Jira', 'Tableau'],
   },
 
   education: [
