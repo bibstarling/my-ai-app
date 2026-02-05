@@ -300,7 +300,7 @@ export default function HomePage() {
           </p>
 
           {/* Navigation - Desktop Only */}
-          <nav className="mt-12 hidden lg:block">
+          <nav className="mt-12 hidden lg:block lg:mb-12">
             <ul className="flex flex-col gap-3">
               {navItems.map(({ id, label }) => (
                 <li key={id}>
