@@ -11,6 +11,8 @@ const navItems = [
   { id: 'experience', label: 'Experience' },
   { id: 'work', label: 'Work' },
   { id: 'skills', label: 'Skills' },
+  { id: 'achievements', label: 'Achievements' },
+  { id: 'articles', label: 'Articles & Talks' },
   { id: 'contact', label: 'Contact' },
 ];
 
@@ -524,6 +526,66 @@ export default function HomePage() {
                 ))}
               </ul>
             </div>
+          </div>
+        </section>
+
+        {/* Achievements Section */}
+        <section id="achievements" className="mb-24 scroll-mt-24 lg:mb-36">
+          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
+            Key Achievements
+          </h3>
+          <div className="rounded-lg border border-border bg-white p-6 lg:p-8">
+            <div className="mb-6 flex items-center gap-2">
+              <div className="h-1 w-1 rounded-full bg-accent" />
+              <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
+                Career Highlights
+              </h4>
+            </div>
+            <ul className="space-y-4">
+              {portfolioData.achievements.map((achievement, idx) => (
+                <li key={idx} className="flex items-start gap-3 text-sm">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                  <p className="leading-relaxed text-foreground">
+                    <span className="font-semibold">{achievement.split(':')[0]}:</span>
+                    {achievement.split(':').slice(1).join(':')}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* Articles & Talks Section */}
+        <section id="articles" className="mb-24 scroll-mt-24 lg:mb-36">
+          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
+            Articles & Talks
+          </h3>
+          <div className="space-y-4">
+            {portfolioData.articlesAndTalks.map((item, idx) => (
+              <a
+                key={idx}
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block rounded-lg border border-border bg-white p-6 transition-all hover:border-accent hover:shadow-lg"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="mb-2 flex items-center gap-2">
+                      <span className="rounded-full bg-accent/10 px-2 py-1 text-xs font-medium text-accent">
+                        {item.type}
+                      </span>
+                      <span className="text-xs text-muted">{item.date}</span>
+                    </div>
+                    <h4 className="font-medium text-foreground group-hover:text-accent transition-colors leading-snug">
+                      {item.title}
+                    </h4>
+                    <p className="mt-1 text-sm text-muted">{item.organization}</p>
+                  </div>
+                  <ArrowUpRight className="h-5 w-5 shrink-0 text-muted group-hover:text-accent transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                </div>
+              </a>
+            ))}
           </div>
         </section>
 
