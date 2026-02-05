@@ -443,6 +443,17 @@ export default function MyJobsPage() {
         if (matchResponse.ok) {
           const matchData = await matchResponse.json();
           console.log(`Match percentage calculated: ${matchData.percentage}%`, matchData);
+          
+          // Store match details for display
+          setMatchDetails({
+            jobId,
+            reasoning: matchData.reasoning || '',
+            strengths: matchData.strengths || [],
+            gaps: matchData.gaps || [],
+            ats_keywords_matched: matchData.ats_keywords_matched || [],
+            ats_keywords_missing: matchData.ats_keywords_missing || [],
+          });
+          
           matchCalculated = true;
         } else {
           // Try to parse error response
