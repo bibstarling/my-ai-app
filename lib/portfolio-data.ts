@@ -26,6 +26,14 @@ export type PortfolioProject = {
   }[];
 };
 
+export type ArticleOrTalk = {
+  title: string;
+  type: string;
+  organization: string;
+  url: string;
+  date: string;
+};
+
 export const portfolioData = {
   fullName: 'Bianca Starling',
   title: 'Lead Product Manager',
@@ -61,6 +69,12 @@ export const portfolioData = {
       quarter: 'Q2 2024',
       description: 'Awarded for bringing AI innovation to product development, building practical solutions that drive real efficiency gains.',
       keyTraits: ['AI Innovation', 'Practical Solutions', 'Efficiency'],
+    },
+    {
+      title: 'Voxy Impressive Performance Award',
+      quarter: 'Jan 2023',
+      description: 'Global recognition for exceptional impact.',
+      keyTraits: ['Exceptional Impact', 'Global Recognition'],
     },
   ],
   
@@ -865,6 +879,46 @@ export const portfolioData = {
     {
       name: 'Strategic Digital Transformation',
       issuer: 'TDS Company',
+    },
+  ],
+
+  achievements: [
+    'AI Strategy & Product Innovation: Shaping Skillshare\'s company-wide AI strategy and overseeing the design of a multi-agent Model Context Protocol (MCP) to connect platform data with external AI tools, laying the groundwork for intelligent discovery and user support experiences.',
+    'Community Growth & Engagement: Delivered a 25% increase in daily engagement through the launch of the Creative Feed and Follow Suggestions, scaling community participation and retention.',
+    'Continuous Discovery & Insights: Established the Continuous Discovery Habits framework and used AI to accelerate qualitative data analysis, cutting the discovery-to-decision cycle by 50%.',
+    'Marketplace Expansion: Launched Digital Products and the Creator Hub, expanding creator monetization through digital goods, 1-1 sessions, and cohort-based learning.',
+    'Data-Driven Leadership: Built a culture of data-informed decision-making and experimentation across product squads, improving delivery velocity and user satisfaction.',
+    'EdTech Transformation Impact: Previously led SENAI\'s national digital transformation program, modernizing learning infrastructure and securing multimillion-dollar funding for innovation.',
+  ],
+
+  articlesAndTalks: [
+    {
+      title: 'Closing the Gap Between Qualitative and Quantitative Insights with AI',
+      type: 'Keynote',
+      organization: 'Product Insights Summit',
+      url: 'https://virtual.productledalliance.com/location/insights/speaker/biancastarling',
+      date: 'Oct 2025',
+    },
+    {
+      title: 'Interview about Continuous Discovery',
+      type: 'Article',
+      organization: 'Product Talk',
+      url: 'https://www.producttalk.org/2023/06/one-product-managers-quest-to-adopt-cdh/',
+      date: '2023',
+    },
+    {
+      title: 'Government and Education Summit Speaker',
+      type: 'Talk',
+      organization: 'Google Cloud',
+      url: 'https://cloudonair.withgoogle.com/events/cloud-govt-edu-summit-brazil',
+      date: '2021',
+    },
+    {
+      title: 'How to develop new digital businesses using the Lean Startup framework',
+      type: 'Workshop',
+      organization: 'Menos 30 Fest',
+      url: 'https://www.youtube.com/watch?v=B80YC6j_Wzs',
+      date: '2021',
     },
   ],
 };

@@ -6,13 +6,139 @@ import { ArrowUpRight, Linkedin, Mail, X } from 'lucide-react';
 import { portfolioData, type PortfolioProject } from '@/lib/portfolio-data';
 import { useEmbedMode } from '@/app/ClientAuthWrapper';
 
+
 const navItems = [
   { id: 'about', label: 'About' },
   { id: 'experience', label: 'Experience' },
   { id: 'work', label: 'Work' },
   { id: 'skills', label: 'Skills' },
+  { id: 'articles', label: 'Articles & Talks' },
   { id: 'contact', label: 'Contact' },
 ];
+
+// Extract unique categories from project tags
+const CATEGORIES = [
+  { id: 'all', label: 'All Projects' },
+  { id: 'ai', label: 'AI & Discovery' },
+  { id: 'community', label: 'Community & Engagement' },
+  { id: 'platform', label: 'Platform & Integration' },
+  { id: 'edtech', label: 'EdTech' },
+  { id: 'discovery', label: 'Research & Discovery' },
+];
+
+function getCategoryForProject(project: PortfolioProject): string[] {
+  const categories: string[] = ['all'];
+  const tagString = project.tags.join(' ').toLowerCase();
+  
+  if (tagString.includes('ai') || tagString.includes('semantic') || tagString.includes('vector') || tagString.includes('chatgpt')) {
+    categories.push('ai');
+  }
+  if (tagString.includes('community') || tagString.includes('engagement') || tagString.includes('feed')) {
+    categories.push('community');
+  }
+  if (tagString.includes('platform') || tagString.includes('integration') || tagString.includes('cms') || tagString.includes('marketplace')) {
+    categories.push('platform');
+  }
+  if (tagString.includes('edtech') || tagString.includes('education') || tagString.includes('learning')) {
+    categories.push('edtech');
+  }
+  if (tagString.includes('discovery') || tagString.includes('research') || tagString.includes('qualitative')) {
+    categories.push('discovery');
+  }
+  
+  return categories;
+}
+
+function ProjectGrid({
+  projects,
+  onProjectClick,
+}: {
+  projects: PortfolioProject[];
+  onProjectClick: (project: PortfolioProject) => void;
+}) {
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
+  const filteredProjects = projects.filter((project) => {
+    if (selectedCategory === 'all') return true;
+    return getCategoryForProject(project).includes(selectedCategory);
+  });
+
+  return (
+    <div>
+      {/* Category Tabs */}
+      <div className="mb-8 flex flex-wrap gap-2">
+        {CATEGORIES.map((category) => (
+          <button
+            key={category.id}
+            onClick={() => setSelectedCategory(category.id)}
+            className={`rounded-full px-4 py-2 text-xs font-medium uppercase tracking-wider transition-all ${
+              selectedCategory === category.id
+                ? 'bg-accent text-white shadow-sm'
+                : 'bg-muted/20 text-muted hover:bg-muted/30 hover:text-foreground'
+            }`}
+          >
+            {category.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Masonry Grid */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {filteredProjects.map((project) => (
+          <div
+            key={project.id}
+            role="button"
+            tabIndex={0}
+            onClick={() => onProjectClick(project)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onProjectClick(project);
+              }
+            }}
+            className="group relative rounded-lg border border-border bg-white p-6 transition-all hover:border-accent hover:shadow-lg cursor-pointer"
+          >
+            <p className="text-xs font-medium text-muted uppercase tracking-wider">
+              {project.company}
+            </p>
+            <h4 className="mt-2 font-medium text-foreground group-hover:text-accent transition-colors leading-snug">
+              {project.title}
+            </h4>
+            <p className="mt-3 text-sm text-muted leading-relaxed line-clamp-3">
+              {project.cardTeaser}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {project.tags.slice(0, 3).map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent"
+                >
+                  {tag}
+                </span>
+              ))}
+              {project.tags.length > 3 && (
+                <span className="rounded-full bg-muted/20 px-3 py-1 text-xs font-medium text-muted">
+                  +{project.tags.length - 3}
+                </span>
+              )}
+            </div>
+            <div className="mt-4 pt-4 border-t border-border">
+              <p className="text-xs font-medium text-accent line-clamp-2">
+                {project.outcome}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {filteredProjects.length === 0 && (
+        <div className="py-12 text-center text-muted">
+          <p>No projects found in this category.</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function ProjectModal({
   project,
@@ -35,50 +161,85 @@ function ProjectModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-12 pb-24"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 backdrop-blur-sm p-4 pt-12 pb-24"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="project-modal-title"
     >
       <div
-        className="relative w-full max-w-2xl rounded-lg border border-border bg-white shadow-xl"
+        className="relative w-full max-w-3xl rounded-xl border border-border bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-border bg-white p-6 pb-4">
-          <div>
-            <p className="text-xs font-medium text-muted uppercase tracking-wider">{project.company}</p>
-            <h2 id="project-modal-title" className="mt-1 text-xl font-semibold text-foreground">
-              {project.title}
-            </h2>
+        {/* Header with gradient accent */}
+        <div className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-transparent" />
+          <div className="relative flex items-start justify-between gap-4 p-8 pb-6">
+            <div className="flex-1">
+              <p className="text-xs font-semibold text-accent uppercase tracking-widest">
+                {project.company}
+              </p>
+              <h2 id="project-modal-title" className="mt-2 text-2xl font-bold text-foreground leading-snug">
+                {project.title}
+              </h2>
+              <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-accent/10 px-4 py-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-accent" />
+                <p className="text-sm font-medium text-accent">
+                  {project.outcome}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="shrink-0 rounded-full p-2 text-muted hover:bg-accent/10 hover:text-accent transition-all"
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="shrink-0 rounded p-1 text-muted hover:bg-muted hover:text-foreground transition-colors"
-            aria-label="Close"
-          >
-            <X className="h-5 w-5" />
-          </button>
         </div>
-        <div className="max-h-[calc(100vh-12rem)] overflow-y-auto p-6 pt-4">
-          <div className="space-y-6">
+
+        {/* Tags Section */}
+        <div className="px-8 pb-6 border-b border-border">
+          <div className="flex flex-wrap gap-2">
+            {project.tags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-card px-3 py-1.5 text-xs font-medium text-muted border border-border"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="max-h-[calc(100vh-20rem)] overflow-y-auto px-8 py-6">
+          <div className="space-y-8">
             {project.details.map((section, i) => (
-              <div key={i}>
+              <div key={i} className="group">
                 {section.heading && (
-                  <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-accent">
-                    {section.heading}
-                  </h3>
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="h-px flex-1 bg-gradient-to-r from-accent/20 to-transparent" />
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-accent">
+                      {section.heading}
+                    </h3>
+                    <div className="h-px flex-1 bg-gradient-to-l from-accent/20 to-transparent" />
+                  </div>
                 )}
                 {section.paragraphs?.map((p, j) => (
-                  <p key={j} className="text-sm text-muted leading-relaxed mb-3 last:mb-0">
+                  <p key={j} className="text-sm text-foreground leading-relaxed mb-4 last:mb-0">
                     {p}
                   </p>
                 ))}
                 {section.list && (
-                  <ul className="list-disc list-inside space-y-1 text-sm text-muted">
+                  <ul className="space-y-3 mt-4">
                     {section.list.map((item, j) => (
-                      <li key={j}>{item}</li>
+                      <li key={j} className="flex items-start gap-3 text-sm text-foreground">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                        <span className="leading-relaxed">{item}</span>
+                      </li>
                     ))}
                   </ul>
                 )}
@@ -126,21 +287,21 @@ export default function HomePage() {
       )}
       
       {/* Left Sidebar - Sticky on Desktop */}
-      <header className="lg:fixed lg:top-0 lg:left-0 lg:flex lg:h-screen lg:w-1/2 lg:flex-col lg:justify-between lg:py-24 lg:px-24 px-6 py-16">
+      <header className="lg:fixed lg:top-0 lg:left-0 lg:flex lg:h-screen lg:w-[30%] lg:flex-col lg:justify-between lg:py-12 lg:px-12 px-6 py-16">
         <div>
           <h1 className="text-4xl font-bold text-foreground lg:text-5xl tracking-tight">
             {portfolioData.fullName}
           </h1>
-          <h2 className="mt-3 text-xl font-medium text-foreground/90 lg:text-2xl">
+          <h2 className="mt-2 text-xl font-medium text-foreground/90 lg:text-2xl">
             {portfolioData.title}
           </h2>
-          <p className="mt-4 max-w-xs text-muted leading-relaxed">
+          <p className="mt-3 max-w-xs text-muted leading-relaxed">
             {portfolioData.tagline}
           </p>
 
           {/* Navigation - Desktop Only */}
-          <nav className="mt-16 hidden lg:block">
-            <ul className="flex flex-col gap-4">
+          <nav className="mt-12 hidden lg:block lg:mb-12">
+            <ul className="flex flex-col gap-3">
               {navItems.map(({ id, label }) => (
                 <li key={id}>
                   <a
@@ -194,7 +355,7 @@ export default function HomePage() {
       </header>
 
       {/* Right Column - Scrollable Content */}
-      <main className="lg:ml-[50%] lg:w-1/2 px-6 py-16 lg:py-24 lg:px-24">
+      <main className="lg:ml-[30%] lg:w-[70%] px-6 py-16 lg:py-24 lg:pr-24 lg:pl-12">
         {/* About Section */}
         <section id="about" className="mb-24 scroll-mt-24 lg:mb-36">
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
@@ -213,13 +374,37 @@ export default function HomePage() {
             </p>
           </div>
 
+          {/* Key Contributions */}
+          <div className="mt-12 rounded-lg border border-border bg-white p-6 lg:p-8">
+            <div className="mb-6">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
+                Key Contributions and Impact
+              </h4>
+            </div>
+            <ul className="space-y-4">
+              {portfolioData.achievements.map((achievement, idx) => (
+                <li key={idx} className="flex items-start gap-3 text-sm">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                  <p className="leading-relaxed text-foreground">
+                    <span className="font-semibold">{achievement.split(':')[0]}:</span>
+                    {achievement.split(':').slice(1).join(':')}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           {/* Awards */}
           {portfolioData.awards && portfolioData.awards.length > 0 && (
-            <div className="mt-12 space-y-6">
-              {portfolioData.awards.map((award, idx) => (
+            <div className="mt-12">
+              <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent">
+                Awards
+              </h4>
+              <div className="space-y-6">
+                {portfolioData.awards.map((award, idx) => (
                 <div key={idx} className="border-l-2 border-accent pl-4">
                   <div className="flex items-baseline justify-between mb-1">
-                    <h4 className="font-medium text-foreground">{award.title}</h4>
+                    <h5 className="font-medium text-foreground">{award.title}</h5>
                     <span className="text-xs text-muted ml-4">{award.quarter}</span>
                   </div>
                   <p className="text-sm text-muted leading-relaxed mb-2">{award.description}</p>
@@ -235,6 +420,7 @@ export default function HomePage() {
                   </ul>
                 </div>
               ))}
+              </div>
             </div>
           )}
         </section>
@@ -244,6 +430,9 @@ export default function HomePage() {
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
             Experience
           </h3>
+          <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
+            Experience
+          </h4>
           <div className="space-y-12">
             {portfolioData.experiences.map((exp, idx) => (
               <div
@@ -289,38 +478,10 @@ export default function HomePage() {
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
             Work
           </h3>
-          <div className="space-y-12">
-            {portfolioData.projects.map((project) => (
-              <div
-                key={project.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => setModalProject(project)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setModalProject(project); } }}
-                className="group relative grid gap-4 pb-1 transition-all cursor-pointer"
-              >
-                <div className="absolute -inset-x-4 -inset-y-4 z-0 hidden rounded-md transition-all group-hover:bg-card/50 group-hover:shadow-[inset_0_1px_0_0_rgba(148,163,184,0.1)] lg:block" />
-                <div className="z-10">
-                  <p className="text-xs font-medium text-muted uppercase tracking-wider">{project.company}</p>
-                  <h4 className="mt-1 font-medium text-foreground group-hover:text-accent transition-colors">
-                    {project.title}
-                  </h4>
-                  <p className="mt-2 text-sm text-muted leading-relaxed">{project.cardTeaser}</p>
-                  <p className="mt-3 text-sm font-medium text-accent">{project.outcome}</p>
-                  <ul className="mt-4 flex flex-wrap gap-2">
-                    {project.tags.slice(0, 5).map((tag) => (
-                      <li
-                        key={tag}
-                        className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent"
-                      >
-                        {tag}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            ))}
-          </div>
+          <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
+            Portfolio Projects
+          </h4>
+          <ProjectGrid projects={portfolioData.projects} onProjectClick={setModalProject} />
           {modalProject && (
             <ProjectModal project={modalProject} onClose={() => setModalProject(null)} />
           )}
@@ -331,15 +492,22 @@ export default function HomePage() {
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
             Skills
           </h3>
-          <div className="space-y-8">
+          <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
+            Skills & Expertise
+          </h4>
+          
+          {/* Skills Grid */}
+          <div className="grid gap-6 md:grid-cols-2">
             {Object.entries(portfolioData.skills).map(([category, skillList]) => (
-              <div key={category}>
-                <h4 className="mb-4 text-sm font-semibold text-foreground capitalize">{category}</h4>
+              <div key={category} className="rounded-lg border border-border bg-white p-6">
+                <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-accent">
+                  {category}
+                </h4>
                 <ul className="flex flex-wrap gap-2">
                   {skillList.map((skill) => (
                     <li
                       key={skill}
-                      className="rounded-full border border-border px-3 py-1 text-xs text-muted"
+                      className="rounded-full bg-card px-3 py-1.5 text-xs font-medium text-foreground border border-border"
                     >
                       {skill}
                     </li>
@@ -349,30 +517,84 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* Certifications */}
-          <div className="mt-16">
-            <h4 className="mb-6 text-sm font-semibold text-foreground">Certifications</h4>
-            <ul className="space-y-3 text-sm text-muted">
-              {portfolioData.certifications.map((cert, idx) => (
-                <li key={idx} className="flex items-start gap-3">
-                  <span className="text-accent">—</span>
-                  <span>{cert.name} — {cert.issuer}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* Certifications & Education Grid */}
+          <div className="mt-8 grid gap-6 md:grid-cols-2">
+            {/* Certifications */}
+            <div className="rounded-lg border border-border bg-white p-6">
+              <div className="mb-4">
+                <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
+                  Certifications
+                </h4>
+              </div>
+              <ul className="space-y-3">
+                {portfolioData.certifications.map((cert, idx) => (
+                  <li key={idx} className="flex items-start gap-3 text-sm">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                    <div>
+                      <p className="font-medium text-foreground">{cert.name}</p>
+                      <p className="text-xs text-muted">{cert.issuer}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          {/* Education */}
-          <div className="mt-12">
-            <h4 className="mb-6 text-sm font-semibold text-foreground">Education</h4>
-            <ul className="space-y-3 text-sm text-muted">
-              {portfolioData.education.map((edu, idx) => (
-                <li key={idx} className="flex items-start gap-3">
-                  <span className="text-accent">—</span>
-                  <span>{edu.degree} — {edu.institution}, {edu.year}</span>
-                </li>
-              ))}
-            </ul>
+            {/* Education */}
+            <div className="rounded-lg border border-border bg-white p-6">
+              <div className="mb-4">
+                <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
+                  Education
+                </h4>
+              </div>
+              <ul className="space-y-3">
+                {portfolioData.education.map((edu, idx) => (
+                  <li key={idx} className="flex items-start gap-3 text-sm">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                    <div>
+                      <p className="font-medium text-foreground">{edu.degree}</p>
+                      <p className="text-xs text-muted">{edu.institution} • {edu.year}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* Articles & Talks Section */}
+        <section id="articles" className="mb-24 scroll-mt-24 lg:mb-36">
+          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
+            Articles & Talks
+          </h3>
+          <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
+            Speaking & Publications
+          </h4>
+          <div className="space-y-4">
+            {portfolioData.articlesAndTalks.map((item, idx) => (
+              <a
+                key={idx}
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block rounded-lg border border-border bg-white p-6 transition-all hover:border-accent hover:shadow-lg"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="mb-2 flex items-center gap-2">
+                      <span className="rounded-full bg-accent/10 px-2 py-1 text-xs font-medium text-accent">
+                        {item.type}
+                      </span>
+                      <span className="text-xs text-muted">{item.date}</span>
+                    </div>
+                    <h4 className="font-medium text-foreground group-hover:text-accent transition-colors leading-snug">
+                      {item.title}
+                    </h4>
+                    <p className="mt-1 text-sm text-muted">{item.organization}</p>
+                  </div>
+                  <ArrowUpRight className="h-5 w-5 shrink-0 text-muted group-hover:text-accent transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                </div>
+              </a>
+            ))}
           </div>
         </section>
 
@@ -381,36 +603,32 @@ export default function HomePage() {
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
             Contact
           </h3>
-          <div className="space-y-6">
-            <p className="text-muted leading-relaxed">
-              I'm always interested in hearing about new opportunities, especially roles focused on{' '}
-              <span className="text-foreground">AI-powered products</span>,{' '}
-              <span className="text-foreground">community-driven platforms</span>, or{' '}
-              <span className="text-foreground">EdTech innovation</span>.
+          <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
+            Get In Touch
+          </h4>
+          <div className="max-w-lg">
+            <p className="text-muted leading-relaxed mb-6">
+              Open to discussing product leadership roles, AI product strategy, and interesting 
+              challenges in EdTech and community platforms.
             </p>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:gap-6">
               <a
                 href={`mailto:${portfolioData.email}`}
-                className="group inline-flex items-center gap-3 text-foreground hover:text-accent transition-colors"
+                className="inline-flex items-center gap-2 text-accent hover:text-foreground transition-colors font-medium"
               >
-                <Mail className="h-5 w-5" />
-                <span>{portfolioData.email}</span>
-                <ArrowUpRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                <Mail className="h-4 w-4" />
+                Email Me
               </a>
               <a
                 href={portfolioData.linkedinUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group inline-flex items-center gap-3 text-foreground hover:text-accent transition-colors"
+                className="inline-flex items-center gap-2 text-accent hover:text-foreground transition-colors font-medium"
               >
-                <Linkedin className="h-5 w-5" />
-                <span>linkedin.com/in/biancastarling</span>
-                <ArrowUpRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                <Linkedin className="h-4 w-4" />
+                Connect on LinkedIn
               </a>
             </div>
-            <p className="text-sm text-muted pt-4">
-              Based in {portfolioData.location} — Available for remote work globally.
-            </p>
           </div>
         </section>
       </main>
