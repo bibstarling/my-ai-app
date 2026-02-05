@@ -396,8 +396,15 @@ export default function HomePage() {
 
           {/* Awards */}
           {portfolioData.awards && portfolioData.awards.length > 0 && (
-            <div className="mt-12 space-y-6">
-              {portfolioData.awards.map((award, idx) => (
+            <div className="mt-12">
+              <div className="mb-6 flex items-center gap-2">
+                <div className="h-1 w-1 rounded-full bg-accent" />
+                <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
+                  Recent Awards
+                </h4>
+              </div>
+              <div className="space-y-6">
+                {portfolioData.awards.map((award, idx) => (
                 <div key={idx} className="border-l-2 border-accent pl-4">
                   <div className="flex items-baseline justify-between mb-1">
                     <h4 className="font-medium text-foreground">{award.title}</h4>
@@ -416,6 +423,7 @@ export default function HomePage() {
                   </ul>
                 </div>
               ))}
+              </div>
             </div>
           )}
         </section>
