@@ -26,6 +26,14 @@ export type PortfolioProject = {
   }[];
 };
 
+export type ArticleOrTalk = {
+  title: string;
+  type: string;
+  organization: string;
+  url: string;
+  date: string;
+};
+
 export const portfolioData = {
   fullName: 'Bianca Starling',
   title: 'Lead Product Manager',
