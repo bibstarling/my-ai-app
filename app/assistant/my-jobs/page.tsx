@@ -1611,8 +1611,8 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
     try {
       // Create a new PDF document
       const pdfDoc = await PDFDocument.create();
-      const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
-      const timesRomanBold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
       
       let page = pdfDoc.addPage([612, 792]); // US Letter size
       const { width, height } = page.getSize();
@@ -1628,7 +1628,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
             x: margin,
             y: yPosition,
             size: 28,
-            font: timesRomanBold,
+            font: helveticaBold,
             color: rgb(0, 0, 0),
           });
           yPosition -= 8;
@@ -1662,7 +1662,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
               x: margin,
               y: yPosition,
               size: 9,
-              font: timesRomanFont,
+              font: helveticaFont,
               color: rgb(0.4, 0.4, 0.4),
             });
             yPosition -= 30;
@@ -1700,7 +1700,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                 x: margin,
                 y: yPosition,
                 size: 11,
-                font: timesRomanBold,
+                font: helveticaBold,
                 color: rgb(0, 0, 0),
               });
               yPosition -= 3;
@@ -1729,7 +1729,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                   
                   for (const word of words) {
                     const testLine = currentLine ? `${currentLine} ${word}` : word;
-                    const testWidth = timesRomanFont.widthOfTextAtSize(testLine, 10);
+                    const testWidth = helveticaFont.widthOfTextAtSize(testLine, 10);
                     
                     if (testWidth > maxWidth && currentLine) {
                       lines.push(currentLine);
@@ -1749,7 +1749,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                       x: margin,
                       y: yPosition,
                       size: 10,
-                      font: timesRomanFont,
+                      font: helveticaFont,
                       color: rgb(0.2, 0.2, 0.2),
                     });
                     yPosition -= 14;
@@ -1769,7 +1769,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                   
                   for (const word of words) {
                     const testLine = currentLine ? `${currentLine} ${word}` : word;
-                    const testWidth = timesRomanFont.widthOfTextAtSize(testLine, 10);
+                    const testWidth = helveticaFont.widthOfTextAtSize(testLine, 10);
                     
                     if (testWidth > maxWidth && currentLine) {
                       lines.push(currentLine);
@@ -1789,7 +1789,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                       x: margin,
                       y: yPosition,
                       size: 10,
-                      font: timesRomanFont,
+                      font: helveticaFont,
                       color: rgb(0.2, 0.2, 0.2),
                     });
                     yPosition -= 14;
@@ -1809,18 +1809,18 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                     x: margin,
                     y: yPosition,
                     size: 11,
-                    font: timesRomanBold,
+                    font: helveticaBold,
                     color: rgb(0, 0, 0),
                   });
                   
                   // Dates aligned to the right
                   const dateRange = `${exp.startDate || ''} — ${exp.endDate || 'Present'}`;
-                  const dateWidth = timesRomanFont.widthOfTextAtSize(dateRange, 9);
+                  const dateWidth = helveticaFont.widthOfTextAtSize(dateRange, 9);
                   page.drawText(dateRange, {
                     x: rightMargin - dateWidth,
                     y: yPosition,
                     size: 9,
-                    font: timesRomanFont,
+                    font: helveticaFont,
                     color: rgb(0.4, 0.4, 0.4),
                   });
                   yPosition -= 14;
@@ -1830,7 +1830,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                     x: margin,
                     y: yPosition,
                     size: 10,
-                    font: timesRomanFont,
+                    font: helveticaFont,
                     color: rgb(0.2, 0.2, 0.2),
                   });
                   yPosition -= 12;
@@ -1852,7 +1852,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                       
                       for (const word of words) {
                         const testLine = currentLine ? `${currentLine} ${word}` : word;
-                        const testWidth = timesRomanFont.widthOfTextAtSize(testLine, 9.5);
+                        const testWidth = helveticaFont.widthOfTextAtSize(testLine, 9.5);
                         
                         if (testWidth > maxWidth && currentLine) {
                           bulletLines.push(currentLine);
@@ -1875,7 +1875,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                             x: margin + 5,
                             y: yPosition,
                             size: 9.5,
-                            font: timesRomanFont,
+                            font: helveticaFont,
                             color: rgb(0, 0, 0),
                           });
                         }
@@ -1884,7 +1884,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                           x: margin + 15,
                           y: yPosition,
                           size: 9.5,
-                          font: timesRomanFont,
+                          font: helveticaFont,
                           color: rgb(0.2, 0.2, 0.2),
                         });
                         yPosition -= 13;
@@ -1906,17 +1906,17 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                     x: margin,
                     y: yPosition,
                     size: 11,
-                    font: timesRomanBold,
+                    font: helveticaBold,
                     color: rgb(0, 0, 0),
                   });
                   
                   if (edu.year) {
-                    const yearWidth = timesRomanFont.widthOfTextAtSize(edu.year, 9);
+                    const yearWidth = helveticaFont.widthOfTextAtSize(edu.year, 9);
                     page.drawText(edu.year, {
                       x: rightMargin - yearWidth,
                       y: yPosition,
                       size: 9,
-                      font: timesRomanFont,
+                      font: helveticaFont,
                       color: rgb(0.4, 0.4, 0.4),
                     });
                   }
@@ -1927,7 +1927,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                     x: margin,
                     y: yPosition,
                     size: 10,
-                    font: timesRomanFont,
+                    font: helveticaFont,
                     color: rgb(0.2, 0.2, 0.2),
                   });
                   yPosition -= 18;
@@ -1945,7 +1945,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                     x: margin,
                     y: yPosition,
                     size: 11,
-                    font: timesRomanBold,
+                    font: helveticaBold,
                     color: rgb(0, 0, 0),
                   });
                   yPosition -= 14;
@@ -1959,7 +1959,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                     
                     for (const word of words) {
                       const testLine = currentLine ? `${currentLine} ${word}` : word;
-                      const testWidth = timesRomanFont.widthOfTextAtSize(testLine, 9.5);
+                      const testWidth = helveticaFont.widthOfTextAtSize(testLine, 9.5);
                       
                       if (testWidth > maxWidth && currentLine) {
                         lines.push(currentLine);
@@ -1979,7 +1979,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                         x: margin,
                         y: yPosition,
                         size: 9.5,
-                        font: timesRomanFont,
+                        font: helveticaFont,
                         color: rgb(0.2, 0.2, 0.2),
                       });
                       yPosition -= 13;
@@ -2002,7 +2002,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                       
                       for (const word of words) {
                         const testLine = currentLine ? `${currentLine} ${word}` : word;
-                        const testWidth = timesRomanFont.widthOfTextAtSize(testLine, 9.5);
+                        const testWidth = helveticaFont.widthOfTextAtSize(testLine, 9.5);
                         
                         if (testWidth > maxWidth && currentLine) {
                           bulletLines.push(currentLine);
@@ -2024,7 +2024,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                             x: margin + 5,
                             y: yPosition,
                             size: 9.5,
-                            font: timesRomanFont,
+                            font: helveticaFont,
                             color: rgb(0, 0, 0),
                           });
                         }
@@ -2033,7 +2033,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                           x: margin + 15,
                           y: yPosition,
                           size: 9.5,
-                          font: timesRomanFont,
+                          font: helveticaFont,
                           color: rgb(0.2, 0.2, 0.2),
                         });
                         yPosition -= 13;
@@ -2060,7 +2060,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
           x: margin,
           y: yPosition,
           size: 18,
-          font: timesRomanBold,
+          font: helveticaBold,
           color: rgb(0, 0, 0),
         });
         yPosition -= 35;
@@ -2071,7 +2071,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
           x: margin,
           y: yPosition,
           size: 10,
-          font: timesRomanFont,
+          font: helveticaFont,
           color: rgb(0.2, 0.2, 0.2),
         });
         yPosition -= 28;
@@ -2083,7 +2083,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
               x: margin,
               y: yPosition,
               size: 10,
-              font: timesRomanFont,
+              font: helveticaFont,
               color: rgb(0.2, 0.2, 0.2),
             });
             yPosition -= 14;
@@ -2094,7 +2094,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
               x: margin,
               y: yPosition,
               size: 10,
-              font: timesRomanFont,
+              font: helveticaFont,
               color: rgb(0.2, 0.2, 0.2),
             });
             yPosition -= 14;
@@ -2105,7 +2105,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
               x: margin,
               y: yPosition,
               size: 10,
-              font: timesRomanFont,
+              font: helveticaFont,
               color: rgb(0.2, 0.2, 0.2),
             });
             yPosition -= 14;
@@ -2116,7 +2116,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
               x: margin,
               y: yPosition,
               size: 10,
-              font: timesRomanFont,
+              font: helveticaFont,
               color: rgb(0.2, 0.2, 0.2),
             });
             yPosition -= 14;
@@ -2133,7 +2133,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
           x: margin,
           y: yPosition,
           size: 11,
-          font: timesRomanFont,
+          font: helveticaFont,
           color: rgb(0.2, 0.2, 0.2),
         });
         yPosition -= 28;
@@ -2147,7 +2147,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
           
           for (const word of words) {
             const testLine = currentLine ? `${currentLine} ${word}` : word;
-            const testWidth = timesRomanFont.widthOfTextAtSize(testLine, 11);
+            const testWidth = helveticaFont.widthOfTextAtSize(testLine, 11);
             
             if (testWidth > maxWidth && currentLine) {
               lines.push(currentLine);
@@ -2167,7 +2167,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
               x: margin,
               y: yPosition,
               size: 11,
-              font: timesRomanFont,
+              font: helveticaFont,
               color: rgb(0.2, 0.2, 0.2),
             });
             yPosition -= 16;
@@ -2202,7 +2202,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
           x: margin,
           y: yPosition,
           size: 11,
-          font: timesRomanFont,
+          font: helveticaFont,
           color: rgb(0.2, 0.2, 0.2),
         });
         yPosition -= 30;
@@ -2210,7 +2210,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
           x: margin,
           y: yPosition,
           size: 11,
-          font: timesRomanFont,
+          font: helveticaFont,
           color: rgb(0.2, 0.2, 0.2),
         });
       }
