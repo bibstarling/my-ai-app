@@ -23,6 +23,8 @@ import {
   CheckCircle,
   AlertCircle,
 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 import {
   DndContext,
   DragEndEvent,
@@ -1583,6 +1585,7 @@ const DraggableJobCard = memo(function DraggableJobCard({
 function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; id: string; onClose: () => void }) {
   const [content, setContent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     fetchContent();
@@ -1602,9 +1605,69 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
     }
   }
 
-  const downloadUrl = type === 'resume' 
-    ? `/resume-builder/${id}/preview?autoDownload=true` 
-    : `/cover-letters/${id}?autoDownload=true`;
+  async function handleDownloadPDF() {
+    if (!content || downloading) return;
+    
+    setDownloading(true);
+    try {
+      // Get the content element
+      const contentElement = document.getElementById('preview-content');
+      if (!contentElement) {
+        throw new Error('Content not found');
+      }
+
+      // Generate canvas from HTML
+      const canvas = await html2canvas(contentElement, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+      });
+
+      // Calculate PDF dimensions
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      let position = 0;
+
+      // Add image to PDF
+      const imgData = canvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Add additional pages if needed
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      // Generate filename
+      let filename = '';
+      if (type === 'resume') {
+        const fullName = content.full_name || 'resume';
+        const title = content.title || '';
+        const companyMatch = title.match(/at\s+(.+)$/i);
+        const companyName = companyMatch ? companyMatch[1].replace(/[^a-z0-9]/gi, '').toLowerCase() : 'company';
+        filename = `resume_${fullName.toLowerCase().replace(/\s+/g, '')}_${companyName}.pdf`;
+      } else {
+        const companyName = content.job_company || 'company';
+        filename = `coverletter_biancastarling_${companyName.replace(/[^a-z0-9]/gi, '').toLowerCase()}.pdf`;
+      }
+
+      // Download PDF
+      pdf.save(filename);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/50" onClick={onClose}>
@@ -1618,15 +1681,23 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
             {type === 'resume' ? 'Resume Preview' : 'Cover Letter Preview'}
           </h2>
           <div className="flex items-center gap-2">
-            <a
-              href={downloadUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 transition-opacity"
+            <button
+              onClick={handleDownloadPDF}
+              disabled={downloading || loading}
+              className="flex items-center gap-2 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Download className="h-4 w-4" />
-              Download PDF
-            </a>
+              {downloading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4" />
+                  Download PDF
+                </>
+              )}
+            </button>
             <button
               onClick={onClose}
               className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
@@ -1646,10 +1717,14 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
             <div className="text-center py-12 text-muted-foreground">
               Failed to load content
             </div>
-          ) : type === 'resume' ? (
-            <ResumePreview resume={content} />
           ) : (
-            <CoverLetterPreview coverLetter={content} />
+            <div id="preview-content">
+              {type === 'resume' ? (
+                <ResumePreview resume={content} />
+              ) : (
+                <CoverLetterPreview coverLetter={content} />
+              )}
+            </div>
           )}
         </div>
       </div>
