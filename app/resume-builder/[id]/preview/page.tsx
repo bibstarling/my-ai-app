@@ -55,91 +55,100 @@ export default function ResumePreviewPage({ params, searchParams }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Toolbar */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link
-            href={`/resume-builder/${id}`}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Back to Editor
-          </Link>
-          <div className="flex gap-2">
-            <button
-              onClick={() => window.print()}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              <Download className="w-4 h-4" />
-              Print / Save PDF
-            </button>
-            <a
-              href={`/api/resume/${id}/export`}
-              target="_blank"
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-            >
-              Export HTML
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* Resume Preview */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-white shadow-lg rounded-lg overflow-hidden print:shadow-none print:rounded-none" id="resume-content">
-          <div className="p-12">
-            {/* Header */}
-            <div className="mb-8 pb-6 border-b-2 border-gray-900">
-              <h1 className="text-4xl font-bold text-gray-900 mb-3">
-                {resume.full_name || 'Your Name'}
-              </h1>
-              
-              <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                {resume.email && (
-                  <div className="flex items-center gap-1.5">
-                    <Mail className="w-4 h-4" />
-                    {resume.email}
-                  </div>
-                )}
-                {resume.phone && (
-                  <div className="flex items-center gap-1.5">
-                    <Phone className="w-4 h-4" />
-                    {resume.phone}
-                  </div>
-                )}
-                {resume.location && (
-                  <div className="flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4" />
-                    {resume.location}
-                  </div>
-                )}
-                {resume.linkedin_url && (
-                  <div className="flex items-center gap-1.5">
-                    <Linkedin className="w-4 h-4" />
-                    <a href={resume.linkedin_url} className="text-blue-600 hover:underline">
-                      LinkedIn
-                    </a>
-                  </div>
-                )}
-                {resume.portfolio_url && (
-                  <div className="flex items-center gap-1.5">
-                    <Globe className="w-4 h-4" />
-                    <a href={resume.portfolio_url} className="text-blue-600 hover:underline">
-                      Portfolio
-                    </a>
-                  </div>
-                )}
+    <>
+      {/* Background overlay */}
+      <div className="fixed inset-0 bg-black/30" onClick={() => window.history.back()} />
+      
+      {/* Sidebar modal */}
+      <div className="fixed inset-0 flex items-center justify-end pointer-events-none">
+        <div className="h-full w-full max-w-3xl bg-white shadow-xl overflow-y-auto pointer-events-auto animate-slide-in-right">
+          {/* Toolbar */}
+          <div className="sticky top-0 z-10 bg-white border-b border-gray-200">
+            <div className="px-6 py-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">Resume Preview</h2>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => window.print()}
+                  className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
+                >
+                  <Download className="w-4 h-4" />
+                  Download PDF
+                </button>
+                <a
+                  href={`/api/resume/${id}/export`}
+                  target="_blank"
+                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200"
+                >
+                  Export HTML
+                </a>
+                <Link
+                  href={`/resume-builder/${id}`}
+                  className="flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to Editor
+                </Link>
               </div>
             </div>
+          </div>
 
-            {/* Sections */}
-            <div className="space-y-6">
-              {resume.sections
-                .sort((a, b) => a.sort_order - b.sort_order)
-                .map((section) => (
-                  <ResumeSection key={section.id} section={section} />
-                ))}
+          {/* Resume Preview */}
+          <div className="p-6">
+            <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden print:shadow-none print:rounded-none print:border-0" id="resume-content">
+              <div className="p-8">
+                {/* Header */}
+                <div className="mb-6 pb-4 border-b-2 border-gray-900">
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    {resume.full_name || 'Your Name'}
+                  </h1>
+                  
+                  <div className="flex flex-wrap gap-3 text-sm text-gray-600">
+                    {resume.email && (
+                      <div className="flex items-center gap-1.5">
+                        <Mail className="w-4 h-4" />
+                        {resume.email}
+                      </div>
+                    )}
+                    {resume.phone && (
+                      <div className="flex items-center gap-1.5">
+                        <Phone className="w-4 h-4" />
+                        {resume.phone}
+                      </div>
+                    )}
+                    {resume.location && (
+                      <div className="flex items-center gap-1.5">
+                        <MapPin className="w-4 h-4" />
+                        {resume.location}
+                      </div>
+                    )}
+                    {resume.linkedin_url && (
+                      <div className="flex items-center gap-1.5">
+                        <Linkedin className="w-4 h-4" />
+                        <a href={resume.linkedin_url} className="text-blue-600 hover:underline">
+                          LinkedIn
+                        </a>
+                      </div>
+                    )}
+                    {resume.portfolio_url && (
+                      <div className="flex items-center gap-1.5">
+                        <Globe className="w-4 h-4" />
+                        <a href={resume.portfolio_url} className="text-blue-600 hover:underline">
+                          Portfolio
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Sections */}
+                <div className="space-y-5">
+                  {resume.sections
+                    .sort((a, b) => a.sort_order - b.sort_order)
+                    .map((section) => (
+                      <ResumeSection key={section.id} section={section} />
+                    ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -151,11 +160,20 @@ export default function ResumePreviewPage({ params, searchParams }: PageProps) {
           body {
             background: white;
           }
+          .fixed {
+            position: static !important;
+          }
+          .animate-slide-in-right {
+            animation: none !important;
+          }
           .print\\:shadow-none {
             box-shadow: none !important;
           }
           .print\\:rounded-none {
             border-radius: 0 !important;
+          }
+          .print\\:border-0 {
+            border: 0 !important;
           }
           @page {
             margin: 0.5in;
@@ -163,7 +181,7 @@ export default function ResumePreviewPage({ params, searchParams }: PageProps) {
           }
         }
       `}</style>
-    </div>
+    </>
   );
 }
 
@@ -182,11 +200,11 @@ function ResumeSection({ section }: { section: ResumeSection }) {
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-gray-900 mb-3 uppercase tracking-wide border-b border-gray-300 pb-2">
+      <h2 className="text-lg font-bold text-gray-900 mb-2 uppercase tracking-wide border-b border-gray-300 pb-1">
         {getSectionTitle(section.section_type)}
       </h2>
       
-      <div className="mt-3">
+      <div className="mt-2">
         {section.section_type === 'summary' && (
           <SummarySection content={section.content as SummaryContent} />
         )}
@@ -217,10 +235,10 @@ function SummarySection({ content }: { content: SummaryContent }) {
 
 function ExperienceSection({ content }: { content: ExperienceContent }) {
   return (
-    <div className="mb-4">
-      <div className="flex justify-between items-start mb-2">
+    <div className="mb-3">
+      <div className="flex justify-between items-start mb-1">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">{content.position}</h3>
+          <h3 className="font-semibold text-gray-900">{content.position}</h3>
           <p className="text-gray-700">{content.company}</p>
         </div>
         <div className="text-right text-sm text-gray-600">
@@ -230,9 +248,9 @@ function ExperienceSection({ content }: { content: ExperienceContent }) {
       </div>
       
       {content.bullets && content.bullets.length > 0 && (
-        <ul className="list-disc list-outside ml-5 space-y-1.5">
+        <ul className="list-disc list-outside ml-5 space-y-1">
           {content.bullets.filter(Boolean).map((bullet, i) => (
-            <li key={i} className="text-gray-700 leading-relaxed">
+            <li key={i} className="text-gray-700 text-sm leading-relaxed">
               {bullet}
             </li>
           ))}
@@ -244,13 +262,13 @@ function ExperienceSection({ content }: { content: ExperienceContent }) {
 
 function EducationSection({ content }: { content: EducationContent }) {
   return (
-    <div className="mb-4">
+    <div className="mb-3">
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">{content.degree}</h3>
+          <h3 className="font-semibold text-gray-900">{content.degree}</h3>
           <p className="text-gray-700">{content.institution}</p>
           {content.description && (
-            <p className="text-gray-600 mt-1">{content.description}</p>
+            <p className="text-gray-600 text-sm mt-1">{content.description}</p>
           )}
         </div>
         <div className="text-right text-sm text-gray-600">
@@ -277,18 +295,18 @@ function SkillsSection({ content }: { content: SkillsContent }) {
 
 function ProjectSection({ content }: { content: ProjectContent }) {
   return (
-    <div className="mb-4">
-      <div className="mb-2">
-        <h3 className="text-lg font-semibold text-gray-900">{content.name}</h3>
+    <div className="mb-3">
+      <div className="mb-1">
+        <h3 className="font-semibold text-gray-900">{content.name}</h3>
         {content.description && (
-          <p className="text-gray-700 mt-1">{content.description}</p>
+          <p className="text-gray-700 text-sm mt-1">{content.description}</p>
         )}
       </div>
       
       {content.bullets && content.bullets.length > 0 && (
-        <ul className="list-disc list-outside ml-5 space-y-1.5">
+        <ul className="list-disc list-outside ml-5 space-y-1">
           {content.bullets.filter(Boolean).map((bullet, i) => (
-            <li key={i} className="text-gray-700 leading-relaxed">
+            <li key={i} className="text-gray-700 text-sm leading-relaxed">
               {bullet}
             </li>
           ))}
