@@ -892,6 +892,13 @@ export const portfolioData = {
 
   articlesAndTalks: [
     {
+      title: 'Closing the Gap Between Qualitative and Quantitative Insights with AI',
+      type: 'Keynote',
+      organization: 'Product Insights Summit',
+      url: 'https://virtual.productledalliance.com/location/insights/speaker/biancastarling?utm_source=chatgpt.com',
+      date: 'Oct 2025',
+    },
+    {
       title: 'Interview about Continuous Discovery',
       type: 'Article',
       organization: 'Product Talk',
