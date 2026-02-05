@@ -557,12 +557,12 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Career Highlights */}
+          {/* Key Contributions */}
           <div className="rounded-lg border border-border bg-white p-6 lg:p-8">
             <div className="mb-6 flex items-center gap-2">
               <div className="h-1 w-1 rounded-full bg-accent" />
               <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
-                Career Highlights
+                Key Contributions and Impact
               </h4>
             </div>
             <ul className="space-y-4">

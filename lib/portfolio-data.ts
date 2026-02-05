@@ -886,17 +886,12 @@ export const portfolioData = {
   ],
 
   achievements: [
-    'AI-Driven Product Innovation: Pioneered AI-based content classification at Skillshare, improving content discoverability and setting a new bar for catalog scalability.',
-    'Digital Marketplace Expansion: Spearheaded the integration of digital products and the launch of the Creator Hub at Skillshare, unlocking new monetization paths and diversifying creator offerings.',
-    'User Engagement and Community Building: Led the development of Skillshare\'s new community feed, connecting learners through content and peer interactions to drive retention and platform stickiness.',
-    'Operational Efficiency in Product Management: Streamlined product management processes at Voxy, leading to reduced time-to-market and enhanced team productivity.',
-    'Leadership in Digital Education Transformation: Recognized for leading digital transformation initiatives in education, significantly contributing to SENAI\'s position as a leader in professional and technical education.',
-    'Data-Driven Product Enhancements: Leveraged analytics to inform product decisions, resulting in targeted improvements and increased user satisfaction.',
-    'Strategic Product Roadmaps: Developed and executed strategic product roadmaps aligning with business goals and market needs, driving significant growth in user base and market share.',
-    'User Engagement and Experience Optimization: Implemented user-centric design improvements, leading to higher engagement metrics and improved user experiences.',
-    'Mentorship and Team Development: Built and mentored high-performing product teams, fostering a culture of innovation and continuous improvement.',
-    'SCORM HUB Implementation at SENAI: Spearheaded the development and deployment of SCORM HUB, revolutionizing the management and distribution of educational resources.',
-    'Innovative Educational Technology Integration: Pioneered the integration of advanced technologies in educational platforms, enhancing learning experiences and accessibility.',
+    'AI Strategy & Product Innovation: Shaping Skillshare\'s company-wide AI strategy and overseeing the design of a multi-agent Model Context Protocol (MCP) to connect platform data with external AI tools, laying the groundwork for intelligent discovery and user support experiences.',
+    'Community Growth & Engagement: Delivered a 25% increase in daily engagement through the launch of the Creative Feed and Follow Suggestions, scaling community participation and retention.',
+    'Continuous Discovery & Insights: Established the Continuous Discovery Habits framework and used AI to accelerate qualitative data analysis, cutting the discovery-to-decision cycle by 50%.',
+    'Marketplace Expansion: Launched Digital Products and the Creator Hub, expanding creator monetization through digital goods, 1-1 sessions, and cohort-based learning.',
+    'Data-Driven Leadership: Built a culture of data-informed decision-making and experimentation across product squads, improving delivery velocity and user satisfaction.',
+    'EdTech Transformation Impact: Previously led SENAI\'s national digital transformation program, modernizing learning infrastructure and securing multimillion-dollar funding for innovation.',
   ],
 
   articlesAndTalks: [
