@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Download, Save, Eye, Sparkles, Lightbulb } from 'lucide-react';
 import type { CoverLetter } from '@/lib/types/cover-letter';
@@ -29,7 +29,7 @@ export default function CoverLetterEditPage({ params, searchParams }: PageProps)
     if (resolvedSearchParams?.autoDownload === 'true' && coverLetter && !loading && !downloading) {
       downloadPDF();
     }
-  }, [coverLetter, loading, resolvedSearchParams]);
+  }, [coverLetter, loading, resolvedSearchParams, downloading, downloadPDF]);
 
   async function fetchCoverLetter() {
     try {
@@ -70,7 +70,7 @@ export default function CoverLetterEditPage({ params, searchParams }: PageProps)
     }
   }
 
-  async function downloadPDF() {
+  const downloadPDF = useCallback(async () => {
     if (!coverLetter) return;
     
     setDownloading(true);
@@ -105,7 +105,7 @@ export default function CoverLetterEditPage({ params, searchParams }: PageProps)
     } finally {
       setDownloading(false);
     }
-  }
+  }, [coverLetter]);
 
   async function markAsFinal() {
     if (!coverLetter) return;

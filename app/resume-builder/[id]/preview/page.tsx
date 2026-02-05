@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Download, Mail, Phone, MapPin, Linkedin, Globe } from 'lucide-react';
 import type { ResumeWithSections, ResumeSection, ExperienceContent, EducationContent, SkillsContent, SummaryContent, ProjectContent } from '@/lib/types/resume';
@@ -28,7 +28,7 @@ export default function ResumePreviewPage({ params, searchParams }: PageProps) {
     if (resolvedSearchParams?.autoDownload === 'true' && resume && !loading && !downloading) {
       downloadPDF();
     }
-  }, [resume, loading, resolvedSearchParams]);
+  }, [resume, loading, resolvedSearchParams, downloading, downloadPDF]);
 
   async function fetchResume() {
     try {
@@ -44,7 +44,7 @@ export default function ResumePreviewPage({ params, searchParams }: PageProps) {
     }
   }
 
-  async function downloadPDF() {
+  const downloadPDF = useCallback(async () => {
     if (!resume) return;
     
     setDownloading(true);
@@ -99,7 +99,7 @@ export default function ResumePreviewPage({ params, searchParams }: PageProps) {
     } finally {
       setDownloading(false);
     }
-  }
+  }, [resume]);
 
   if (loading) {
     return (
