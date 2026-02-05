@@ -10,7 +10,7 @@ export function useEmbedMode() {
 }
 
 function isEmbedded() {
-  if (typeof window === 'undefined') return true;
+  if (typeof window === 'undefined') return false;
   try {
     return window.self !== window.top;
   } catch {
@@ -25,27 +25,20 @@ export function ClientAuthWrapper({
   children: React.ReactNode;
   publishableKey: string;
 }) {
-  const [mounted, setMounted] = useState(false);
   const [embed, setEmbed] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    setEmbed(isEmbedded());
+    const embedded = isEmbedded();
+    setEmbed(embedded);
+    
+    // Add visual indicator in embed mode
+    if (embedded) {
+      console.log('🔍 Running in embed mode (v0 preview) - Auth disabled');
+    }
   }, []);
 
-  // Server: always use ClerkProvider so pages using useUser() can prerender
-  if (typeof window === 'undefined') {
-    return (
-      <ClerkProvider publishableKey={publishableKey}>
-        <EmbedModeContext.Provider value={false}>
-          {children}
-        </EmbedModeContext.Provider>
-      </ClerkProvider>
-    );
-  }
-
-  // Client + embed (e.g. v0 preview): never load Clerk; mark embed so auth pages can show fallback
-  if (mounted && embed) {
+  // In embed mode, skip ClerkProvider entirely to avoid third-party cookie/auth issues
+  if (embed) {
     return (
       <EmbedModeContext.Provider value={true}>
         {children}
@@ -53,10 +46,10 @@ export function ClientAuthWrapper({
     );
   }
 
-  // Client + not embedded OR not yet mounted: always wrap with ClerkProvider
+  // Normal mode: wrap with ClerkProvider
   return (
     <ClerkProvider publishableKey={publishableKey}>
-      <EmbedModeContext.Provider value={embed}>
+      <EmbedModeContext.Provider value={false}>
         {children}
       </EmbedModeContext.Provider>
     </ClerkProvider>

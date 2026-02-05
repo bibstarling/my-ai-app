@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { UserButton, useUser } from '@clerk/nextjs';
+import { UserButton } from '@clerk/nextjs';
 import {
   Home,
   MessageSquare,
@@ -13,8 +13,10 @@ import {
   Search,
   Kanban,
   Mail,
+  User,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useAuthSafe } from '@/app/hooks/useAuthSafe';
 
 type MenuItem = {
   id: string;
@@ -72,7 +74,7 @@ type AppMenuProps = {
 export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
   const pathname = usePathname();
   const menuItems = getMenuItems();
-  const { user } = useUser();
+  const { user, isEmbedMode } = useAuthSafe();
 
   const isActive = (href: string) => {
     if (href === '/') {
@@ -138,7 +140,7 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
         {/* Bottom Actions */}
         <div className="p-3 border-t border-gray-200 space-y-1">
           {/* User Profile */}
-          {user && (
+          {!isEmbedMode && user && (
             <Tooltip 
               content={user.firstName || user.emailAddresses[0]?.emailAddress || 'Profile'} 
               show={isCollapsed}
@@ -163,6 +165,25 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
                     <span className="text-xs text-gray-500 truncate">
                       {user.emailAddresses[0]?.emailAddress}
                     </span>
+                  </div>
+                )}
+              </div>
+            </Tooltip>
+          )}
+          
+          {/* Embed Mode Indicator */}
+          {isEmbedMode && (
+            <Tooltip content="Preview Mode" show={isCollapsed}>
+              <div className={`flex items-center gap-3 px-3 py-2.5 ${
+                isCollapsed ? 'justify-center' : ''
+              }`}>
+                <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                  <User className="w-4 h-4 text-gray-600" />
+                </div>
+                {!isCollapsed && (
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span className="text-sm font-medium text-gray-900">Preview Mode</span>
+                    <span className="text-xs text-gray-500">Auth disabled</span>
                   </div>
                 )}
               </div>

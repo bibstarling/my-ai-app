@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, Linkedin, Mail, X } from 'lucide-react';
 import { portfolioData, type PortfolioProject } from '@/lib/portfolio-data';
+import { useEmbedMode } from '@/app/ClientAuthWrapper';
 
 const navItems = [
   { id: 'about', label: 'About' },
@@ -93,6 +94,7 @@ function ProjectModal({
 export default function HomePage() {
   const [activeSection, setActiveSection] = useState('about');
   const [modalProject, setModalProject] = useState<PortfolioProject | null>(null);
+  const isEmbed = useEmbedMode();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -116,6 +118,13 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white lg:flex">
+      {/* Embed Mode Indicator - Only visible in v0 preview */}
+      {isEmbed && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-blue-500 text-white text-xs py-1 px-4 text-center">
+          Preview Mode - Auth disabled for iframe embedding
+        </div>
+      )}
+      
       {/* Left Sidebar - Sticky on Desktop */}
       <header className="lg:fixed lg:top-0 lg:left-0 lg:flex lg:h-screen lg:w-1/2 lg:flex-col lg:justify-between lg:py-24 lg:px-24 px-6 py-16">
         <div>
