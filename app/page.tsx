@@ -375,8 +375,7 @@ export default function HomePage() {
 
           {/* Key Contributions */}
           <div className="mt-12 rounded-lg border border-border bg-white p-6 lg:p-8">
-            <div className="mb-6 flex items-center gap-2">
-              <div className="h-1 w-1 rounded-full bg-accent" />
+            <div className="mb-6">
               <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
                 Key Contributions and Impact
               </h4>
@@ -397,8 +396,7 @@ export default function HomePage() {
           {/* Awards */}
           {portfolioData.awards && portfolioData.awards.length > 0 && (
             <div className="mt-12">
-              <div className="mb-6 flex items-center gap-2">
-                <div className="h-1 w-1 rounded-full bg-accent" />
+              <div className="mb-6">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
                   Recent Awards
                 </h4>
@@ -515,8 +513,7 @@ export default function HomePage() {
           <div className="mt-8 grid gap-6 md:grid-cols-2">
             {/* Certifications */}
             <div className="rounded-lg border border-border bg-white p-6">
-              <div className="mb-4 flex items-center gap-2">
-                <div className="h-1 w-1 rounded-full bg-accent" />
+              <div className="mb-4">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
                   Certifications
                 </h4>
@@ -536,8 +533,7 @@ export default function HomePage() {
 
             {/* Education */}
             <div className="rounded-lg border border-border bg-white p-6">
-              <div className="mb-4 flex items-center gap-2">
-                <div className="h-1 w-1 rounded-full bg-accent" />
+              <div className="mb-4">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
                   Education
                 </h4>
