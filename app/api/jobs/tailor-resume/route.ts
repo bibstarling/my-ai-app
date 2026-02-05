@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@supabase/supabase-js';
-import { getPortfolioData } from '@/lib/portfolio-data';
+import { portfolioData } from '@/lib/portfolio-data';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     }
 
     // Get portfolio data
-    const portfolio = getPortfolioData();
+    const portfolio = portfolioData;
 
     // Generate tailored resume with AI
     const prompt = `You are an expert resume writer. Create a tailored resume for this job application.

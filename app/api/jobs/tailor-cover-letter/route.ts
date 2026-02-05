@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@supabase/supabase-js';
-import { getPortfolioData, getPMPositioning } from '@/lib/portfolio-data';
+import { portfolioData, getPMPositioning } from '@/lib/portfolio-data';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     }
 
     // Get portfolio data
-    const portfolio = getPortfolioData();
+    const portfolio = portfolioData;
     const positioning = getPMPositioning();
 
     // Generate tailored cover letter with AI
