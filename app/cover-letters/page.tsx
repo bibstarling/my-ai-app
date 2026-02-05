@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Plus, FileText, Calendar, Edit2, Trash2, Eye, Sparkles, Briefcase, Download } from 'lucide-react';
+import { Plus, FileText, Calendar, Edit2, Trash2, Eye, Sparkles, Briefcase, Download, Loader2, X } from 'lucide-react';
 import type { CoverLetter } from '@/lib/types/cover-letter';
 import type { JobListing } from '@/app/api/jobs/route';
 
@@ -10,6 +10,7 @@ export default function CoverLettersPage() {
   const [coverLetters, setCoverLetters] = useState<CoverLetter[]>([]);
   const [loading, setLoading] = useState(true);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [previewCoverLetterId, setPreviewCoverLetterId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCoverLetters();
@@ -143,23 +144,32 @@ export default function CoverLettersPage() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2">
-                  <Link
-                    href={`/cover-letters/${coverLetter.id}`}
+                  <button
+                    onClick={() => setPreviewCoverLetterId(coverLetter.id)}
                     className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors"
                   >
+                    <Eye className="w-4 h-4" />
+                    Preview
+                  </button>
+                  <Link
+                    href={`/cover-letters/${coverLetter.id}`}
+                    className="inline-flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200 transition-colors"
+                    title="Edit"
+                  >
                     <Edit2 className="w-4 h-4" />
-                    Edit
                   </Link>
                   <a
                     href={`/api/cover-letter/${coverLetter.id}/export`}
                     target="_blank"
                     className="inline-flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200 transition-colors"
+                    title="Download"
                   >
                     <Download className="w-4 h-4" />
                   </a>
                   <button
                     onClick={() => handleDelete(coverLetter.id)}
                     className="inline-flex items-center justify-center px-3 py-2 bg-red-50 text-red-700 text-sm rounded-lg hover:bg-red-100 transition-colors"
+                    title="Delete"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -169,6 +179,14 @@ export default function CoverLettersPage() {
           </div>
         )}
       </div>
+
+      {/* Preview Modal */}
+      {previewCoverLetterId && (
+        <CoverLetterPreviewModal
+          coverLetterId={previewCoverLetterId}
+          onClose={() => setPreviewCoverLetterId(null)}
+        />
+      )}
 
       {/* Generate Modal */}
       {showGenerateModal && (
@@ -180,6 +198,129 @@ export default function CoverLettersPage() {
           }}
         />
       )}
+    </div>
+  );
+}
+
+function CoverLetterPreviewModal({ coverLetterId, onClose }: { coverLetterId: string; onClose: () => void }) {
+  const [coverLetter, setCoverLetter] = useState<CoverLetter | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchCoverLetter();
+  }, [coverLetterId]);
+
+  async function fetchCoverLetter() {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/cover-letter/${coverLetterId}`);
+      const data = await response.json();
+      setCoverLetter(data.cover_letter);
+    } catch (error) {
+      console.error('Error fetching cover letter:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/50" onClick={onClose}>
+      <div
+        className="h-full w-full max-w-3xl bg-white shadow-xl overflow-y-auto animate-slide-in-right"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+          <h2 className="text-lg font-semibold text-gray-900">Cover Letter Preview</h2>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/cover-letters/${coverLetterId}`}
+              className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <Edit2 className="h-4 w-4" />
+              Edit
+            </Link>
+            <a
+              href={`/api/cover-letter/${coverLetterId}/export`}
+              target="_blank"
+              className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <Download className="h-4 w-4" />
+              Download
+            </a>
+            <button
+              onClick={onClose}
+              className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+            </div>
+          ) : !coverLetter ? (
+            <div className="text-center py-12 text-gray-600">
+              Failed to load cover letter
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 max-w-2xl mx-auto">
+              {/* Header Info */}
+              <div className="mb-8">
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                  {coverLetter.job_title}
+                </h1>
+                <p className="text-lg text-gray-700 mb-4">{coverLetter.job_company}</p>
+                
+                {/* Recipient Info if available */}
+                {(coverLetter.recipient_name || coverLetter.recipient_title) && (
+                  <div className="text-sm text-gray-600 mb-4">
+                    {coverLetter.recipient_name && <p>{coverLetter.recipient_name}</p>}
+                    {coverLetter.recipient_title && <p>{coverLetter.recipient_title}</p>}
+                    {coverLetter.company_address && <p>{coverLetter.company_address}</p>}
+                  </div>
+                )}
+              </div>
+
+              {/* Letter Content */}
+              <div className="space-y-4 text-gray-700 leading-relaxed">
+                {coverLetter.opening_paragraph && (
+                  <p className="text-base">{coverLetter.opening_paragraph}</p>
+                )}
+                
+                {coverLetter.body_paragraphs && coverLetter.body_paragraphs.map((paragraph, i) => (
+                  <p key={i} className="text-base">{paragraph}</p>
+                ))}
+                
+                {coverLetter.closing_paragraph && (
+                  <p className="text-base">{coverLetter.closing_paragraph}</p>
+                )}
+              </div>
+
+              {/* Key Points */}
+              {coverLetter.key_points && coverLetter.key_points.length > 0 && (
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Key Points Highlighted:</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {coverLetter.key_points.map((point, i) => (
+                      <span
+                        key={i}
+                        className="text-xs px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full"
+                      >
+                        {point}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
