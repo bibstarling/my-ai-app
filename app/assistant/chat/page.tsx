@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { UserButton, useUser, SignInButton } from '@clerk/nextjs';
+import { useUser, SignInButton } from '@clerk/nextjs';
 import { Loader2, MessageSquare, Send, ArrowLeft } from 'lucide-react';
 
 type Message = {
@@ -118,32 +118,18 @@ export default function ChatPage() {
       <main className="flex-1 flex flex-col">
         <div className="mx-auto w-full max-w-4xl px-6 py-8 flex flex-col h-screen">
           {/* Header */}
-          <div className="mb-6 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/assistant"
-                className="rounded-lg border border-border bg-card p-2 hover:border-accent hover:bg-card/80 transition-colors"
-              >
-                <ArrowLeft className="h-5 w-5 text-foreground" />
-              </Link>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">AI Assistant</h1>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Powered by Claude
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              {user && (
-                <UserButton
-                  afterSignOutUrl="/assistant"
-                  appearance={{
-                    elements: {
-                      avatarBox: 'h-9 w-9',
-                    },
-                  }}
-                />
-              )}
+          <div className="mb-6 flex items-center gap-4">
+            <Link
+              href="/assistant"
+              className="rounded-lg border border-border bg-card p-2 hover:border-accent hover:bg-card/80 transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5 text-foreground" />
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">AI Assistant</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Powered by Claude
+              </p>
             </div>
           </div>
 

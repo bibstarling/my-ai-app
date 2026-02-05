@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import Link from 'next/link';
-import { UserButton, useUser, SignInButton } from '@clerk/nextjs';
+import { useUser, SignInButton } from '@clerk/nextjs';
 import { supabase } from '@/lib/supabase';
 import {
   Loader2,
@@ -335,25 +335,11 @@ export default function JobSearchPage() {
       <main className="flex-1">
         <div className="mx-auto max-w-7xl px-6 py-8">
           {/* Header */}
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Job Search</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Find roles matching your skills and resume
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              {user && (
-                <UserButton
-                  afterSignOutUrl="/assistant"
-                  appearance={{
-                    elements: {
-                      avatarBox: 'h-9 w-9',
-                    },
-                  }}
-                />
-              )}
-            </div>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground">Job Search</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Find roles matching your skills and resume
+            </p>
           </div>
 
           {/* Search Filters */}

@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   SignInButton,
-  UserButton,
   useUser,
 } from '@clerk/nextjs';
 import { useEmbedMode } from '../ClientAuthWrapper';
@@ -178,25 +177,11 @@ function DashboardContent() {
       <main className="flex-1">
         <div className="mx-auto max-w-7xl px-6 py-8">
           {/* Header */}
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Your job search overview
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              {user && (
-                <UserButton
-                  afterSignOutUrl="/assistant"
-                  appearance={{
-                    elements: {
-                      avatarBox: 'h-9 w-9',
-                    },
-                  }}
-                />
-              )}
-            </div>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Your job search overview
+            </p>
           </div>
 
           {loading ? (

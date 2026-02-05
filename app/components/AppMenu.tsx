@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { UserButton, useUser } from '@clerk/nextjs';
 import {
   Home,
   MessageSquare,
@@ -37,6 +38,7 @@ type AppMenuProps = {
 export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
   const pathname = usePathname();
   const menuItems = getMenuItems();
+  const { user } = useUser();
 
   const isActive = (href: string) => {
     if (href === '/') {
@@ -99,6 +101,33 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
 
         {/* Bottom Actions */}
         <div className="p-3 border-t border-gray-200 space-y-1">
+          {/* User Profile */}
+          {user && (
+            <div className={`flex items-center gap-3 px-3 py-2.5 ${
+              isCollapsed ? 'justify-center' : ''
+            }`}>
+              <UserButton
+                afterSignOutUrl="/assistant"
+                appearance={{
+                  elements: {
+                    avatarBox: 'h-8 w-8',
+                    userButtonPopoverCard: 'shadow-xl',
+                  },
+                }}
+              />
+              {!isCollapsed && (
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="text-sm font-medium text-gray-900 truncate">
+                    {user.firstName || user.emailAddresses[0]?.emailAddress}
+                  </span>
+                  <span className="text-xs text-gray-500 truncate">
+                    {user.emailAddresses[0]?.emailAddress}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+          
           {/* Back to Portfolio Link */}
           <Link
             href="/"
