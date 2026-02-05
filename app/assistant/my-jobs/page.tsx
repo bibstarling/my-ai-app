@@ -1624,8 +1624,45 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
       // Helper function to safely draw text (handles null/undefined and special characters)
       const safeDrawText = (page: any, text: string, options: any) => {
         if (!text || typeof text !== 'string') return;
-        // Remove or replace characters that might cause issues
-        const cleanText = text.replace(/[\u0000-\u001F\u007F-\u009F]/g, '').trim();
+        
+        // Replace Unicode characters that WinAnsi encoding cannot handle with ASCII equivalents
+        let cleanText = text
+          // Arrows
+          .replace(/→/g, '-')
+          .replace(/←/g, '-')
+          .replace(/↑/g, '^')
+          .replace(/↓/g, 'v')
+          // Dashes and hyphens
+          .replace(/—/g, '-')  // em dash
+          .replace(/–/g, '-')  // en dash
+          .replace(/−/g, '-')  // minus sign
+          // Quotes
+          .replace(/[""]/g, '"')  // smart double quotes
+          .replace(/['']/g, "'")  // smart single quotes
+          .replace(/[«»]/g, '"')  // angle quotes
+          // Bullets and symbols
+          .replace(/•/g, '*')
+          .replace(/◦/g, 'o')
+          .replace(/▪/g, '-')
+          .replace(/▫/g, '-')
+          .replace(/✓/g, 'v')
+          .replace(/✔/g, 'v')
+          .replace(/✕/g, 'x')
+          .replace(/✖/g, 'x')
+          // Ellipsis
+          .replace(/…/g, '...')
+          // Other common symbols
+          .replace(/©/g, '(c)')
+          .replace(/®/g, '(R)')
+          .replace(/™/g, '(TM)')
+          .replace(/×/g, 'x')
+          .replace(/÷/g, '/')
+          // Remove control characters
+          .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+          // Remove any remaining characters outside basic ASCII + Latin-1 that might cause issues
+          .replace(/[^\u0020-\u007E\u00A0-\u00FF]/g, '')
+          .trim();
+        
         if (cleanText.length > 0) {
           page.drawText(cleanText, options);
         }
