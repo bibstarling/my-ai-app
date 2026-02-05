@@ -6,6 +6,7 @@ import { ArrowUpRight, Linkedin, Mail, X } from 'lucide-react';
 import { portfolioData, type PortfolioProject } from '@/lib/portfolio-data';
 import { useEmbedMode } from '@/app/ClientAuthWrapper';
 
+
 const navItems = [
   { id: 'about', label: 'About' },
   { id: 'experience', label: 'Experience' },
