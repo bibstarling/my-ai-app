@@ -39,6 +39,11 @@ type TrackedJob = {
   updated_at: string;
 };
 
+type PreviewModal = {
+  type: 'resume' | 'cover-letter';
+  id: string;
+} | null;
+
 export default function MyJobsPage() {
   const { user, isLoaded } = useUser();
 
@@ -46,6 +51,7 @@ export default function MyJobsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<TrackedJob | null>(null);
+  const [previewModal, setPreviewModal] = useState<PreviewModal>(null);
 
   const statuses: Array<{ id: TrackedJob['status']; label: string; color: string }> = [
     { id: 'saved', label: 'Saved', color: 'bg-blue-500/10 text-blue-600 border-blue-200' },
@@ -309,28 +315,22 @@ export default function MyJobsPage() {
                   <h3 className="mb-3 text-sm font-semibold text-foreground">Generated Content</h3>
                   <div className="flex gap-3">
                     {selectedJob.tailored_resume_id && (
-                      <a
-                        href={`/resume-builder/${selectedJob.tailored_resume_id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        onClick={() => setPreviewModal({ type: 'resume', id: selectedJob.tailored_resume_id! })}
                         className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:border-accent hover:bg-accent/5 transition-colors"
                       >
                         <FileText className="h-4 w-4" />
-                        View Resume
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
+                        Preview Resume
+                      </button>
                     )}
                     {selectedJob.tailored_cover_letter_id && (
-                      <a
-                        href={`/cover-letters/${selectedJob.tailored_cover_letter_id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        onClick={() => setPreviewModal({ type: 'cover-letter', id: selectedJob.tailored_cover_letter_id! })}
                         className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:border-accent hover:bg-accent/5 transition-colors"
                       >
                         <FileText className="h-4 w-4" />
-                        View Cover Letter
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
+                        Preview Cover Letter
+                      </button>
                     )}
                   </div>
                 </div>
@@ -353,6 +353,199 @@ export default function MyJobsPage() {
           </div>
         </div>
       )}
+
+      {/* Preview Modal */}
+      {previewModal && (
+        <PreviewModal
+          type={previewModal.type}
+          id={previewModal.id}
+          onClose={() => setPreviewModal(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; id: string; onClose: () => void }) {
+  const [content, setContent] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchContent();
+  }, [id, type]);
+
+  async function fetchContent() {
+    setLoading(true);
+    try {
+      const endpoint = type === 'resume' ? `/api/resume/${id}` : `/api/cover-letter/${id}`;
+      const response = await fetch(endpoint);
+      const data = await response.json();
+      setContent(type === 'resume' ? data.resume : data.cover_letter);
+    } catch (error) {
+      console.error('Error fetching content:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const fullPageUrl = type === 'resume' ? `/resume-builder/${id}/preview` : `/cover-letters/${id}`;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/50" onClick={onClose}>
+      <div
+        className="h-full w-full max-w-3xl bg-background shadow-xl overflow-y-auto animate-slide-in-right"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card px-6 py-4">
+          <h2 className="text-lg font-semibold text-foreground">
+            {type === 'resume' ? 'Resume Preview' : 'Cover Letter Preview'}
+          </h2>
+          <div className="flex items-center gap-2">
+            <a
+              href={fullPageUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:border-accent hover:bg-accent/5 transition-colors"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Open Full View
+            </a>
+            <button
+              onClick={onClose}
+              className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-accent" />
+            </div>
+          ) : !content ? (
+            <div className="text-center py-12 text-muted-foreground">
+              Failed to load content
+            </div>
+          ) : type === 'resume' ? (
+            <ResumePreview resume={content} />
+          ) : (
+            <CoverLetterPreview coverLetter={content} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ResumePreview({ resume }: { resume: any }) {
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-border p-8">
+      {/* Header */}
+      <div className="mb-6 pb-4 border-b-2 border-gray-900">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          {resume.full_name || 'Your Name'}
+        </h1>
+        <div className="flex flex-wrap gap-3 text-sm text-gray-600">
+          {resume.email && <span>{resume.email}</span>}
+          {resume.phone && <span>• {resume.phone}</span>}
+          {resume.location && <span>• {resume.location}</span>}
+        </div>
+      </div>
+
+      {/* Sections */}
+      <div className="space-y-5">
+        {resume.sections?.sort((a: any, b: any) => a.sort_order - b.sort_order).map((section: any) => (
+          <div key={section.id}>
+            <h2 className="text-lg font-bold text-gray-900 mb-2 uppercase tracking-wide border-b border-gray-300 pb-1">
+              {section.title || section.section_type}
+            </h2>
+            <div className="mt-2">
+              {section.section_type === 'summary' && (
+                <p className="text-gray-700">{section.content.text}</p>
+              )}
+              {section.section_type === 'experience' && (
+                <div className="mb-3">
+                  <div className="flex justify-between items-start mb-1">
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{section.content.position}</h3>
+                      <p className="text-gray-700">{section.content.company}</p>
+                    </div>
+                    <div className="text-right text-sm text-gray-600">
+                      {section.content.startDate} — {section.content.endDate || 'Present'}
+                    </div>
+                  </div>
+                  {section.content.bullets && section.content.bullets.length > 0 && (
+                    <ul className="list-disc list-outside ml-5 space-y-1">
+                      {section.content.bullets.map((bullet: string, i: number) => (
+                        <li key={i} className="text-gray-700 text-sm">{bullet}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+              {section.section_type === 'education' && (
+                <div className="mb-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{section.content.degree}</h3>
+                      <p className="text-gray-700">{section.content.institution}</p>
+                    </div>
+                    <div className="text-sm text-gray-600">{section.content.year}</div>
+                  </div>
+                </div>
+              )}
+              {section.section_type === 'skills' && (
+                <p className="text-gray-700">{section.content.items?.join(' • ')}</p>
+              )}
+              {section.section_type === 'projects' && (
+                <div className="mb-3">
+                  <h3 className="font-semibold text-gray-900">{section.content.name}</h3>
+                  {section.content.description && (
+                    <p className="text-gray-700 text-sm mt-1">{section.content.description}</p>
+                  )}
+                  {section.content.bullets && section.content.bullets.length > 0 && (
+                    <ul className="list-disc list-outside ml-5 space-y-1 mt-1">
+                      {section.content.bullets.map((bullet: string, i: number) => (
+                        <li key={i} className="text-gray-700 text-sm">{bullet}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CoverLetterPreview({ coverLetter }: { coverLetter: any }) {
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-border p-8">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          {coverLetter.job_title} at {coverLetter.job_company}
+        </h2>
+      </div>
+
+      <div className="space-y-4 text-gray-700 leading-relaxed">
+        {coverLetter.opening_paragraph && (
+          <p>{coverLetter.opening_paragraph}</p>
+        )}
+        
+        {coverLetter.body_paragraphs && coverLetter.body_paragraphs.map((paragraph: string, i: number) => (
+          <p key={i}>{paragraph}</p>
+        ))}
+        
+        {coverLetter.closing_paragraph && (
+          <p>{coverLetter.closing_paragraph}</p>
+        )}
+      </div>
     </div>
   );
 }
