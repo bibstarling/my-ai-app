@@ -876,7 +876,7 @@ export const portfolioData = {
     },
   ],
 
-  awards: [
+  recognitions: [
     {
       title: 'Voxy Impressive Performance Award',
       organization: 'Voxy',

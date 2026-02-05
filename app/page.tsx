@@ -378,19 +378,22 @@ export default function HomePage() {
           {portfolioData.awards && portfolioData.awards.length > 0 && (
             <div className="mt-12 space-y-6">
               {portfolioData.awards.map((award, idx) => (
-                <div key={idx} className="rounded-lg border border-accent/20 bg-gradient-to-br from-accent/5 to-transparent p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/10">
-                      <span className="text-xl">🏆</span>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-foreground">{award.title}</h4>
-                      <p className="mt-1 text-sm text-muted">
-                        {award.organization} • {award.date}
-                      </p>
-                      <p className="mt-2 text-sm text-foreground">{award.description}</p>
-                    </div>
+                <div key={idx} className="border-l-2 border-accent pl-4">
+                  <div className="flex items-baseline justify-between mb-1">
+                    <h4 className="font-medium text-foreground">{award.title}</h4>
+                    <span className="text-xs text-muted ml-4">{award.quarter}</span>
                   </div>
+                  <p className="text-sm text-muted leading-relaxed mb-2">{award.description}</p>
+                  <ul className="flex flex-wrap gap-2">
+                    {award.keyTraits.map((trait, traitIdx) => (
+                      <li
+                        key={traitIdx}
+                        className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent"
+                      >
+                        {trait}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               ))}
             </div>
@@ -532,21 +535,21 @@ export default function HomePage() {
             Achievements & Awards
           </h3>
           
-          {/* Awards */}
-          {portfolioData.awards && portfolioData.awards.length > 0 && (
+          {/* Recognitions */}
+          {portfolioData.recognitions && portfolioData.recognitions.length > 0 && (
             <div className="mb-8 space-y-4">
-              {portfolioData.awards.map((award, idx) => (
+              {portfolioData.recognitions.map((recognition, idx) => (
                 <div key={idx} className="rounded-lg border border-accent/20 bg-gradient-to-br from-accent/5 to-transparent p-6">
                   <div className="flex items-start gap-4">
                     <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/10">
                       <span className="text-xl">🏆</span>
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-foreground">{award.title}</h4>
+                      <h4 className="font-semibold text-foreground">{recognition.title}</h4>
                       <p className="mt-1 text-sm text-muted">
-                        {award.organization} • {award.date}
+                        {recognition.organization} • {recognition.date}
                       </p>
-                      <p className="mt-2 text-sm text-foreground">{award.description}</p>
+                      <p className="mt-2 text-sm text-foreground">{recognition.description}</p>
                     </div>
                   </div>
                 </div>
@@ -615,36 +618,29 @@ export default function HomePage() {
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
             Contact
           </h3>
-          <div className="space-y-6">
-            <p className="text-muted leading-relaxed">
-              I'm always interested in hearing about new opportunities, especially roles focused on{' '}
-              <span className="text-foreground">AI-powered products</span>,{' '}
-              <span className="text-foreground">community-driven platforms</span>, or{' '}
-              <span className="text-foreground">EdTech innovation</span>.
+          <div className="max-w-lg">
+            <p className="text-muted leading-relaxed mb-6">
+              Open to discussing product leadership roles, AI product strategy, and interesting 
+              challenges in EdTech and community platforms.
             </p>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:gap-6">
               <a
                 href={`mailto:${portfolioData.email}`}
-                className="group inline-flex items-center gap-3 text-foreground hover:text-accent transition-colors"
+                className="inline-flex items-center gap-2 text-accent hover:text-foreground transition-colors font-medium"
               >
-                <Mail className="h-5 w-5" />
-                <span>{portfolioData.email}</span>
-                <ArrowUpRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                <Mail className="h-4 w-4" />
+                Email Me
               </a>
               <a
                 href={portfolioData.linkedinUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group inline-flex items-center gap-3 text-foreground hover:text-accent transition-colors"
+                className="inline-flex items-center gap-2 text-accent hover:text-foreground transition-colors font-medium"
               >
-                <Linkedin className="h-5 w-5" />
-                <span>linkedin.com/in/biancastarling</span>
-                <ArrowUpRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                <Linkedin className="h-4 w-4" />
+                Connect on LinkedIn
               </a>
             </div>
-            <p className="text-sm text-muted pt-4">
-              Based in {portfolioData.location} — Available for remote work globally.
-            </p>
           </div>
         </section>
       </main>
