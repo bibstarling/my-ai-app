@@ -287,7 +287,7 @@ export default function HomePage() {
       )}
       
       {/* Left Sidebar - Sticky on Desktop */}
-      <header className="lg:fixed lg:top-0 lg:left-0 lg:flex lg:h-screen lg:w-[30%] lg:flex-col lg:justify-between lg:py-24 lg:px-12 px-6 py-16">
+      <header className="lg:fixed lg:top-0 lg:left-0 lg:flex lg:h-screen lg:w-[30%] lg:flex-col lg:justify-between lg:py-16 lg:px-12 lg:overflow-y-auto px-6 py-16">
         <div>
           <h1 className="text-4xl font-bold text-foreground lg:text-5xl tracking-tight">
             {portfolioData.fullName}
