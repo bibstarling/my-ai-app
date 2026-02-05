@@ -132,8 +132,8 @@ export async function GET(req: Request, context: RouteContext) {
     const pdfDocument = generateResumePDF(resume, sections || []);
     const pdfBuffer = await ReactPDF.renderToBuffer(pdfDocument);
 
-    // Return PDF
-    return new NextResponse(pdfBuffer, {
+    // Return PDF (convert Buffer to Uint8Array for NextResponse)
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${filename}"`,
