@@ -876,6 +876,15 @@ export const portfolioData = {
     },
   ],
 
+  awards: [
+    {
+      title: 'Voxy Impressive Performance Award',
+      organization: 'Voxy',
+      description: 'Global recognition for exceptional impact.',
+      date: 'Jan 2023',
+    },
+  ],
+
   achievements: [
     'AI-Driven Product Innovation: Pioneered AI-based content classification at Skillshare, improving content discoverability and setting a new bar for catalog scalability.',
     'Digital Marketplace Expansion: Spearheaded the integration of digital products and the launch of the Creator Hub at Skillshare, unlocking new monetization paths and diversifying creator offerings.',
@@ -895,7 +904,7 @@ export const portfolioData = {
       title: 'Closing the Gap Between Qualitative and Quantitative Insights with AI',
       type: 'Keynote',
       organization: 'Product Insights Summit',
-      url: 'https://virtual.productledalliance.com/location/insights/speaker/biancastarling?utm_source=chatgpt.com',
+      url: 'https://virtual.productledalliance.com/location/insights/speaker/biancastarling',
       date: 'Oct 2025',
     },
     {

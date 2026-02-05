@@ -378,22 +378,19 @@ export default function HomePage() {
           {portfolioData.awards && portfolioData.awards.length > 0 && (
             <div className="mt-12 space-y-6">
               {portfolioData.awards.map((award, idx) => (
-                <div key={idx} className="border-l-2 border-accent pl-4">
-                  <div className="flex items-baseline justify-between mb-1">
-                    <h4 className="font-medium text-foreground">{award.title}</h4>
-                    <span className="text-xs text-muted ml-4">{award.quarter}</span>
+                <div key={idx} className="rounded-lg border border-accent/20 bg-gradient-to-br from-accent/5 to-transparent p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/10">
+                      <span className="text-xl">🏆</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-foreground">{award.title}</h4>
+                      <p className="mt-1 text-sm text-muted">
+                        {award.organization} • {award.date}
+                      </p>
+                      <p className="mt-2 text-sm text-foreground">{award.description}</p>
+                    </div>
                   </div>
-                  <p className="text-sm text-muted leading-relaxed mb-2">{award.description}</p>
-                  <ul className="flex flex-wrap gap-2">
-                    {award.keyTraits.map((trait, traitIdx) => (
-                      <li
-                        key={traitIdx}
-                        className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent"
-                      >
-                        {trait}
-                      </li>
-                    ))}
-                  </ul>
                 </div>
               ))}
             </div>
@@ -529,11 +526,35 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Achievements Section */}
+        {/* Achievements & Awards Section */}
         <section id="achievements" className="mb-24 scroll-mt-24 lg:mb-36">
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            Key Achievements
+            Achievements & Awards
           </h3>
+          
+          {/* Awards */}
+          {portfolioData.awards && portfolioData.awards.length > 0 && (
+            <div className="mb-8 space-y-4">
+              {portfolioData.awards.map((award, idx) => (
+                <div key={idx} className="rounded-lg border border-accent/20 bg-gradient-to-br from-accent/5 to-transparent p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/10">
+                      <span className="text-xl">🏆</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-foreground">{award.title}</h4>
+                      <p className="mt-1 text-sm text-muted">
+                        {award.organization} • {award.date}
+                      </p>
+                      <p className="mt-2 text-sm text-foreground">{award.description}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Career Highlights */}
           <div className="rounded-lg border border-border bg-white p-6 lg:p-8">
             <div className="mb-6 flex items-center gap-2">
               <div className="h-1 w-1 rounded-full bg-accent" />
