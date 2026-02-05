@@ -81,7 +81,7 @@ Return the complete cover letter text.`;
     // Split cover letter into paragraphs
     const paragraphs = coverLetterText.split('\n\n').filter(p => p.trim());
     const opening = paragraphs[0] || '';
-    const body = paragraphs.slice(1, -1);
+    const bodyParagraphs = paragraphs.slice(1, -1);
     const closing = paragraphs[paragraphs.length - 1] || '';
 
     // Save cover letter to database
@@ -93,7 +93,7 @@ Return the complete cover letter text.`;
         job_company: company,
         job_description: jobDescription,
         opening_paragraph: opening,
-        body_paragraphs: body.length > 0 ? body : [coverLetterText],
+        body_paragraphs: bodyParagraphs.length > 0 ? bodyParagraphs : [coverLetterText],
         closing_paragraph: closing || opening,
         status: 'draft',
       })
