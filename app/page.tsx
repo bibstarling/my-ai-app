@@ -11,7 +11,6 @@ const navItems = [
   { id: 'experience', label: 'Experience' },
   { id: 'work', label: 'Work' },
   { id: 'skills', label: 'Skills' },
-  { id: 'achievements', label: 'Achievements' },
   { id: 'articles', label: 'Articles & Talks' },
   { id: 'contact', label: 'Contact' },
 ];
@@ -374,6 +373,27 @@ export default function HomePage() {
             </p>
           </div>
 
+          {/* Key Contributions */}
+          <div className="mt-12 rounded-lg border border-border bg-white p-6 lg:p-8">
+            <div className="mb-6 flex items-center gap-2">
+              <div className="h-1 w-1 rounded-full bg-accent" />
+              <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
+                Key Contributions and Impact
+              </h4>
+            </div>
+            <ul className="space-y-4">
+              {portfolioData.achievements.map((achievement, idx) => (
+                <li key={idx} className="flex items-start gap-3 text-sm">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                  <p className="leading-relaxed text-foreground">
+                    <span className="font-semibold">{achievement.split(':')[0]}:</span>
+                    {achievement.split(':').slice(1).join(':')}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           {/* Awards */}
           {portfolioData.awards && portfolioData.awards.length > 0 && (
             <div className="mt-12 space-y-6">
@@ -526,34 +546,6 @@ export default function HomePage() {
                 ))}
               </ul>
             </div>
-          </div>
-        </section>
-
-        {/* Key Contributions and Impact Section */}
-        <section id="achievements" className="mb-24 scroll-mt-24 lg:mb-36">
-          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            Key Contributions
-          </h3>
-          
-          {/* Key Contributions */}
-          <div className="rounded-lg border border-border bg-white p-6 lg:p-8">
-            <div className="mb-6 flex items-center gap-2">
-              <div className="h-1 w-1 rounded-full bg-accent" />
-              <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
-                Key Contributions and Impact
-              </h4>
-            </div>
-            <ul className="space-y-4">
-              {portfolioData.achievements.map((achievement, idx) => (
-                <li key={idx} className="flex items-start gap-3 text-sm">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                  <p className="leading-relaxed text-foreground">
-                    <span className="font-semibold">{achievement.split(':')[0]}:</span>
-                    {achievement.split(':').slice(1).join(':')}
-                  </p>
-                </li>
-              ))}
-            </ul>
           </div>
         </section>
 
