@@ -11,6 +11,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.31.0",
     "@clerk/nextjs": "^6.37.2",
     "@supabase/supabase-js": "^2.94.0",
     "lucide-react": "^0.563.0",

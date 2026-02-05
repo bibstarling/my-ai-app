@@ -117,7 +117,7 @@ export const portfolioData = {
       id: 'chatgpt-ai-discovery',
       title: 'ChatGPT App and AI-Native Discovery Platform',
       company: 'Skillshare',
-      cardTeaser: 'Led definition and design of Skillshare's AI-native discovery stack:public ChatGPT App, in-app conversational assistant, and shared semantic retrieval foundation.',
+      cardTeaser: 'Led definition and design of Skillshare\'s AI-native discovery stack: public ChatGPT App, in-app conversational assistant, and shared semantic retrieval foundation.',
       outcome: 'Foundation for semantic in-app search, personalized discovery, and future AI assistants',
       tags: ['Semantic Search', 'Vector Retrieval', 'MCP', 'Conversational UX', 'Product Strategy'],
     },
