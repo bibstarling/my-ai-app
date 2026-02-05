@@ -17,7 +17,6 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@react-pdf/renderer": "^4.3.2",
-    "@sparticuz/chromium": "^143.0.4",
     "@supabase/supabase-js": "^2.94.0",
     "html-pdf-node": "^1.0.8",
     "html2canvas": "^1.4.1",
@@ -27,7 +26,6 @@
     "pdfjs-dist": "^5.4.624",
     "pg": "^8.18.0",
     "puppeteer": "^24.37.1",
-    "puppeteer-core": "^24.37.1",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
