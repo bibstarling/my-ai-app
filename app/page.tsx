@@ -529,34 +529,12 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Achievements & Awards Section */}
+        {/* Key Contributions and Impact Section */}
         <section id="achievements" className="mb-24 scroll-mt-24 lg:mb-36">
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            Achievements & Awards
+            Key Contributions
           </h3>
           
-          {/* Recognitions */}
-          {portfolioData.recognitions && portfolioData.recognitions.length > 0 && (
-            <div className="mb-8 space-y-4">
-              {portfolioData.recognitions.map((recognition, idx) => (
-                <div key={idx} className="rounded-lg border border-accent/20 bg-gradient-to-br from-accent/5 to-transparent p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/10">
-                      <span className="text-xl">🏆</span>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-foreground">{recognition.title}</h4>
-                      <p className="mt-1 text-sm text-muted">
-                        {recognition.organization} • {recognition.date}
-                      </p>
-                      <p className="mt-2 text-sm text-foreground">{recognition.description}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
           {/* Key Contributions */}
           <div className="rounded-lg border border-border bg-white p-6 lg:p-8">
             <div className="mb-6 flex items-center gap-2">

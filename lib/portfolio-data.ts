@@ -70,6 +70,12 @@ export const portfolioData = {
       description: 'Awarded for bringing AI innovation to product development, building practical solutions that drive real efficiency gains.',
       keyTraits: ['AI Innovation', 'Practical Solutions', 'Efficiency'],
     },
+    {
+      title: 'Voxy Impressive Performance Award',
+      quarter: 'Jan 2023',
+      description: 'Global recognition for exceptional impact.',
+      keyTraits: ['Exceptional Impact', 'Global Recognition'],
+    },
   ],
   
   experiences: [
@@ -873,15 +879,6 @@ export const portfolioData = {
     {
       name: 'Strategic Digital Transformation',
       issuer: 'TDS Company',
-    },
-  ],
-
-  recognitions: [
-    {
-      title: 'Voxy Impressive Performance Award',
-      organization: 'Voxy',
-      description: 'Global recognition for exceptional impact.',
-      date: 'Jan 2023',
     },
   ],
 
