@@ -1622,45 +1622,68 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
       const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
       
       // Helper function to safely draw text (handles null/undefined and special characters)
+      // WinAnsi encoding only supports characters 0x20-0x7E and 0xA0-0xFF
+      // This function converts all unsupported Unicode to ASCII equivalents
       const safeDrawText = (page: any, text: string, options: any) => {
         if (!text || typeof text !== 'string') return;
         
-        // Replace Unicode characters that WinAnsi encoding cannot handle with ASCII equivalents
+        // Comprehensive Unicode to ASCII normalization
         let cleanText = text
+          // Normalize to NFD (decomposed form) first to handle accented characters
+          .normalize('NFD')
+          // Common punctuation and symbols
+          .replace(/[''‚‛]/g, "'")  // All single quote variants
+          .replace(/[""„‟]/g, '"')  // All double quote variants
+          .replace(/[‹›«»]/g, '"')  // Angle quotes
+          .replace(/[–—−]/g, '-')   // All dash variants (en, em, minus)
+          .replace(/[•◦▪▫⁃]/g, '*') // All bullet variants
+          .replace(/…/g, '...')     // Ellipsis
+          .replace(/[‐‑‒]/g, '-')   // Various hyphens
           // Arrows
-          .replace(/→/g, '-')
-          .replace(/←/g, '-')
-          .replace(/↑/g, '^')
-          .replace(/↓/g, 'v')
-          // Dashes and hyphens
-          .replace(/—/g, '-')  // em dash
-          .replace(/–/g, '-')  // en dash
-          .replace(/−/g, '-')  // minus sign
-          // Quotes
-          .replace(/[""]/g, '"')  // smart double quotes
-          .replace(/['']/g, "'")  // smart single quotes
-          .replace(/[«»]/g, '"')  // angle quotes
-          // Bullets and symbols
-          .replace(/•/g, '*')
-          .replace(/◦/g, 'o')
-          .replace(/▪/g, '-')
-          .replace(/▫/g, '-')
-          .replace(/✓/g, 'v')
-          .replace(/✔/g, 'v')
-          .replace(/✕/g, 'x')
-          .replace(/✖/g, 'x')
-          // Ellipsis
-          .replace(/…/g, '...')
-          // Other common symbols
+          .replace(/[→⇒⟶➔➜➞➠➡➢➣➤➥➦➧➨]/g, '->')
+          .replace(/[←⇐⟵]/g, '<-')
+          .replace(/[↑⇑]/g, '^')
+          .replace(/[↓⇓]/g, 'v')
+          .replace(/[↔⇔]/g, '<->')
+          // Mathematical symbols
+          .replace(/[×✕]/g, 'x')
+          .replace(/÷/g, '/')
+          .replace(/[≈∼]/g, '~')
+          .replace(/[≠]/g, '!=')
+          .replace(/[≤]/g, '<=')
+          .replace(/[≥]/g, '>=')
+          .replace(/[±]/g, '+/-')
+          .replace(/[√]/g, 'sqrt')
+          .replace(/[∞]/g, 'infinity')
+          // Check marks and crosses
+          .replace(/[✓✔☑]/g, 'v')
+          .replace(/[✕✖✗✘]/g, 'x')
+          // Copyright, trademark, registered
           .replace(/©/g, '(c)')
           .replace(/®/g, '(R)')
           .replace(/™/g, '(TM)')
-          .replace(/×/g, 'x')
-          .replace(/÷/g, '/')
-          // Remove control characters
+          // Currency (keep common ones, replace exotic ones)
+          .replace(/€/g, 'EUR')
+          .replace(/£/g, 'GBP')
+          .replace(/¥/g, 'JPY')
+          .replace(/[₹₽₩₪]/g, '')
+          // Fractions
+          .replace(/½/g, '1/2')
+          .replace(/⅓/g, '1/3')
+          .replace(/¼/g, '1/4')
+          .replace(/¾/g, '3/4')
+          // Superscripts and subscripts
+          .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g, (match) => String.fromCharCode(match.charCodeAt(0) - 0x2070 + 0x30))
+          .replace(/[₀₁₂₃₄₅₆₇₈₉]/g, (match) => String.fromCharCode(match.charCodeAt(0) - 0x2080 + 0x30))
+          // Degree symbol
+          .replace(/°/g, ' deg')
+          // Remove combining diacritical marks (after NFD normalization)
+          .replace(/[\u0300-\u036F]/g, '')
+          // Remove all control characters
           .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
-          // Remove any remaining characters outside basic ASCII + Latin-1 that might cause issues
-          .replace(/[^\u0020-\u007E\u00A0-\u00FF]/g, '')
+          // Final pass: remove ANY character outside WinAnsi range (0x20-0x7E and 0xA0-0xFF)
+          // Keep: space to tilde, and non-breaking space to ÿ
+          .replace(/[^\x20-\x7E\xA0-\xFF]/g, '')
           .trim();
         
         if (cleanText.length > 0) {
@@ -1708,7 +1731,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
           if (contactItems.length > 0) {
             let contactLine = '';
             for (let i = 0; i < contactItems.length; i++) {
-              if (i > 0) contactLine += ' • ';
+              if (i > 0) contactLine += ' | ';
               contactLine += contactItems[i];
             }
             
@@ -1812,8 +1835,8 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                 } else if (sectionType === 'skills') {
                   const skillItems = section.content?.items || [];
                   
-                  // Join skills with bullets and proper spacing
-                  const skillsText = skillItems.join(' • ');
+                  // Join skills with pipes and proper spacing
+                  const skillsText = skillItems.join(' | ');
                   
                   // Wrap skills text properly
                   const maxWidth = rightMargin - margin;
@@ -1868,7 +1891,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                   });
                   
                   // Dates aligned to the right
-                  const dateRange = `${exp.startDate || ''} — ${exp.endDate || 'Present'}`;
+                  const dateRange = `${exp.startDate || ''} - ${exp.endDate || 'Present'}`;
                   const dateWidth = helveticaFont.widthOfTextAtSize(dateRange, 9);
                   safeDrawText(page, dateRange, {
                     x: rightMargin - dateWidth,
