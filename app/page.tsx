@@ -287,21 +287,21 @@ export default function HomePage() {
       )}
       
       {/* Left Sidebar - Sticky on Desktop */}
-      <header className="lg:fixed lg:top-0 lg:left-0 lg:flex lg:h-screen lg:w-[30%] lg:flex-col lg:justify-between lg:py-16 lg:px-12 lg:overflow-y-auto px-6 py-16">
+      <header className="lg:fixed lg:top-0 lg:left-0 lg:flex lg:h-screen lg:w-[30%] lg:flex-col lg:justify-between lg:py-12 lg:px-12 px-6 py-16">
         <div>
           <h1 className="text-4xl font-bold text-foreground lg:text-5xl tracking-tight">
             {portfolioData.fullName}
           </h1>
-          <h2 className="mt-3 text-xl font-medium text-foreground/90 lg:text-2xl">
+          <h2 className="mt-2 text-xl font-medium text-foreground/90 lg:text-2xl">
             {portfolioData.title}
           </h2>
-          <p className="mt-4 max-w-xs text-muted leading-relaxed">
+          <p className="mt-3 max-w-xs text-muted leading-relaxed">
             {portfolioData.tagline}
           </p>
 
           {/* Navigation - Desktop Only */}
-          <nav className="mt-16 hidden lg:block">
-            <ul className="flex flex-col gap-4">
+          <nav className="mt-12 hidden lg:block">
+            <ul className="flex flex-col gap-3">
               {navItems.map(({ id, label }) => (
                 <li key={id}>
                   <a
