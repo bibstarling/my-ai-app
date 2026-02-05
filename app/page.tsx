@@ -472,7 +472,7 @@ export default function HomePage() {
             Work
           </h3>
           <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
-            Portfolio Projects
+            Work
           </h4>
           <ProjectGrid projects={portfolioData.projects} onProjectClick={setModalProject} />
           {modalProject && (
@@ -486,7 +486,7 @@ export default function HomePage() {
             Skills
           </h3>
           <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
-            Skills & Expertise
+            Skills
           </h4>
           
           {/* Skills Grid */}
@@ -560,7 +560,7 @@ export default function HomePage() {
             Articles & Talks
           </h3>
           <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
-            Speaking & Publications
+            Articles & Talks
           </h4>
           <div className="space-y-4">
             {portfolioData.articlesAndTalks.map((item, idx) => (
@@ -597,7 +597,7 @@ export default function HomePage() {
             Contact
           </h3>
           <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
-            Get In Touch
+            Contact
           </h4>
           <div className="max-w-lg">
             <p className="text-muted leading-relaxed mb-6">
