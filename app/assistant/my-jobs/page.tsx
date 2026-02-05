@@ -1720,7 +1720,40 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                 // Handle different section types based on the current sectionType
                 if (sectionType === 'summary') {
                   const summaryText = section.content?.text || '';
-                  yPosition = drawWrappedText(summaryText, margin, yPosition, rightMargin - margin, 10, timesRoman, false);
+                  
+                  // Wrap text properly
+                  const maxWidth = rightMargin - margin;
+                  const words = summaryText.split(' ');
+                  let currentLine = '';
+                  const lines = [];
+                  
+                  for (const word of words) {
+                    const testLine = currentLine ? `${currentLine} ${word}` : word;
+                    const testWidth = timesRoman.widthOfTextAtSize(testLine, 10);
+                    
+                    if (testWidth > maxWidth && currentLine) {
+                      lines.push(currentLine);
+                      currentLine = word;
+                    } else {
+                      currentLine = testLine;
+                    }
+                  }
+                  if (currentLine) lines.push(currentLine);
+                  
+                  for (const line of lines) {
+                    if (yPosition < 50) {
+                      page = pdfDoc.addPage([612, 792]);
+                      yPosition = height - 50;
+                    }
+                    page.drawText(line, {
+                      x: margin,
+                      y: yPosition,
+                      size: 10,
+                      font: timesRoman,
+                      color: rgb(0.2, 0.2, 0.2),
+                    });
+                    yPosition -= 14;
+                  }
                   yPosition -= 5;
                 } else if (sectionType === 'skills') {
                   const skillItems = section.content?.items || [];
@@ -1729,7 +1762,38 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                   const skillsText = skillItems.join(' • ');
                   
                   // Wrap skills text properly
-                  yPosition = drawWrappedText(skillsText, margin, yPosition, rightMargin - margin, 10, timesRoman, false);
+                  const maxWidth = rightMargin - margin;
+                  const words = skillsText.split(' ');
+                  let currentLine = '';
+                  const lines = [];
+                  
+                  for (const word of words) {
+                    const testLine = currentLine ? `${currentLine} ${word}` : word;
+                    const testWidth = timesRoman.widthOfTextAtSize(testLine, 10);
+                    
+                    if (testWidth > maxWidth && currentLine) {
+                      lines.push(currentLine);
+                      currentLine = word;
+                    } else {
+                      currentLine = testLine;
+                    }
+                  }
+                  if (currentLine) lines.push(currentLine);
+                  
+                  for (const line of lines) {
+                    if (yPosition < 50) {
+                      page = pdfDoc.addPage([612, 792]);
+                      yPosition = height - 50;
+                    }
+                    page.drawText(line, {
+                      x: margin,
+                      y: yPosition,
+                      size: 10,
+                      font: timesRoman,
+                      color: rgb(0.2, 0.2, 0.2),
+                    });
+                    yPosition -= 14;
+                  }
                   yPosition -= 5;
                 } else if (sectionType === 'experience') {
                   // Experience is stored as single content object
