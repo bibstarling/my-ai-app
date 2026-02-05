@@ -1729,7 +1729,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                   
                   for (const word of words) {
                     const testLine = currentLine ? `${currentLine} ${word}` : word;
-                    const testWidth = timesRoman.widthOfTextAtSize(testLine, 10);
+                    const testWidth = timesRomanFont.widthOfTextAtSize(testLine, 10);
                     
                     if (testWidth > maxWidth && currentLine) {
                       lines.push(currentLine);
@@ -1749,7 +1749,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                       x: margin,
                       y: yPosition,
                       size: 10,
-                      font: timesRoman,
+                      font: timesRomanFont,
                       color: rgb(0.2, 0.2, 0.2),
                     });
                     yPosition -= 14;
@@ -1769,7 +1769,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                   
                   for (const word of words) {
                     const testLine = currentLine ? `${currentLine} ${word}` : word;
-                    const testWidth = timesRoman.widthOfTextAtSize(testLine, 10);
+                    const testWidth = timesRomanFont.widthOfTextAtSize(testLine, 10);
                     
                     if (testWidth > maxWidth && currentLine) {
                       lines.push(currentLine);
@@ -1789,7 +1789,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                       x: margin,
                       y: yPosition,
                       size: 10,
-                      font: timesRoman,
+                      font: timesRomanFont,
                       color: rgb(0.2, 0.2, 0.2),
                     });
                     yPosition -= 14;
