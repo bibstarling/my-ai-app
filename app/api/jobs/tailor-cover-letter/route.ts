@@ -17,6 +17,13 @@ export async function POST(request: Request) {
   try {
     const { userId } = await auth();
     
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+    
     const body = await request.json();
     const { jobDescription, jobTitle, company } = body;
 
@@ -25,17 +32,6 @@ export async function POST(request: Request) {
         { error: 'Missing required fields' },
         { status: 400 }
       );
-    }
-
-    // Get user from database
-    const { data: user } = await supabase
-      .from('users')
-      .select('id, email')
-      .eq('clerk_id', userId || '')
-      .single();
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Get portfolio data
@@ -81,15 +77,25 @@ Return the complete cover letter text.`;
     }
 
     const coverLetterText = textContent.text.trim();
+    
+    // Split cover letter into paragraphs
+    const paragraphs = coverLetterText.split('\n\n').filter(p => p.trim());
+    const opening = paragraphs[0] || '';
+    const body = paragraphs.slice(1, -1);
+    const closing = paragraphs[paragraphs.length - 1] || '';
 
     // Save cover letter to database
     const { data: coverLetter, error: insertError } = await supabase
       .from('cover_letters')
       .insert({
-        user_id: user.id,
+        clerk_id: userId,
         job_title: jobTitle,
-        company: company,
-        content: coverLetterText,
+        job_company: company,
+        job_description: jobDescription,
+        opening_paragraph: opening,
+        body_paragraphs: body.length > 0 ? body : [coverLetterText],
+        closing_paragraph: closing || opening,
+        status: 'draft',
       })
       .select()
       .single();

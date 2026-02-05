@@ -17,6 +17,13 @@ export async function POST(request: Request) {
   try {
     const { userId } = await auth();
     
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+    
     const body = await request.json();
     const { jobDescription, jobTitle, company } = body;
 
@@ -25,17 +32,6 @@ export async function POST(request: Request) {
         { error: 'Missing required fields' },
         { status: 400 }
       );
-    }
-
-    // Get user from database
-    const { data: user } = await supabase
-      .from('users')
-      .select('id, email')
-      .eq('clerk_id', userId || '')
-      .single();
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Get portfolio data
@@ -117,9 +113,15 @@ Return ONLY valid JSON in this exact format:
     const { data: resume, error: insertError } = await supabase
       .from('resumes')
       .insert({
-        user_id: user.id,
+        clerk_id: userId,
         title: `${jobTitle} at ${company}`,
-        sections: resumeData.sections,
+        full_name: portfolioData.fullName,
+        email: portfolioData.email,
+        phone: null,
+        location: portfolioData.location,
+        linkedin_url: portfolioData.linkedinUrl,
+        portfolio_url: portfolioData.websiteUrl,
+        status: 'draft',
       })
       .select()
       .single();
