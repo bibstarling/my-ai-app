@@ -128,6 +128,94 @@ Return ONLY valid JSON in this exact format:
 
     if (insertError) throw insertError;
 
+    // Transform and save resume sections
+    if (resumeData.sections && Array.isArray(resumeData.sections)) {
+      const sectionsToInsert: any[] = [];
+      let sortOrder = 0;
+
+      for (const section of resumeData.sections) {
+        if (section.type === 'summary' && section.content) {
+          // Summary section - single entry
+          sectionsToInsert.push({
+            resume_id: resume.id,
+            section_type: 'summary',
+            sort_order: sortOrder++,
+            content: { text: section.content },
+          });
+        } else if (section.type === 'experience' && section.items) {
+          // Experience - create separate section for each item
+          for (const item of section.items) {
+            const [startDate, endDate] = (item.period || '').split(/\s*[-–—:]\s*/);
+            sectionsToInsert.push({
+              resume_id: resume.id,
+              section_type: 'experience',
+              sort_order: sortOrder++,
+              content: {
+                position: item.title || '',
+                company: item.company || '',
+                location: item.location || '',
+                startDate: startDate?.trim() || '',
+                endDate: endDate?.trim() || '',
+                bullets: item.highlights || [item.description] || [],
+              },
+            });
+          }
+        } else if (section.type === 'education' && section.items) {
+          // Education - create separate section for each item
+          for (const item of section.items) {
+            sectionsToInsert.push({
+              resume_id: resume.id,
+              section_type: 'education',
+              sort_order: sortOrder++,
+              content: {
+                degree: item.degree || '',
+                institution: item.institution || item.school || '',
+                year: item.year || '',
+                description: item.description || '',
+              },
+            });
+          }
+        } else if (section.type === 'skills' && section.items) {
+          // Skills - group all skills into one section
+          sectionsToInsert.push({
+            resume_id: resume.id,
+            section_type: 'skills',
+            sort_order: sortOrder++,
+            content: {
+              category: 'Core Skills',
+              items: Array.isArray(section.items) ? section.items : [],
+            },
+          });
+        } else if (section.type === 'projects' && section.items) {
+          // Projects - create separate section for each item
+          for (const item of section.items) {
+            sectionsToInsert.push({
+              resume_id: resume.id,
+              section_type: 'projects',
+              sort_order: sortOrder++,
+              content: {
+                name: item.name || item.title || '',
+                description: item.description || '',
+                bullets: item.highlights || item.bullets || [],
+                url: item.url || '',
+              },
+            });
+          }
+        }
+      }
+
+      if (sectionsToInsert.length > 0) {
+        const { error: sectionsError } = await supabase
+          .from('resume_sections')
+          .insert(sectionsToInsert);
+
+        if (sectionsError) {
+          console.error('Error saving resume sections:', sectionsError);
+          // Don't throw - resume was created, just log the error
+        }
+      }
+    }
+
     return NextResponse.json({
       success: true,
       resumeId: resume.id,
