@@ -135,13 +135,6 @@ export default function ResumePreviewPage({ params, searchParams }: PageProps) {
                   <Download className="w-4 h-4" />
                   {downloading ? 'Generating...' : 'Download PDF'}
                 </button>
-                <a
-                  href={`/api/resume/${id}/export`}
-                  target="_blank"
-                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200"
-                >
-                  Export HTML
-                </a>
                 <Link
                   href={`/resume-builder/${id}`}
                   className="flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50"
