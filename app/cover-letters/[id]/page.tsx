@@ -4,6 +4,8 @@ import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Download, Save, Eye, Sparkles, Lightbulb } from 'lucide-react';
 import type { CoverLetter } from '@/lib/types/cover-letter';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -14,6 +16,7 @@ export default function CoverLetterEditPage({ params }: PageProps) {
   const [coverLetter, setCoverLetter] = useState<CoverLetter | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     fetchCoverLetter();
@@ -55,6 +58,43 @@ export default function CoverLetterEditPage({ params }: PageProps) {
       alert('Failed to save changes');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function downloadPDF() {
+    if (!coverLetter) return;
+    
+    setDownloading(true);
+    try {
+      const letterElement = document.getElementById('cover-letter-content');
+      if (!letterElement) {
+        throw new Error('Cover letter content not found');
+      }
+
+      const canvas = await html2canvas(letterElement, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+      });
+
+      const imgWidth = 210;
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgData = canvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+
+      const companyName = coverLetter.job_company || 'company';
+      const filename = `coverletter_biancastarling_${companyName.replace(/[^a-z0-9]/gi, '').toLowerCase()}.pdf`;
+
+      pdf.save(filename);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    } finally {
+      setDownloading(false);
     }
   }
 
@@ -129,14 +169,14 @@ export default function CoverLetterEditPage({ params }: PageProps) {
                 <Save className="w-4 h-4" />
                 {saving ? 'Saving...' : 'Save'}
               </button>
-              <a
-                href={`/api/cover-letter/${id}/export`}
-                target="_blank"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+              <button
+                onClick={downloadPDF}
+                disabled={downloading}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Download className="w-4 h-4" />
-                Export
-              </a>
+                {downloading ? 'Generating...' : 'Download PDF'}
+              </button>
             </div>
           </div>
         </div>
@@ -144,7 +184,7 @@ export default function CoverLetterEditPage({ params }: PageProps) {
 
       {/* Content */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-3 gap-8" id="cover-letter-content">
           {/* Main Editor */}
           <div className="lg:col-span-2 space-y-6">
             {/* Recipient Information */}
