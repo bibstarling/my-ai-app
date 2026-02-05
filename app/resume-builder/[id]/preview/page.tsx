@@ -4,6 +4,8 @@ import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Download, Mail, Phone, MapPin, Linkedin, Globe } from 'lucide-react';
 import type { ResumeWithSections, ResumeSection, ExperienceContent, EducationContent, SkillsContent, SummaryContent, ProjectContent } from '@/lib/types/resume';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -14,6 +16,7 @@ export default function ResumePreviewPage({ params, searchParams }: PageProps) {
   const { id } = use(params);
   const [resume, setResume] = useState<ResumeWithSections | null>(null);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     fetchResume();
@@ -30,6 +33,63 @@ export default function ResumePreviewPage({ params, searchParams }: PageProps) {
       console.error('Error fetching resume:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function downloadPDF() {
+    if (!resume) return;
+    
+    setDownloading(true);
+    try {
+      const resumeElement = document.getElementById('resume-content');
+      if (!resumeElement) {
+        throw new Error('Resume content not found');
+      }
+
+      // Generate canvas from HTML
+      const canvas = await html2canvas(resumeElement, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+      });
+
+      // Calculate PDF dimensions
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      let position = 0;
+
+      // Add image to PDF
+      const imgData = canvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Add additional pages if needed
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      // Generate filename
+      const fullName = resume.full_name || 'resume';
+      const title = resume.title || '';
+      const companyMatch = title.match(/at\s+(.+)$/i);
+      const companyName = companyMatch ? companyMatch[1].replace(/[^a-z0-9]/gi, '').toLowerCase() : 'company';
+      const filename = `resume_${fullName.toLowerCase().replace(/\s+/g, '')}_${companyName}.pdf`;
+
+      // Download PDF
+      pdf.save(filename);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try using the print dialog instead.');
+    } finally {
+      setDownloading(false);
     }
   }
 
@@ -68,11 +128,12 @@ export default function ResumePreviewPage({ params, searchParams }: PageProps) {
               <h2 className="text-lg font-semibold text-gray-900">Resume Preview</h2>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => window.print()}
-                  className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
+                  onClick={downloadPDF}
+                  disabled={downloading}
+                  className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Download className="w-4 h-4" />
-                  Download PDF
+                  {downloading ? 'Generating...' : 'Download PDF'}
                 </button>
                 <a
                   href={`/api/resume/${id}/export`}
