@@ -459,15 +459,19 @@ export default function HomePage() {
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
             Skills
           </h3>
-          <div className="space-y-8">
+          
+          {/* Skills Grid */}
+          <div className="grid gap-6 md:grid-cols-2">
             {Object.entries(portfolioData.skills).map(([category, skillList]) => (
-              <div key={category}>
-                <h4 className="mb-4 text-sm font-semibold text-foreground capitalize">{category}</h4>
+              <div key={category} className="rounded-lg border border-border bg-white p-6">
+                <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-accent">
+                  {category}
+                </h4>
                 <ul className="flex flex-wrap gap-2">
                   {skillList.map((skill) => (
                     <li
                       key={skill}
-                      className="rounded-full border border-border px-3 py-1 text-xs text-muted"
+                      className="rounded-full bg-card px-3 py-1.5 text-xs font-medium text-foreground border border-border"
                     >
                       {skill}
                     </li>
@@ -477,30 +481,49 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* Certifications */}
-          <div className="mt-16">
-            <h4 className="mb-6 text-sm font-semibold text-foreground">Certifications</h4>
-            <ul className="space-y-3 text-sm text-muted">
-              {portfolioData.certifications.map((cert, idx) => (
-                <li key={idx} className="flex items-start gap-3">
-                  <span className="text-accent">—</span>
-                  <span>{cert.name} — {cert.issuer}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* Certifications & Education Grid */}
+          <div className="mt-8 grid gap-6 md:grid-cols-2">
+            {/* Certifications */}
+            <div className="rounded-lg border border-border bg-white p-6">
+              <div className="mb-4 flex items-center gap-2">
+                <div className="h-1 w-1 rounded-full bg-accent" />
+                <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
+                  Certifications
+                </h4>
+              </div>
+              <ul className="space-y-3">
+                {portfolioData.certifications.map((cert, idx) => (
+                  <li key={idx} className="flex items-start gap-3 text-sm">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                    <div>
+                      <p className="font-medium text-foreground">{cert.name}</p>
+                      <p className="text-xs text-muted">{cert.issuer}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          {/* Education */}
-          <div className="mt-12">
-            <h4 className="mb-6 text-sm font-semibold text-foreground">Education</h4>
-            <ul className="space-y-3 text-sm text-muted">
-              {portfolioData.education.map((edu, idx) => (
-                <li key={idx} className="flex items-start gap-3">
-                  <span className="text-accent">—</span>
-                  <span>{edu.degree} — {edu.institution}, {edu.year}</span>
-                </li>
-              ))}
-            </ul>
+            {/* Education */}
+            <div className="rounded-lg border border-border bg-white p-6">
+              <div className="mb-4 flex items-center gap-2">
+                <div className="h-1 w-1 rounded-full bg-accent" />
+                <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
+                  Education
+                </h4>
+              </div>
+              <ul className="space-y-3">
+                {portfolioData.education.map((edu, idx) => (
+                  <li key={idx} className="flex items-start gap-3 text-sm">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                    <div>
+                      <p className="font-medium text-foreground">{edu.degree}</p>
+                      <p className="text-xs text-muted">{edu.institution} • {edu.year}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </section>
 
