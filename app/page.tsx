@@ -396,16 +396,14 @@ export default function HomePage() {
           {/* Awards */}
           {portfolioData.awards && portfolioData.awards.length > 0 && (
             <div className="mt-12">
-              <div className="mb-6">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
-                  Recent Awards
-                </h4>
-              </div>
+              <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent">
+                Awards
+              </h4>
               <div className="space-y-6">
                 {portfolioData.awards.map((award, idx) => (
                 <div key={idx} className="border-l-2 border-accent pl-4">
                   <div className="flex items-baseline justify-between mb-1">
-                    <h4 className="font-medium text-foreground">{award.title}</h4>
+                    <h5 className="font-medium text-foreground">{award.title}</h5>
                     <span className="text-xs text-muted ml-4">{award.quarter}</span>
                   </div>
                   <p className="text-sm text-muted leading-relaxed mb-2">{award.description}</p>
