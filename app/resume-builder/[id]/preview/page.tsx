@@ -14,6 +14,7 @@ type PageProps = {
 
 export default function ResumePreviewPage({ params, searchParams }: PageProps) {
   const { id } = use(params);
+  const resolvedSearchParams = searchParams ? use(searchParams) : undefined;
   const [resume, setResume] = useState<ResumeWithSections | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
@@ -21,6 +22,13 @@ export default function ResumePreviewPage({ params, searchParams }: PageProps) {
   useEffect(() => {
     fetchResume();
   }, [id]);
+
+  // Auto-download if autoDownload parameter is present
+  useEffect(() => {
+    if (resolvedSearchParams?.autoDownload === 'true' && resume && !loading && !downloading) {
+      downloadPDF();
+    }
+  }, [resume, loading, resolvedSearchParams]);
 
   async function fetchResume() {
     try {

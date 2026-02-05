@@ -1602,7 +1602,9 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
     }
   }
 
-  const exportUrl = type === 'resume' ? `/api/resume/${id}/export` : `/api/cover-letter/${id}/export`;
+  const downloadUrl = type === 'resume' 
+    ? `/resume-builder/${id}/preview?autoDownload=true` 
+    : `/cover-letters/${id}?autoDownload=true`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/50" onClick={onClose}>
@@ -1617,8 +1619,9 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
           </h2>
           <div className="flex items-center gap-2">
             <a
-              href={exportUrl}
-              download
+              href={downloadUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-2 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 transition-opacity"
             >
               <Download className="h-4 w-4" />

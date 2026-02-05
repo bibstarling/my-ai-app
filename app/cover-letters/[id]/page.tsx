@@ -9,10 +9,12 @@ import html2canvas from 'html2canvas';
 
 type PageProps = {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<{ autoDownload?: string }>;
 };
 
-export default function CoverLetterEditPage({ params }: PageProps) {
+export default function CoverLetterEditPage({ params, searchParams }: PageProps) {
   const { id } = use(params);
+  const resolvedSearchParams = searchParams ? use(searchParams) : undefined;
   const [coverLetter, setCoverLetter] = useState<CoverLetter | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -21,6 +23,13 @@ export default function CoverLetterEditPage({ params }: PageProps) {
   useEffect(() => {
     fetchCoverLetter();
   }, [id]);
+
+  // Auto-download if autoDownload parameter is present
+  useEffect(() => {
+    if (resolvedSearchParams?.autoDownload === 'true' && coverLetter && !loading && !downloading) {
+      downloadPDF();
+    }
+  }, [coverLetter, loading, resolvedSearchParams]);
 
   async function fetchCoverLetter() {
     try {
