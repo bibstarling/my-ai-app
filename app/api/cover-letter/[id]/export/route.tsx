@@ -5,6 +5,10 @@ import { portfolioData } from '@/lib/portfolio-data';
 import ReactPDF from '@react-pdf/renderer';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 
+// Force Node.js runtime for PDF generation
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
