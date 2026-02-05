@@ -78,6 +78,7 @@ export default function JobSearchPage() {
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [country, setCountry] = useState('');
   const [resumeText, setResumeText] = useState('');
@@ -150,6 +151,7 @@ export default function JobSearchPage() {
     
     try {
       const body = JSON.stringify({
+        query: query.trim() || undefined,
         remoteOnly,
         country: country.trim() || undefined,
         resumeText: truncated || undefined,
@@ -197,27 +199,17 @@ export default function JobSearchPage() {
   };
 
   const handleCreateTailoredContent = async () => {
-    if (!tailorModal) return;
+    if (!tailorModal || !user) return;
     
     const job = tailorModal.job;
     setTailoring(true);
     
     try {
-      const { data: userData } = await supabase
-        .from('users')
-        .select('id')
-        .limit(1)
-        .maybeSingle();
-      
-      if (!userData) {
-        alert('User not found. Please sign in.');
-        return;
-      }
-      
+      // Create tracked job using Clerk user ID
       const { data: trackedJob, error: trackError } = await supabase
         .from('tracked_jobs')
         .insert({
-          user_id: userData.id,
+          clerk_id: user.id,
           title: job.title,
           company: job.company,
           location: job.location,
@@ -344,6 +336,20 @@ export default function JobSearchPage() {
 
           {/* Search Filters */}
           <div className="mb-6 rounded-xl border border-border bg-card p-6">
+            <div className="mb-4">
+              <label htmlFor="job-query" className="text-xs font-medium text-muted">
+                Search by keyword
+              </label>
+              <input
+                id="job-query"
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="e.g. Product Manager, AI, EdTech"
+                className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              />
+            </div>
+
             <div className="flex flex-wrap gap-6">
               <label className="flex cursor-pointer items-center gap-2">
                 <input
