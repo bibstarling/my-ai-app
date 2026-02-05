@@ -1,0 +1,113 @@
+/**
+ * Enums, skills dictionary, and config defaults for job ingestion.
+ */
+
+import type { JobRemoteType, JobStatus } from './types';
+
+export const JOB_REMOTE_TYPES: JobRemoteType[] = ['remote', 'hybrid', 'onsite', 'unknown'];
+export const JOB_STATUSES: JobStatus[] = ['active', 'expired', 'removed'];
+
+/** Curated skills list for deterministic extraction from descriptions (lowercase for matching). */
+export const SKILLS_DICTIONARY: string[] = [
+  'javascript',
+  'typescript',
+  'python',
+  'react',
+  'node.js',
+  'nodejs',
+  'sql',
+  'aws',
+  'api',
+  'rest',
+  'graphql',
+  'docker',
+  'kubernetes',
+  'terraform',
+  'ci/cd',
+  'devops',
+  'product management',
+  'product manager',
+  'agile',
+  'scrum',
+  'user research',
+  'roadmapping',
+  'discovery',
+  'figma',
+  'llm',
+  'ai',
+  'machine learning',
+  'data analysis',
+  'postgresql',
+  'mongodb',
+  'redis',
+  'next.js',
+  'vue',
+  'angular',
+  'go',
+  'golang',
+  'rust',
+  'java',
+  'kotlin',
+  'swift',
+  'ruby',
+  'rails',
+  'php',
+  'laravel',
+  'html',
+  'css',
+  'tailwind',
+  'sass',
+  'testing',
+  'jest',
+  'cypress',
+  'gcp',
+  'azure',
+  'linux',
+  'git',
+  'github',
+  'jira',
+  'confluence',
+  'sales',
+  'marketing',
+  'customer success',
+  'support',
+  'remote',
+  'communication',
+  'leadership',
+  'edtech',
+  'fintech',
+  'saas',
+  'b2b',
+  'b2c',
+];
+
+/** Region keywords to detect in descriptions for remote_region_eligibility. */
+export const REGION_PATTERNS: { pattern: RegExp; label: string }[] = [
+  { pattern: /\b(global|worldwide|anywhere)\b/i, label: 'global' },
+  { pattern: /\b(us only|usa only|united states only|u\.?s\.? only)\b/i, label: 'US' },
+  { pattern: /\b(eu only|europe only|european union|eea)\b/i, label: 'EMEA' },
+  { pattern: /\b(uk only|united kingdom only)\b/i, label: 'UK' },
+  { pattern: /\b(emea)\b/i, label: 'EMEA' },
+  { pattern: /\b(latam|latam only|latin america)\b/i, label: 'LATAM' },
+  { pattern: /\b(north america|na)\b/i, label: 'North America' },
+  { pattern: /\b(apac|asia)\b/i, label: 'APAC' },
+  { pattern: /\b(brazil|brasil)\b/i, label: 'Brazil' },
+  { pattern: /\b(canada)\b/i, label: 'Canada' },
+  { pattern: /\b(germany|deutschland)\b/i, label: 'Germany' },
+  { pattern: /\b(france)\b/i, label: 'France' },
+  { pattern: /\b(australia)\b/i, label: 'Australia' },
+];
+
+export function getConfig() {
+  return {
+    remoteokEnabled: process.env.REMOTEOK_ENABLED !== 'false',
+    remotiveEnabled: process.env.REMOTIVE_ENABLED !== 'false',
+    adzunaEnabled: process.env.ADZUNA_ENABLED !== 'false',
+    adzunaAppId: process.env.ADZUNA_APP_ID ?? '',
+    adzunaAppKey: process.env.ADZUNA_APP_KEY ?? '',
+    jobExpireDays: parseInt(process.env.JOB_EXPIRE_DAYS ?? '14', 10) || 14,
+    defaultRemoteRegion: process.env.DEFAULT_REMOTE_REGION ?? 'global',
+    llmSkillsEnabled: process.env.OPTIONAL_LLM_SKILLS_ENABLED === 'true',
+    adzunaCountries: (process.env.ADZUNA_COUNTRIES ?? 'us,gb').split(',').map((c) => c.trim()).filter(Boolean),
+  };
+}

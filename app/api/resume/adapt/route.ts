@@ -1,0 +1,257 @@
+import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
+import { getSupabaseServiceRole } from '@/lib/supabase-server';
+import type { AdaptResumeRequest, AdaptResumeResponse, ResumeSection, ResumeAdaptation } from '@/lib/types/resume';
+
+/**
+ * POST /api/resume/adapt - Adapt a resume to a specific job posting using AI
+ */
+export async function POST(req: Request) {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body: AdaptResumeRequest = await req.json();
+    
+    if (!body.resume_id || !body.job_id) {
+      return NextResponse.json(
+        { error: 'resume_id and job_id are required' },
+        { status: 400 }
+      );
+    }
+
+    const supabase = getSupabaseServiceRole();
+
+    // Get resume with sections
+    const { data: resume, error: resumeError } = await supabase
+      .from('resumes')
+      .select('*')
+      .eq('id', body.resume_id)
+      .eq('clerk_id', userId)
+      .single();
+
+    if (resumeError || !resume) {
+      return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
+    }
+
+    const { data: sections, error: sectionsError } = await supabase
+      .from('resume_sections')
+      .select('*')
+      .eq('resume_id', body.resume_id)
+      .order('sort_order', { ascending: true });
+
+    if (sectionsError) {
+      return NextResponse.json({ error: 'Failed to fetch resume sections' }, { status: 500 });
+    }
+
+    // Get job details
+    const { data: job, error: jobError } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('id', body.job_id)
+      .single();
+
+    if (jobError || !job) {
+      return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+    }
+
+    // Check if adaptation already exists
+    const { data: existingAdaptation } = await supabase
+      .from('resume_adaptations')
+      .select('*')
+      .eq('resume_id', body.resume_id)
+      .eq('job_id', body.job_id)
+      .eq('clerk_id', userId)
+      .single();
+
+    if (existingAdaptation) {
+      return NextResponse.json({
+        adaptation: existingAdaptation as ResumeAdaptation,
+        success: true,
+        message: 'Adaptation already exists',
+      } as AdaptResumeResponse);
+    }
+
+    // Call AI to adapt the resume
+    const aiResult = await adaptResumeWithAI(resume, sections || [], job);
+
+    // Save adaptation
+    const { data: adaptation, error: adaptError } = await supabase
+      .from('resume_adaptations')
+      .insert({
+        resume_id: body.resume_id,
+        job_id: body.job_id,
+        clerk_id: userId,
+        job_title: job.title,
+        job_company: job.company_name,
+        job_description: job.description_text?.slice(0, 5000) || null,
+        adapted_sections: aiResult.adaptedSections,
+        match_score: aiResult.matchScore,
+        suggested_keywords: aiResult.suggestedKeywords,
+        gaps: aiResult.gaps,
+        strengths: aiResult.strengths,
+        ai_recommendations: aiResult.recommendations,
+      })
+      .select()
+      .single();
+
+    if (adaptError) {
+      console.error('Error saving adaptation:', adaptError);
+      return NextResponse.json({ error: 'Failed to save adaptation' }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      adaptation: adaptation as ResumeAdaptation,
+      success: true,
+      message: 'Resume adapted successfully',
+    } as AdaptResumeResponse);
+  } catch (error) {
+    console.error('POST /api/resume/adapt error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error: ' + (error as Error).message },
+      { status: 500 }
+    );
+  }
+}
+
+type AIAdaptationResult = {
+  adaptedSections: Omit<ResumeSection, 'id' | 'resume_id' | 'created_at' | 'updated_at'>[];
+  matchScore: number;
+  suggestedKeywords: string[];
+  gaps: string[];
+  strengths: string[];
+  recommendations: string;
+};
+
+async function adaptResumeWithAI(
+  resume: Record<string, unknown>,
+  sections: ResumeSection[],
+  job: Record<string, unknown>
+): Promise<AIAdaptationResult> {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  
+  if (!apiKey) {
+    throw new Error('ANTHROPIC_API_KEY not configured');
+  }
+
+  const prompt = `You are an expert resume writer and career coach. Analyze the following job posting and resume, then provide an adapted version optimized for this specific job.
+
+JOB POSTING:
+Title: ${job.title}
+Company: ${job.company_name}
+Description: ${String(job.description_text || '').slice(0, 3000)}
+Required Skills: ${JSON.stringify(job.skills_json || [])}
+
+CANDIDATE POSITIONING (USE THIS CONTEXT):
+🏆 Agility Award Q1 2025: "Living example of making the most of resources—creative right-sized solutions, scrappy experimentation"
+🔬 Curiosity Award Q2 2024: AI pioneering on IAT project
+
+PM Archetype: Scrappy High-Agency Builder who ships 0-to-1 products fast, thrives in ambiguity, and turns constraints into creative solutions.
+
+CURRENT RESUME:
+Name: ${resume.full_name || 'N/A'}
+${sections.map(s => `\n${s.section_type.toUpperCase()}: ${JSON.stringify(s.content, null, 2)}`).join('\n')}
+
+Please provide your response in the following JSON format:
+{
+  "matchScore": <0-100 integer representing fit>,
+  "suggestedKeywords": [<array of keywords from job description to emphasize>],
+  "gaps": [<array of skills/experience missing from resume>],
+  "strengths": [<array of matching qualifications>],
+  "recommendations": "<detailed recommendations for improving the resume>",
+  "adaptedSections": [
+    {
+      "section_type": "<section type>",
+      "title": "<optional custom title>",
+      "sort_order": <number>,
+      "content": {<adapted section content with job-specific keywords and improvements>}
+    }
+  ]
+}
+
+IMPORTANT INSTRUCTIONS:
+1. For each section, rewrite bullets/descriptions to emphasize relevant experience
+2. Incorporate keywords from the job description naturally
+3. Quantify achievements where possible
+4. Reorder sections to highlight most relevant experience first
+5. In the summary section, tailor it directly to this job posting
+6. **CRITICAL**: Include relevant award(s) in summary if they align with job:
+   - Agility Award for startup/scrappy/execution-focused roles
+   - Curiosity Award for AI/innovation roles
+   - Use phrases like "Recognized for," "Award-winning," "Cited for"
+7. Emphasize PM archetype if relevant to job: "scrappy," "0-to-1," "ships fast," "thrives in ambiguity"
+8. Ensure all adapted_sections maintain the same structure as the original but with optimized content
+9. Return ONLY valid JSON, no additional text`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4096,
+        messages: [
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      console.error('Claude API Error:', data.error);
+      throw new Error(data.error.message || 'AI API request failed');
+    }
+
+    if (!data.content || !data.content[0]) {
+      throw new Error('Unexpected response from AI API');
+    }
+
+    const resultText = data.content[0].text;
+    
+    // Parse JSON from the response (handle markdown code blocks if present)
+    let jsonText = resultText.trim();
+    if (jsonText.startsWith('```json')) {
+      jsonText = jsonText.replace(/^```json\n?/, '').replace(/\n?```$/, '');
+    } else if (jsonText.startsWith('```')) {
+      jsonText = jsonText.replace(/^```\n?/, '').replace(/\n?```$/, '');
+    }
+    
+    const result = JSON.parse(jsonText);
+
+    return {
+      adaptedSections: result.adaptedSections || [],
+      matchScore: result.matchScore || 0,
+      suggestedKeywords: result.suggestedKeywords || [],
+      gaps: result.gaps || [],
+      strengths: result.strengths || [],
+      recommendations: result.recommendations || 'No specific recommendations provided.',
+    };
+  } catch (error) {
+    console.error('Error calling AI API:', error);
+    
+    // Fallback: return original sections with basic analysis
+    return {
+      adaptedSections: sections.map(s => ({
+        section_type: s.section_type,
+        title: s.title,
+        sort_order: s.sort_order,
+        content: s.content,
+      })),
+      matchScore: 50,
+      suggestedKeywords: [],
+      gaps: ['Unable to analyze - AI API error'],
+      strengths: [],
+      recommendations: 'Could not generate recommendations due to AI API error. Please try again.',
+    };
+  }
+}

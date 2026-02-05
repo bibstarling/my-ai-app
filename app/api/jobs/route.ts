@@ -198,7 +198,7 @@ export async function POST(req: Request) {
       const url = new URL('https://jsearch.p.rapidapi.com/search');
       url.searchParams.set('query', query);
       url.searchParams.set('num_pages', '2');
-      if (remoteOnly) url.searchParams.set('remote_jobs_only', 'true');
+      if (remoteOnly) url.searchParams.set('work_from_home', 'true');
       const countryCode = toCountryCode(country);
       if (countryCode) url.searchParams.set('country', countryCode);
       if (language) url.searchParams.set('language', language);

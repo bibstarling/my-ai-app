@@ -26,7 +26,7 @@ export function ClientAuthWrapper({
   publishableKey: string;
 }) {
   const [mounted, setMounted] = useState(false);
-  const [embed, setEmbed] = useState(true);
+  const [embed, setEmbed] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -37,21 +37,28 @@ export function ClientAuthWrapper({
   if (typeof window === 'undefined') {
     return (
       <ClerkProvider publishableKey={publishableKey}>
-        {children}
+        <EmbedModeContext.Provider value={false}>
+          {children}
+        </EmbedModeContext.Provider>
       </ClerkProvider>
     );
   }
+
   // Client + embed (e.g. v0 preview): never load Clerk; mark embed so auth pages can show fallback
-  if (!mounted || embed) {
+  if (mounted && embed) {
     return (
       <EmbedModeContext.Provider value={true}>
         {children}
       </EmbedModeContext.Provider>
     );
   }
+
+  // Client + not embedded OR not yet mounted: always wrap with ClerkProvider
   return (
     <ClerkProvider publishableKey={publishableKey}>
-      {children}
+      <EmbedModeContext.Provider value={embed}>
+        {children}
+      </EmbedModeContext.Provider>
     </ClerkProvider>
   );
 }
