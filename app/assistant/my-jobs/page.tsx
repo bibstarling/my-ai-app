@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo, useRef } from 'react';
 import Link from 'next/link';
 import {
   SignInButton,
@@ -16,7 +16,22 @@ import {
   Sparkles,
   Kanban,
   Download,
+  GripVertical,
 } from 'lucide-react';
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+} from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
+import { useDroppable, useDraggable } from '@dnd-kit/core';
 
 type TrackedJob = {
   id: string;
@@ -53,15 +68,36 @@ export default function MyJobsPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<TrackedJob | null>(null);
   const [previewModal, setPreviewModal] = useState<PreviewModal>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const autoScrollInterval = useRef<NodeJS.Timeout | null>(null);
 
-  const statuses: Array<{ id: TrackedJob['status']; label: string; color: string }> = [
-    { id: 'saved', label: 'Saved', color: 'bg-blue-500/10 text-blue-600 border-blue-200' },
-    { id: 'applied', label: 'Applied', color: 'bg-purple-500/10 text-purple-600 border-purple-200' },
-    { id: 'interview', label: 'Interview', color: 'bg-yellow-500/10 text-yellow-600 border-yellow-200' },
-    { id: 'offer', label: 'Offer', color: 'bg-green-500/10 text-green-600 border-green-200' },
-    { id: 'rejected', label: 'Rejected', color: 'bg-red-500/10 text-red-600 border-red-200' },
-    { id: 'archived', label: 'Archived', color: 'bg-gray-500/10 text-gray-600 border-gray-200' },
-  ];
+  const statuses = useMemo<Array<{ id: TrackedJob['status']; label: string; color: string }>>(
+    () => [
+      { id: 'saved', label: 'Saved', color: 'bg-blue-500/10 text-blue-600 border-blue-200' },
+      { id: 'applied', label: 'Applied', color: 'bg-purple-500/10 text-purple-600 border-purple-200' },
+      { id: 'interview', label: 'Interview', color: 'bg-yellow-500/10 text-yellow-600 border-yellow-200' },
+      { id: 'offer', label: 'Offer', color: 'bg-green-500/10 text-green-600 border-green-200' },
+      { id: 'rejected', label: 'Rejected', color: 'bg-red-500/10 text-red-600 border-red-200' },
+      { id: 'archived', label: 'Archived', color: 'bg-gray-500/10 text-gray-600 border-gray-200' },
+    ],
+    []
+  );
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 10,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 100,
+        tolerance: 5,
+      },
+    })
+  );
 
   useEffect(() => {
     if (isLoaded && user) {
@@ -95,33 +131,121 @@ export default function MyJobsPage() {
     }
   };
 
-  const updateJobStatus = async (jobId: string, newStatus: TrackedJob['status']) => {
+  const updateJobStatus = useCallback(async (jobId: string, newStatus: TrackedJob['status']) => {
     try {
       const updateData: any = { 
         status: newStatus,
         updated_at: new Date().toISOString(),
       };
       
-      if (newStatus === 'applied' && !jobs.find(j => j.id === jobId)?.applied_date) {
+      const job = jobs.find(j => j.id === jobId);
+      if (newStatus === 'applied' && job && !job.applied_date) {
         updateData.applied_date = new Date().toISOString();
       }
 
+      // Optimistic update
+      setJobs(prevJobs => prevJobs.map(j => j.id === jobId ? { ...j, status: newStatus, ...updateData } : j));
+      if (selectedJob?.id === jobId) {
+        setSelectedJob(prev => prev ? { ...prev, status: newStatus, ...updateData } : null);
+      }
+
+      // Database update
       const { error: updateError } = await supabase
         .from('tracked_jobs')
         .update(updateData)
         .eq('id', jobId);
 
-      if (updateError) throw updateError;
-
-      setJobs(jobs.map(j => j.id === jobId ? { ...j, status: newStatus, ...updateData } : j));
-      if (selectedJob && selectedJob.id === jobId) {
-        setSelectedJob({ ...selectedJob, status: newStatus, ...updateData });
+      if (updateError) {
+        // Revert on error
+        console.error('Error updating job status:', updateError);
+        loadJobs();
+        alert('Failed to update job status');
       }
     } catch (err) {
       console.error('Error updating job status:', err);
+      loadJobs();
       alert('Failed to update job status');
     }
-  };
+  }, [jobs, selectedJob]);
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+    setIsDragging(true);
+  }, []);
+
+  const handleDragMove = useCallback((event: { delta: { x: number; y: number } }) => {
+    if (!scrollContainerRef.current) return;
+
+    const container = scrollContainerRef.current;
+    const scrollSpeed = 15;
+    const edgeSize = 100;
+
+    // Get mouse position relative to viewport
+    const rect = container.getBoundingClientRect();
+    const mouseX = event.delta.x;
+
+    // Auto-scroll when near edges
+    if (autoScrollInterval.current) {
+      clearInterval(autoScrollInterval.current);
+      autoScrollInterval.current = null;
+    }
+
+    // Check if near left edge
+    if (mouseX < edgeSize) {
+      autoScrollInterval.current = setInterval(() => {
+        if (container.scrollLeft > 0) {
+          container.scrollLeft -= scrollSpeed;
+        }
+      }, 16);
+    }
+    // Check if near right edge
+    else if (mouseX > rect.width - edgeSize) {
+      autoScrollInterval.current = setInterval(() => {
+        if (container.scrollLeft < container.scrollWidth - container.clientWidth) {
+          container.scrollLeft += scrollSpeed;
+        }
+      }, 16);
+    }
+  }, []);
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+    setIsDragging(false);
+
+    if (autoScrollInterval.current) {
+      clearInterval(autoScrollInterval.current);
+      autoScrollInterval.current = null;
+    }
+
+    if (!over) return;
+
+    const jobId = active.id as string;
+    const newStatus = over.id as TrackedJob['status'];
+
+    // Check if dropped on a status column
+    if (statuses.some(s => s.id === newStatus)) {
+      const job = jobs.find(j => j.id === jobId);
+      if (job && job.status !== newStatus) {
+        updateJobStatus(jobId, newStatus);
+      }
+    }
+  }, [jobs, statuses, updateJobStatus]);
+
+  const handleDragCancel = useCallback(() => {
+    setActiveId(null);
+    setIsDragging(false);
+    
+    if (autoScrollInterval.current) {
+      clearInterval(autoScrollInterval.current);
+      autoScrollInterval.current = null;
+    }
+  }, []);
+
+  const activeJob = useMemo(() => 
+    activeId ? jobs.find(j => j.id === activeId) : null,
+    [activeId, jobs]
+  );
 
   if (!isLoaded || loading) {
     return (
@@ -194,68 +318,46 @@ export default function MyJobsPage() {
               </Link>
             </div>
           ) : (
-            <div className="flex gap-4 overflow-x-auto pb-4">
-              {statuses.map((status) => {
-                const statusJobs = jobs.filter(j => j.status === status.id);
-                return (
-                  <div key={status.id} className="flex min-w-[300px] flex-1 flex-col max-w-sm">
-                    <div className={`mb-3 flex items-center justify-between rounded-lg border px-4 py-3 ${status.color}`}>
-                      <span className="font-medium">{status.label}</span>
-                      <span className="text-sm font-bold">
-                        {statusJobs.length}
-                      </span>
-                    </div>
-
-                    <div className="flex flex-1 flex-col gap-3 rounded-lg bg-muted/30 p-3 min-h-[200px]">
-                      {statusJobs.map((job) => (
-                        <div
-                          key={job.id}
-                          className="flex cursor-pointer flex-col rounded-lg border border-border bg-card p-4 shadow-sm transition-all hover:border-accent/50 hover:shadow-md"
-                          onClick={() => setSelectedJob(job)}
-                        >
-                          <h3 className="font-semibold text-foreground line-clamp-1">{job.title}</h3>
-                          <p className="text-sm text-muted-foreground line-clamp-1">{job.company}</p>
-                          
-                          {(job.tailored_resume_id || job.tailored_cover_letter_id) && (
-                            <div className="mt-3 flex gap-1.5 flex-wrap">
-                              {job.tailored_resume_id && (
-                                <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
-                                  Resume
-                                </span>
-                              )}
-                              {job.tailored_cover_letter_id && (
-                                <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
-                                  Cover Letter
-                                </span>
-                              )}
-                            </div>
-                          )}
-
-                          <div className="mt-3 flex items-center gap-1 text-xs text-muted-foreground">
-                            <Clock className="h-3 w-3" />
-                            {new Date(job.created_at).toLocaleDateString()}
-                          </div>
-
-                          <select
-                            value={job.status}
-                            onChange={(e) => {
-                              e.stopPropagation();
-                              updateJobStatus(job.id, e.target.value as TrackedJob['status']);
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="mt-3 rounded border border-border bg-background px-2 py-1.5 text-xs text-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-                          >
-                            {statuses.map(s => (
-                              <option key={s.id} value={s.id}>{s.label}</option>
-                            ))}
-                          </select>
-                        </div>
-                      ))}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+              onDragCancel={handleDragCancel}
+            >
+              <div 
+                ref={scrollContainerRef}
+                className={`flex gap-4 pb-4 kanban-scroll ${isDragging ? 'dragging overflow-x-hidden cursor-grabbing' : 'overflow-x-auto'}`}
+              >
+                {statuses.map((status) => {
+                  const statusJobs = jobs.filter(j => j.status === status.id);
+                  return (
+                    <DroppableColumn
+                      key={status.id}
+                      id={status.id}
+                      status={status}
+                      jobs={statusJobs}
+                      onJobClick={setSelectedJob}
+                      onStatusChange={updateJobStatus}
+                      statuses={statuses}
+                    />
+                  );
+                })}
+              </div>
+              <DragOverlay dropAnimation={null}>
+                {activeJob ? (
+                  <div className="flex flex-col rounded-lg border-2 border-accent bg-card p-4 shadow-2xl w-[268px]">
+                    <div className="flex items-start gap-2">
+                      <GripVertical className="h-4 w-4 text-muted-foreground mt-0.5" />
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-foreground line-clamp-1">{activeJob.title}</h3>
+                        <p className="text-sm text-muted-foreground line-clamp-1">{activeJob.company}</p>
+                      </div>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                ) : null}
+              </DragOverlay>
+            </DndContext>
           )}
         </div>
       </main>
@@ -279,6 +381,21 @@ export default function MyJobsPage() {
             </div>
 
             <div className="space-y-6">
+              {/* Status Dropdown */}
+              <div>
+                <h3 className="mb-2 text-sm font-semibold text-foreground">Status</h3>
+                <select
+                  value={selectedJob.status}
+                  onChange={(e) => {
+                    updateJobStatus(selectedJob.id, e.target.value as TrackedJob['status']);
+                  }}
+                  className="w-full rounded border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+                >
+                  {statuses.map(s => (
+                    <option key={s.id} value={s.id}>{s.label}</option>
+                  ))}
+                </select>
+              </div>
               {selectedJob.salary && (
                 <div>
                   <h3 className="mb-2 text-sm font-semibold text-foreground">Salary</h3>
@@ -366,6 +483,129 @@ export default function MyJobsPage() {
     </div>
   );
 }
+
+// Droppable Column Component
+const DroppableColumn = memo(function DroppableColumn({
+  id,
+  status,
+  jobs,
+  onJobClick,
+  onStatusChange,
+  statuses,
+}: {
+  id: string;
+  status: { id: TrackedJob['status']; label: string; color: string };
+  jobs: TrackedJob[];
+  onJobClick: (job: TrackedJob) => void;
+  onStatusChange: (jobId: string, status: TrackedJob['status']) => void;
+  statuses: Array<{ id: TrackedJob['status']; label: string; color: string }>;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id });
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      className={`flex min-w-[300px] flex-1 flex-col max-w-sm transition-colors ${isOver ? 'ring-2 ring-accent ring-offset-2' : ''}`}
+    >
+      <div className={`mb-3 flex items-center justify-between rounded-lg border px-4 py-3 ${status.color}`}>
+        <span className="font-medium">{status.label}</span>
+        <span className="text-sm font-bold">{jobs.length}</span>
+      </div>
+
+      <div className="flex flex-1 flex-col gap-3 rounded-lg bg-muted/30 p-3 min-h-[200px]">
+        {jobs.map((job) => (
+          <DraggableJobCard
+            key={job.id}
+            job={job}
+            onClick={onJobClick}
+            onStatusChange={onStatusChange}
+            statuses={statuses}
+          />
+        ))}
+      </div>
+    </div>
+  );
+});
+
+// Draggable Job Card Component
+const DraggableJobCard = memo(function DraggableJobCard({
+  job,
+  onClick,
+  onStatusChange,
+  statuses,
+}: {
+  job: TrackedJob;
+  onClick: (job: TrackedJob) => void;
+  onStatusChange: (jobId: string, status: TrackedJob['status']) => void;
+  statuses: Array<{ id: TrackedJob['status']; label: string; color: string }>;
+}) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: job.id,
+  });
+
+  const style = transform ? {
+    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    opacity: isDragging ? 0 : 1,
+  } : undefined;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="dnd-item flex cursor-pointer flex-col rounded-lg border border-border bg-card p-4 shadow-sm hover:border-accent/50 hover:shadow-md"
+      onClick={() => onClick(job)}
+    >
+      <div className="flex items-start gap-2">
+        <button
+          {...listeners}
+          {...attributes}
+          onClick={(e) => e.stopPropagation()}
+          className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground mt-0.5 touch-none"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-foreground line-clamp-1">{job.title}</h3>
+          <p className="text-sm text-muted-foreground line-clamp-1">{job.company}</p>
+        </div>
+      </div>
+
+      {(job.tailored_resume_id || job.tailored_cover_letter_id) && (
+        <div className="mt-3 flex gap-1.5 flex-wrap ml-6">
+          {job.tailored_resume_id && (
+            <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
+              Resume
+            </span>
+          )}
+          {job.tailored_cover_letter_id && (
+            <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
+              Cover Letter
+            </span>
+          )}
+        </div>
+      )}
+
+      <div className="mt-3 flex items-center gap-1 text-xs text-muted-foreground ml-6">
+        <Clock className="h-3 w-3" />
+        {new Date(job.created_at).toLocaleDateString()}
+      </div>
+
+      <select
+        value={job.status}
+        onChange={(e) => {
+          e.stopPropagation();
+          onStatusChange(job.id, e.target.value as TrackedJob['status']);
+        }}
+        onClick={(e) => e.stopPropagation()}
+        className="mt-3 ml-6 rounded border border-border bg-background px-2 py-1.5 text-xs text-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+      >
+        {statuses.map(s => (
+          <option key={s.id} value={s.id}>{s.label}</option>
+        ))}
+      </select>
+    </div>
+  );
+});
 
 function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; id: string; onClose: () => void }) {
   const [content, setContent] = useState<any>(null);

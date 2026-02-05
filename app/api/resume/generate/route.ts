@@ -66,6 +66,7 @@ export async function POST(req: Request) {
         email: portfolioData.email,
         location: portfolioData.location,
         linkedin_url: portfolioData.linkedinUrl,
+        portfolio_url: portfolioData.websiteUrl,
       })
       .select()
       .single();

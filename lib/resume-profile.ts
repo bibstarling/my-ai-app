@@ -7,6 +7,7 @@ export const resumeProfile = {
   name: 'Bianca Starling',
   title: 'Lead Product Manager',
   location: 'Brasília, Brazil (Remote)',
+  website: 'www.biancastarling.com',
   summary:
     'Building community-driven EdTech products and AI-powered experiences. Lead Product Manager with experience in AI strategy, multi-agent MCP, marketplace growth, continuous discovery, and product leadership.',
   jobTitles: [

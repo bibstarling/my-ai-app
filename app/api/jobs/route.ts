@@ -15,6 +15,7 @@ export type JobListing = {
 };
 
 export type JobsParams = {
+  query?: string;
   remoteOnly?: boolean;
   country?: string;
   resumeText?: string;
@@ -146,12 +147,13 @@ export async function GET() {
 }
 
 /**
- * Returns job listings. Uses resumeText if provided, else main-page profile.
- * Params: remoteOnly, country, resumeText, language, datePosted, employmentTypes, jobRequirements, radius, excludeJobPublishers.
+ * Returns job listings. Uses query for keyword search, resumeText if provided, else main-page profile.
+ * Params: query, remoteOnly, country, resumeText, language, datePosted, employmentTypes, jobRequirements, radius, excludeJobPublishers.
  * Set JSEARCH_API_KEY (RapidAPI) to use real JSearch API.
  */
 export async function POST(req: Request) {
   try {
+    let query = '';
     let remoteOnly = false;
     let country = '';
     let resumeText = '';
@@ -166,6 +168,7 @@ export async function POST(req: Request) {
     if (contentType.includes('application/json')) {
       try {
         const body = await req.json();
+        query = (body.query || '').trim();
         remoteOnly = !!body.remoteOnly;
         country = (body.country || '').trim();
         resumeText = (body.resumeText || '').trim().slice(0, 50000);
@@ -186,17 +189,20 @@ export async function POST(req: Request) {
 
     const searchText = resumeText || getResumeSearchText();
     const apiKey = process.env.JSEARCH_API_KEY;
-    const opts = { remoteOnly, country, datePosted, employmentTypes, jobRequirements, radius, excludeJobPublishers };
+    const opts = { query, remoteOnly, country, datePosted, employmentTypes, jobRequirements, radius, excludeJobPublishers };
 
     if (apiKey) {
-      const queryParts = resumeText
+      // Build query: prioritize explicit query, then resume text, then default profile
+      const queryParts = query
+        ? [query]
+        : resumeText
         ? [resumeText.slice(0, 300).replace(/\s+/g, ' ')]
         : [resumeProfile.title, ...resumeProfile.jobTitles.slice(0, 2)];
       const queryText = queryParts.join(' ');
       const locationHint = country ? ` in ${country}` : '';
-      const query = `${queryText} jobs${locationHint}`.trim();
+      const searchQuery = `${queryText} jobs${locationHint}`.trim();
       const url = new URL('https://jsearch.p.rapidapi.com/search');
-      url.searchParams.set('query', query);
+      url.searchParams.set('query', searchQuery);
       url.searchParams.set('num_pages', '2');
       if (remoteOnly) url.searchParams.set('work_from_home', 'true');
       const countryCode = toCountryCode(country);
@@ -299,6 +305,7 @@ export async function POST(req: Request) {
 function getMockJobs(
   _searchText: string,
   opts: {
+    query?: string;
     remoteOnly?: boolean;
     country?: string;
     datePosted?: string;
@@ -309,6 +316,19 @@ function getMockJobs(
   }
 ): JobListing[] {
   let list = [...MOCK_JOBS_LIST];
+  
+  // Filter by keyword query
+  if (opts.query) {
+    const queryRe = new RegExp(opts.query, 'i');
+    list = list.filter(
+      (j) =>
+        queryRe.test(j.title) ||
+        queryRe.test(j.company) ||
+        queryRe.test(j.description) ||
+        j.skills.some((s) => queryRe.test(s))
+    );
+  }
+  
   if (opts.remoteOnly) {
     list = list.filter(
       (j) =>

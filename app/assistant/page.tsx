@@ -22,7 +22,7 @@ import {
 
 type TrackedJob = {
   id: string;
-  user_id: string;
+  clerk_id: string;
   title: string;
   company: string;
   location: string;
@@ -100,13 +100,7 @@ function DashboardContent() {
 
   const loadJobs = async () => {
     try {
-      const { data: userData } = await supabase
-        .from('users')
-        .select('id')
-        .limit(1)
-        .maybeSingle();
-
-      if (!userData) {
+      if (!user) {
         setLoading(false);
         return;
       }
@@ -114,7 +108,7 @@ function DashboardContent() {
       const { data, error: fetchError } = await supabase
         .from('tracked_jobs')
         .select('*')
-        .eq('user_id', userData.id)
+        .eq('clerk_id', user.id)
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;

@@ -12,7 +12,9 @@ import {
   LayoutDashboard,
   Search,
   Kanban,
+  Mail,
 } from 'lucide-react';
+import { useState } from 'react';
 
 type MenuItem = {
   id: string;
@@ -21,13 +23,45 @@ type MenuItem = {
   href: string;
 };
 
+type TooltipProps = {
+  content: string;
+  children: React.ReactNode;
+  show: boolean;
+};
+
+function Tooltip({ content, children, show }: TooltipProps) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  if (!show) {
+    return <>{children}</>;
+  }
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => setIsVisible(true)}
+      onMouseLeave={() => setIsVisible(false)}
+    >
+      {children}
+      {isVisible && (
+        <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 pointer-events-none">
+          <div className="bg-gray-900 text-white text-sm px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
+            {content}
+            <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const getMenuItems = (): MenuItem[] => [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, href: '/assistant' },
   { id: 'job-search', label: 'Job Search', icon: <Search className="w-5 h-5" />, href: '/assistant/job-search' },
   { id: 'my-jobs', label: 'My Jobs', icon: <Kanban className="w-5 h-5" />, href: '/assistant/my-jobs' },
   { id: 'chat', label: 'AI Assistant', icon: <MessageSquare className="w-5 h-5" />, href: '/assistant/chat' },
   { id: 'resume', label: 'Resume Builder', icon: <FileText className="w-5 h-5" />, href: '/resume-builder' },
-  { id: 'cover-letter', label: 'Cover Letters', icon: <FileText className="w-5 h-5" />, href: '/cover-letters' },
+  { id: 'cover-letter', label: 'Cover Letters', icon: <Mail className="w-5 h-5" />, href: '/cover-letters' },
 ];
 
 type AppMenuProps = {
@@ -67,11 +101,13 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
               </div>
             </Link>
           ) : (
-            <Link href="/assistant" className="flex items-center justify-center">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
-                B
-              </div>
-            </Link>
+            <Tooltip content="Control Room" show={isCollapsed}>
+              <Link href="/assistant" className="flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                  B
+                </div>
+              </Link>
+            </Tooltip>
           )}
         </div>
 
@@ -80,21 +116,21 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
           {menuItems.map((item) => {
             const active = isActive(item.href);
             return (
-              <Link
-                key={item.id}
-                href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-                  active
-                    ? 'bg-blue-50 text-blue-600'
-                    : 'text-gray-700 hover:bg-gray-100'
-                } ${isCollapsed ? 'justify-center' : ''}`}
-                title={isCollapsed ? item.label : undefined}
-              >
-                {item.icon}
-                {!isCollapsed && (
-                  <span className="text-sm font-medium">{item.label}</span>
-                )}
-              </Link>
+              <Tooltip key={item.id} content={item.label} show={isCollapsed}>
+                <Link
+                  href={item.href}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                    active
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  } ${isCollapsed ? 'justify-center' : ''}`}
+                >
+                  {item.icon}
+                  {!isCollapsed && (
+                    <span className="text-sm font-medium">{item.label}</span>
+                  )}
+                </Link>
+              </Tooltip>
             );
           })}
         </nav>
@@ -103,60 +139,67 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
         <div className="p-3 border-t border-gray-200 space-y-1">
           {/* User Profile */}
           {user && (
-            <div className={`flex items-center gap-3 px-3 py-2.5 ${
-              isCollapsed ? 'justify-center' : ''
-            }`}>
-              <UserButton
-                afterSignOutUrl="/assistant"
-                appearance={{
-                  elements: {
-                    avatarBox: 'h-8 w-8',
-                    userButtonPopoverCard: 'shadow-xl',
-                  },
-                }}
-              />
-              {!isCollapsed && (
-                <div className="flex flex-col min-w-0 flex-1">
-                  <span className="text-sm font-medium text-gray-900 truncate">
-                    {user.firstName || user.emailAddresses[0]?.emailAddress}
-                  </span>
-                  <span className="text-xs text-gray-500 truncate">
-                    {user.emailAddresses[0]?.emailAddress}
-                  </span>
-                </div>
-              )}
-            </div>
+            <Tooltip 
+              content={user.firstName || user.emailAddresses[0]?.emailAddress || 'Profile'} 
+              show={isCollapsed}
+            >
+              <div className={`flex items-center gap-3 px-3 py-2.5 ${
+                isCollapsed ? 'justify-center' : ''
+              }`}>
+                <UserButton
+                  afterSignOutUrl="/assistant"
+                  appearance={{
+                    elements: {
+                      avatarBox: 'h-8 w-8',
+                      userButtonPopoverCard: 'shadow-xl',
+                    },
+                  }}
+                />
+                {!isCollapsed && (
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span className="text-sm font-medium text-gray-900 truncate">
+                      {user.firstName || user.emailAddresses[0]?.emailAddress}
+                    </span>
+                    <span className="text-xs text-gray-500 truncate">
+                      {user.emailAddresses[0]?.emailAddress}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </Tooltip>
           )}
           
           {/* Back to Portfolio Link */}
-          <Link
-            href="/"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-gray-700 hover:bg-gray-100 w-full ${
-              isCollapsed ? 'justify-center' : ''
-            }`}
-            title={isCollapsed ? 'Portfolio' : undefined}
-          >
-            <Home className="w-5 h-5" />
-            {!isCollapsed && <span className="text-sm font-medium">Portfolio</span>}
-          </Link>
+          <Tooltip content="Portfolio" show={isCollapsed}>
+            <Link
+              href="/"
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-gray-700 hover:bg-gray-100 w-full ${
+                isCollapsed ? 'justify-center' : ''
+              }`}
+            >
+              <Home className="w-5 h-5" />
+              {!isCollapsed && <span className="text-sm font-medium">Portfolio</span>}
+            </Link>
+          </Tooltip>
           
           {/* Collapse Toggle */}
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-gray-700 hover:bg-gray-100 w-full ${
-              isCollapsed ? 'justify-center' : ''
-            }`}
-            title={isCollapsed ? 'Expand menu' : 'Collapse menu'}
-          >
-            {isCollapsed ? (
-              <ChevronRight className="w-5 h-5" />
-            ) : (
-              <>
-                <ChevronLeft className="w-5 h-5" />
-                <span className="text-sm font-medium">Collapse</span>
-              </>
-            )}
-          </button>
+          <Tooltip content={isCollapsed ? 'Expand menu' : 'Collapse menu'} show={isCollapsed}>
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-gray-700 hover:bg-gray-100 w-full ${
+                isCollapsed ? 'justify-center' : ''
+              }`}
+            >
+              {isCollapsed ? (
+                <ChevronRight className="w-5 h-5" />
+              ) : (
+                <>
+                  <ChevronLeft className="w-5 h-5" />
+                  <span className="text-sm font-medium">Collapse</span>
+                </>
+              )}
+            </button>
+          </Tooltip>
         </div>
       </div>
     </aside>

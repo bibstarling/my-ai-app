@@ -77,3 +77,41 @@ body {
 .animate-slide-in-right {
   animation: slide-in-right 0.3s ease-out;
 }
+
+/* Kanban scrollbar */
+.kanban-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted-foreground) transparent;
+}
+
+.kanban-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.kanban-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.kanban-scroll::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 4px;
+}
+
+.kanban-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* Hide scrollbar during drag */
+.kanban-scroll.dragging {
+  scrollbar-width: none;
+}
+
+.kanban-scroll.dragging::-webkit-scrollbar {
+  display: none;
+}
+
+/* Smooth GPU-accelerated transforms */
+.dnd-item {
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+}
