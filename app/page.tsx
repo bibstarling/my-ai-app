@@ -250,7 +250,7 @@ export default function HomePage() {
       )}
       
       {/* Left Sidebar - Sticky on Desktop */}
-      <header className="lg:fixed lg:top-0 lg:left-0 lg:flex lg:h-screen lg:w-1/2 lg:flex-col lg:justify-between lg:py-24 lg:px-24 px-6 py-16">
+      <header className="lg:fixed lg:top-0 lg:left-0 lg:flex lg:h-screen lg:w-2/5 lg:flex-col lg:justify-between lg:py-24 lg:px-16 px-6 py-16">
         <div>
           <h1 className="text-4xl font-bold text-foreground lg:text-5xl tracking-tight">
             {portfolioData.fullName}
@@ -318,7 +318,7 @@ export default function HomePage() {
       </header>
 
       {/* Right Column - Scrollable Content */}
-      <main className="lg:ml-[50%] lg:w-1/2 px-6 py-16 lg:py-24 lg:px-24">
+      <main className="lg:ml-[40%] lg:w-3/5 px-6 py-16 lg:py-24 lg:pr-24 lg:pl-16">
         {/* About Section */}
         <section id="about" className="mb-24 scroll-mt-24 lg:mb-36">
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
