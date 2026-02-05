@@ -22,6 +22,10 @@ import {
   ChevronUp,
   CheckCircle,
   AlertCircle,
+  MessageSquare,
+  Trash2,
+  Save,
+  Wand2,
 } from 'lucide-react';
 import { pdf } from '@react-pdf/renderer';
 import { ResumePDF } from './ResumePDF';
@@ -69,6 +73,18 @@ type PreviewModal = {
   id: string;
 } | null;
 
+type ApplicationQuestion = {
+  id: string;
+  tracked_job_id: string;
+  clerk_id: string;
+  question_text: string;
+  answer_text: string | null;
+  is_ai_generated: boolean;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export default function MyJobsPage() {
   const { user, isLoaded } = useUser();
 
@@ -99,6 +115,11 @@ export default function MyJobsPage() {
     ats_keywords_missing: string[];
   } | null>(null);
   const [showMatchDetails, setShowMatchDetails] = useState(false);
+  const [questions, setQuestions] = useState<ApplicationQuestion[]>([]);
+  const [loadingQuestions, setLoadingQuestions] = useState(false);
+  const [generatingAnswer, setGeneratingAnswer] = useState<string | null>(null);
+  const [showAddQuestion, setShowAddQuestion] = useState(false);
+  const [newQuestionText, setNewQuestionText] = useState('');
 
   const statuses = useMemo<Array<{ id: TrackedJob['status']; label: string; color: string }>>(
     () => [
@@ -131,6 +152,14 @@ export default function MyJobsPage() {
       loadJobs();
     }
   }, [isLoaded, user]);
+
+  useEffect(() => {
+    if (selectedJob) {
+      loadQuestions(selectedJob.id);
+    } else {
+      setQuestions([]);
+    }
+  }, [selectedJob?.id]);
 
   const loadJobs = async () => {
     try {
@@ -356,6 +385,149 @@ export default function MyJobsPage() {
       alert(`Failed to calculate match: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setCalculatingMatch(null);
+    }
+  };
+
+  const loadQuestions = async (jobId: string) => {
+    try {
+      setLoadingQuestions(true);
+      const response = await fetch(`/api/jobs/${jobId}/questions`);
+      if (response.ok) {
+        const data = await response.json();
+        setQuestions(data.questions || []);
+      }
+    } catch (error) {
+      console.error('Error loading questions:', error);
+    } finally {
+      setLoadingQuestions(false);
+    }
+  };
+
+  const handleAutoDetectQuestions = async () => {
+    if (!selectedJob) return;
+    
+    try {
+      setLoadingQuestions(true);
+      const response = await fetch(`/api/jobs/${selectedJob.id}/questions/extract`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: selectedJob.apply_url }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setQuestions(data.questions || []);
+        if (data.questions && data.questions.length > 0) {
+          alert(`Found ${data.questions.length} application question(s)`);
+        } else {
+          alert('No application questions found in the job posting');
+        }
+      } else {
+        const error = await response.json();
+        alert(`Failed to detect questions: ${error.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error auto-detecting questions:', error);
+      alert('Failed to detect questions');
+    } finally {
+      setLoadingQuestions(false);
+    }
+  };
+
+  const handleAddQuestion = async () => {
+    if (!selectedJob || !newQuestionText.trim()) return;
+    
+    try {
+      const response = await fetch(`/api/jobs/${selectedJob.id}/questions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question_text: newQuestionText.trim() }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setQuestions([...questions, data.question]);
+        setNewQuestionText('');
+        setShowAddQuestion(false);
+      } else {
+        const error = await response.json();
+        alert(`Failed to add question: ${error.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error adding question:', error);
+      alert('Failed to add question');
+    }
+  };
+
+  const handleGenerateAnswer = async (questionId: string) => {
+    if (!selectedJob) return;
+    
+    try {
+      setGeneratingAnswer(questionId);
+      const response = await fetch(`/api/jobs/${selectedJob.id}/questions/${questionId}/generate-answer`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setQuestions(questions.map(q => 
+          q.id === questionId ? data.question : q
+        ));
+      } else {
+        const error = await response.json();
+        alert(`Failed to generate answer: ${error.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error generating answer:', error);
+      alert('Failed to generate answer');
+    } finally {
+      setGeneratingAnswer(null);
+    }
+  };
+
+  const handleSaveAnswer = async (questionId: string, answerText: string) => {
+    if (!selectedJob) return;
+    
+    try {
+      const response = await fetch(`/api/jobs/${selectedJob.id}/questions/${questionId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answer_text: answerText }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setQuestions(questions.map(q => 
+          q.id === questionId ? data.question : q
+        ));
+      } else {
+        const error = await response.json();
+        alert(`Failed to save answer: ${error.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error saving answer:', error);
+      alert('Failed to save answer');
+    }
+  };
+
+  const handleDeleteQuestion = async (questionId: string) => {
+    if (!selectedJob) return;
+    if (!confirm('Are you sure you want to delete this question?')) return;
+    
+    try {
+      const response = await fetch(`/api/jobs/${selectedJob.id}/questions/${questionId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setQuestions(questions.filter(q => q.id !== questionId));
+      } else {
+        const error = await response.json();
+        alert(`Failed to delete question: ${error.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error deleting question:', error);
+      alert('Failed to delete question');
     }
   };
 
@@ -1004,6 +1176,145 @@ export default function MyJobsPage() {
               <div>
                 <h3 className="mb-2 text-sm font-semibold text-foreground">Description</h3>
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{selectedJob.description}</p>
+              </div>
+
+              {/* Application Questions */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-foreground">Application Questions</h3>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleAutoDetectQuestions}
+                      disabled={loadingQuestions}
+                      className="flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:border-accent hover:bg-accent/5 transition-colors disabled:opacity-50"
+                    >
+                      {loadingQuestions ? (
+                        <>
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Detecting...
+                        </>
+                      ) : (
+                        <>
+                          <Wand2 className="h-3 w-3" />
+                          Auto-Detect
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setShowAddQuestion(true)}
+                      className="flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:border-accent hover:bg-accent/5 transition-colors"
+                    >
+                      <Plus className="h-3 w-3" />
+                      Add Question
+                    </button>
+                  </div>
+                </div>
+
+                {/* Add Question Form */}
+                {showAddQuestion && (
+                  <div className="mb-3 rounded-lg border border-border bg-muted/30 p-3">
+                    <textarea
+                      value={newQuestionText}
+                      onChange={(e) => setNewQuestionText(e.target.value)}
+                      placeholder="Enter the application question..."
+                      className="w-full rounded border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent resize-none"
+                      rows={2}
+                    />
+                    <div className="mt-2 flex gap-2">
+                      <button
+                        onClick={handleAddQuestion}
+                        disabled={!newQuestionText.trim()}
+                        className="flex items-center gap-1 rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
+                      >
+                        <Save className="h-3 w-3" />
+                        Add
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowAddQuestion(false);
+                          setNewQuestionText('');
+                        }}
+                        className="flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Questions List */}
+                {questions.length === 0 && !loadingQuestions ? (
+                  <p className="text-xs text-muted-foreground italic">No questions yet. Use auto-detect or add manually.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {questions.map((question) => (
+                      <div key={question.id} className="rounded-lg border border-border bg-background p-3">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <MessageSquare className="h-3 w-3 text-muted-foreground" />
+                              <p className="text-xs font-medium text-foreground">{question.question_text}</p>
+                            </div>
+                            {question.is_ai_generated && (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs text-purple-700">
+                                <Sparkles className="h-2 w-2" />
+                                AI Generated
+                              </span>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => handleDeleteQuestion(question.id)}
+                            className="text-muted-foreground hover:text-red-600 transition-colors"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </div>
+                        
+                        <textarea
+                          value={question.answer_text || ''}
+                          onChange={(e) => {
+                            const newAnswer = e.target.value;
+                            setQuestions(questions.map(q => 
+                              q.id === question.id ? { ...q, answer_text: newAnswer } : q
+                            ));
+                          }}
+                          placeholder="Answer will appear here..."
+                          className="w-full rounded border border-border bg-muted/30 px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent resize-none"
+                          rows={4}
+                        />
+                        
+                        <div className="mt-2 flex gap-2">
+                          <button
+                            onClick={() => handleGenerateAnswer(question.id)}
+                            disabled={generatingAnswer === question.id}
+                            className="flex items-center gap-1 rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
+                          >
+                            {generatingAnswer === question.id ? (
+                              <>
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="h-3 w-3" />
+                                Generate Answer
+                              </>
+                            )}
+                          </button>
+                          {question.answer_text && question.answer_text !== (questions.find(q => q.id === question.id)?.answer_text || '') && (
+                            <button
+                              onClick={() => handleSaveAnswer(question.id, question.answer_text || '')}
+                              className="flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+                            >
+                              <Save className="h-3 w-3" />
+                              Save Changes
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
