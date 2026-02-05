@@ -33,6 +33,7 @@ export const portfolioData = {
   email: 'bibstarling@gmail.com',
   location: 'Brasília, Brazil',
   linkedinUrl: 'https://linkedin.com/in/biancastarling',
+  websiteUrl: 'www.biancastarling.com',
   
   // PM Positioning - Key differentiators
   performanceLevel: 'Exceeding High Expectations',
