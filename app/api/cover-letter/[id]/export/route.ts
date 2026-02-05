@@ -43,8 +43,8 @@ export async function GET(req: Request, context: RouteContext) {
 
     return new NextResponse(html, {
       headers: {
-        'Content-Type': 'text/html',
-        'Content-Disposition': `inline; filename="${filename}"`,
+        'Content-Type': 'text/html; charset=utf-8',
+        'Content-Disposition': `attachment; filename="${filename}"`,
       },
     });
   } catch (error) {
