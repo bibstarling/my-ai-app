@@ -159,50 +159,85 @@ function ProjectModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-12 pb-24"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 backdrop-blur-sm p-4 pt-12 pb-24"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="project-modal-title"
     >
       <div
-        className="relative w-full max-w-2xl rounded-lg border border-border bg-white shadow-xl"
+        className="relative w-full max-w-3xl rounded-xl border border-border bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-border bg-white p-6 pb-4">
-          <div>
-            <p className="text-xs font-medium text-muted uppercase tracking-wider">{project.company}</p>
-            <h2 id="project-modal-title" className="mt-1 text-xl font-semibold text-foreground">
-              {project.title}
-            </h2>
+        {/* Header with gradient accent */}
+        <div className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-transparent" />
+          <div className="relative flex items-start justify-between gap-4 p-8 pb-6">
+            <div className="flex-1">
+              <p className="text-xs font-semibold text-accent uppercase tracking-widest">
+                {project.company}
+              </p>
+              <h2 id="project-modal-title" className="mt-2 text-2xl font-bold text-foreground leading-snug">
+                {project.title}
+              </h2>
+              <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-accent/10 px-4 py-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-accent" />
+                <p className="text-sm font-medium text-accent">
+                  {project.outcome}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="shrink-0 rounded-full p-2 text-muted hover:bg-accent/10 hover:text-accent transition-all"
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="shrink-0 rounded p-1 text-muted hover:bg-muted hover:text-foreground transition-colors"
-            aria-label="Close"
-          >
-            <X className="h-5 w-5" />
-          </button>
         </div>
-        <div className="max-h-[calc(100vh-12rem)] overflow-y-auto p-6 pt-4">
-          <div className="space-y-6">
+
+        {/* Tags Section */}
+        <div className="px-8 pb-6 border-b border-border">
+          <div className="flex flex-wrap gap-2">
+            {project.tags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-card px-3 py-1.5 text-xs font-medium text-muted border border-border"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="max-h-[calc(100vh-20rem)] overflow-y-auto px-8 py-6">
+          <div className="space-y-8">
             {project.details.map((section, i) => (
-              <div key={i}>
+              <div key={i} className="group">
                 {section.heading && (
-                  <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-accent">
-                    {section.heading}
-                  </h3>
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="h-px flex-1 bg-gradient-to-r from-accent/20 to-transparent" />
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-accent">
+                      {section.heading}
+                    </h3>
+                    <div className="h-px flex-1 bg-gradient-to-l from-accent/20 to-transparent" />
+                  </div>
                 )}
                 {section.paragraphs?.map((p, j) => (
-                  <p key={j} className="text-sm text-muted leading-relaxed mb-3 last:mb-0">
+                  <p key={j} className="text-sm text-foreground leading-relaxed mb-4 last:mb-0">
                     {p}
                   </p>
                 ))}
                 {section.list && (
-                  <ul className="list-disc list-inside space-y-1 text-sm text-muted">
+                  <ul className="space-y-3 mt-4">
                     {section.list.map((item, j) => (
-                      <li key={j}>{item}</li>
+                      <li key={j} className="flex items-start gap-3 text-sm text-foreground">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                        <span className="leading-relaxed">{item}</span>
+                      </li>
                     ))}
                   </ul>
                 )}
