@@ -879,9 +879,9 @@ export const portfolioData = {
   achievements: [
     'AI-Driven Product Innovation: Pioneered AI-based content classification at Skillshare, improving content discoverability and setting a new bar for catalog scalability.',
     'Digital Marketplace Expansion: Spearheaded the integration of digital products and the launch of the Creator Hub at Skillshare, unlocking new monetization paths and diversifying creator offerings.',
-    'User Engagement and Community Building: Led the development of Skillshare's new community feed, connecting learners through content and peer interactions to drive retention and platform stickiness.',
+    'User Engagement and Community Building: Led the development of Skillshare\'s new community feed, connecting learners through content and peer interactions to drive retention and platform stickiness.',
     'Operational Efficiency in Product Management: Streamlined product management processes at Voxy, leading to reduced time-to-market and enhanced team productivity.',
-    'Leadership in Digital Education Transformation: Recognized for leading digital transformation initiatives in education, significantly contributing to SENAI's position as a leader in professional and technical education.',
+    'Leadership in Digital Education Transformation: Recognized for leading digital transformation initiatives in education, significantly contributing to SENAI\'s position as a leader in professional and technical education.',
     'Data-Driven Product Enhancements: Leveraged analytics to inform product decisions, resulting in targeted improvements and increased user satisfaction.',
     'Strategic Product Roadmaps: Developed and executed strategic product roadmaps aligning with business goals and market needs, driving significant growth in user base and market share.',
     'User Engagement and Experience Optimization: Implemented user-centric design improvements, leading to higher engagement metrics and improved user experiences.',
