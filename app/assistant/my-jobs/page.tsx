@@ -1668,17 +1668,34 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
             yPosition -= 30;
           }
 
-          // Process sections in order
+          // Group sections by type to avoid duplicate headers
           if (content.sections && Array.isArray(content.sections)) {
+            const sectionsByType = new Map<string, any[]>();
             for (const section of content.sections) {
-              const sectionTitle = (section.title || section.section_type).toUpperCase();
+              const type = section.section_type;
+              if (!sectionsByType.has(type)) {
+                sectionsByType.set(type, []);
+              }
+              sectionsByType.get(type)!.push(section);
+            }
+
+            // Define section order
+            const sectionOrder = ['summary', 'experience', 'skills', 'projects', 'education', 'certifications'];
+            
+            for (const sectionType of sectionOrder) {
+              const sections = sectionsByType.get(sectionType);
+              if (!sections || sections.length === 0) continue;
+              
+              // Get section title (use custom title if available, otherwise default)
+              const firstSection = sections[0];
+              const sectionTitle = (firstSection.title || sectionType).toUpperCase();
               
               if (yPosition < 100) {
                 page = pdfDoc.addPage([612, 792]);
                 yPosition = height - 50;
               }
 
-              // Section header with underline
+              // Section header with underline (only once per type)
               page.drawText(sectionTitle, {
                 x: margin,
                 y: yPosition,
@@ -1697,82 +1714,25 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
               });
               yPosition -= 15;
 
-              // Handle different section types
-              if (section.section_type === 'summary') {
-                const summaryText = section.content?.text || '';
-                
-                // Wrap text properly
-                const maxWidth = rightMargin - margin;
-                const words = summaryText.split(' ');
-                let currentLine = '';
-                const lines = [];
-                
-                for (const word of words) {
-                  const testLine = currentLine ? `${currentLine} ${word}` : word;
-                  const testWidth = timesRomanFont.widthOfTextAtSize(testLine, 10);
+              // Process all sections of this type
+              for (const section of sections) {
+
+                // Handle different section types based on the current sectionType
+                if (sectionType === 'summary') {
+                  const summaryText = section.content?.text || '';
+                  yPosition = drawWrappedText(summaryText, margin, yPosition, rightMargin - margin, 10, timesRoman, false);
+                  yPosition -= 5;
+                } else if (sectionType === 'skills') {
+                  const skillItems = section.content?.items || [];
                   
-                  if (testWidth > maxWidth && currentLine) {
-                    lines.push(currentLine);
-                    currentLine = word;
-                  } else {
-                    currentLine = testLine;
-                  }
-                }
-                if (currentLine) lines.push(currentLine);
-                
-                for (const line of lines) {
-                  if (yPosition < 50) {
-                    page = pdfDoc.addPage([612, 792]);
-                    yPosition = height - 50;
-                  }
-                  page.drawText(line, {
-                    x: margin,
-                    y: yPosition,
-                    size: 10,
-                    font: timesRomanFont,
-                    color: rgb(0.2, 0.2, 0.2),
-                  });
-                  yPosition -= 14;
-                }
-              } else if (section.section_type === 'skills') {
-                const skillItems = section.content?.items || [];
-                const skillsText = skillItems.join(' • ');
-                
-                // Wrap skills text
-                const maxWidth = rightMargin - margin;
-                const words = skillsText.split(' ');
-                let currentLine = '';
-                const lines = [];
-                
-                for (const word of words) {
-                  const testLine = currentLine ? `${currentLine} ${word}` : word;
-                  const testWidth = timesRomanFont.widthOfTextAtSize(testLine, 10);
+                  // Join skills with bullets and proper spacing
+                  const skillsText = skillItems.join(' • ');
                   
-                  if (testWidth > maxWidth && currentLine) {
-                    lines.push(currentLine);
-                    currentLine = word;
-                  } else {
-                    currentLine = testLine;
-                  }
-                }
-                if (currentLine) lines.push(currentLine);
-                
-                for (const line of lines) {
-                  if (yPosition < 50) {
-                    page = pdfDoc.addPage([612, 792]);
-                    yPosition = height - 50;
-                  }
-                  page.drawText(line, {
-                    x: margin,
-                    y: yPosition,
-                    size: 10,
-                    font: timesRomanFont,
-                    color: rgb(0.2, 0.2, 0.2),
-                  });
-                  yPosition -= 14;
-                }
-              } else if (section.section_type === 'experience') {
-                // Experience is stored as single content object
+                  // Wrap skills text properly
+                  yPosition = drawWrappedText(skillsText, margin, yPosition, rightMargin - margin, 10, timesRoman, false);
+                  yPosition -= 5;
+                } else if (sectionType === 'experience') {
+                  // Experience is stored as single content object
                 const exp = section.content;
                 if (exp) {
                   if (yPosition < 120) {
@@ -1869,8 +1829,8 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                   }
                   yPosition -= 5; // Extra space after experience entry
                 }
-              } else if (section.section_type === 'education') {
-                const edu = section.content;
+                } else if (sectionType === 'education') {
+                  const edu = section.content;
                 if (edu) {
                   if (yPosition < 80) {
                     page = pdfDoc.addPage([612, 792]);
@@ -1908,8 +1868,8 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                   });
                   yPosition -= 18;
                 }
-              } else if (section.section_type === 'projects') {
-                const proj = section.content;
+                } else if (sectionType === 'projects') {
+                  const proj = section.content;
                 if (proj) {
                   if (yPosition < 100) {
                     page = pdfDoc.addPage([612, 792]);
@@ -2018,10 +1978,13 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
                   }
                   yPosition -= 5;
                 }
-              }
+                }
 
-              yPosition -= 8; // Space between sections
-            }
+                yPosition -= 8; // Space after each section entry
+              } // End of for (const section of sections)
+              
+              yPosition -= 5; // Extra space between section types
+            } // End of for (const sectionType of sectionOrder)
           }
         } else {
         // Cover Letter
