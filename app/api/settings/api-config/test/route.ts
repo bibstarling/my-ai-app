@@ -101,6 +101,14 @@ export async function POST(req: Request) {
       }
     } catch (error: any) {
       console.error('API test error:', error);
+      console.error('Error details:', {
+        status: error.status,
+        statusCode: error.statusCode,
+        message: error.message,
+        type: error.type,
+        code: error.code,
+        error: error.error,
+      });
       
       if (error.status === 401 || error.statusCode === 401) {
         testResult = {
@@ -108,10 +116,32 @@ export async function POST(req: Request) {
           message: 'Invalid API key. Please check your key and try again.',
         };
       } else if (error.status === 429 || error.statusCode === 429) {
-        testResult = {
-          success: false,
-          message: 'Rate limit exceeded. Your API key is valid but you have reached the rate limit.',
-        };
+        // More detailed rate limit error for OpenAI
+        const errorMessage = error.message || JSON.stringify(error.error || '');
+        
+        if (provider === 'openai') {
+          if (errorMessage.includes('insufficient_quota') || errorMessage.includes('quota')) {
+            testResult = {
+              success: false,
+              message: '❌ OpenAI Account Setup Required\n\nThis error happens on NEW accounts that haven\'t added a payment method yet.\n\n✅ Solution: Add a payment method at:\nhttps://platform.openai.com/settings/organization/billing\n\nNote: You need to add a payment method even if you haven\'t used the API yet. This is how OpenAI works.',
+            };
+          } else if (errorMessage.includes('rate_limit')) {
+            testResult = {
+              success: false,
+              message: '❌ OpenAI Account Restrictions\n\nThis "rate limit" error does NOT mean you used too much - it means your account has restrictions (common for new accounts).\n\n✅ Solutions:\n1. Add payment method: https://platform.openai.com/settings/organization/billing\n2. Check your limits: https://platform.openai.com/account/limits\n3. Wait 1 minute and try again\n4. Or use Groq instead (truly free, no payment needed)',
+            };
+          } else {
+            testResult = {
+              success: false,
+              message: `❌ OpenAI Error: ${errorMessage}\n\nThis is likely an account setup issue, not actual overuse.\n\n✅ Check: https://platform.openai.com/settings/organization/billing`,
+            };
+          }
+        } else {
+          testResult = {
+            success: false,
+            message: 'Rate limit exceeded. Your API key is valid but you have reached the rate limit.',
+          };
+        }
       } else {
         testResult = {
           success: false,
