@@ -70,7 +70,6 @@ export async function GET() {
 
     console.log('📊 Portfolio API - User Info:', {
       clerk_id: userId,
-      email: user?.email,
       is_super_admin: isSuperAdmin,
       username: user?.username
     });
