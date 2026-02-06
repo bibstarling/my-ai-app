@@ -2,22 +2,8 @@
 
 import { SignIn } from '@clerk/nextjs';
 import { CheckCircle, Sparkles, Briefcase, FileText, Bot, Zap } from 'lucide-react';
-import { useEffect } from 'react';
-import { useAuth } from '@clerk/nextjs';
-import { useRouter } from 'next/navigation';
-
-// Force dynamic rendering for Clerk hooks
-export const dynamic = 'force-dynamic';
 
 export default function LoginPage() {
-  const { isSignedIn } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (isSignedIn) {
-      router.push('/dashboard');
-    }
-  }, [isSignedIn, router]);
 
   const features = [
     {
