@@ -70,7 +70,7 @@ export async function POST(request: Request) {
     const { content_language } = body;
 
     // Validate language
-    if (!content_language || !['en', 'pt'].includes(content_language)) {
+    if (!content_language || !['en', 'pt-BR'].includes(content_language)) {
       return NextResponse.json({ error: 'Invalid language' }, { status: 400 });
     }
 

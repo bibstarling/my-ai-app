@@ -307,7 +307,7 @@ function GenerateFromJobModal({
     setSelectedJob(job);
     
     // Auto-select language based on job if detected
-    if (job.detected_language && (job.detected_language === 'en' || job.detected_language === 'pt')) {
+    if (job.detected_language && (job.detected_language === 'en' || job.detected_language === 'pt-BR')) {
       setContentLanguage(job.detected_language as Locale);
     }
   }
@@ -391,7 +391,7 @@ function GenerateFromJobModal({
                         <h3 className="font-semibold text-gray-900 flex-1">{job.title}</h3>
                         {job.detected_language && job.detected_language !== 'unknown' && (
                           <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
-                            {job.detected_language === 'pt' ? '🇧🇷 PT' : '🇬🇧 EN'}
+                            {job.detected_language === 'pt-BR' ? '🇧🇷 PT' : '🇬🇧 EN'}
                           </span>
                         )}
                       </div>

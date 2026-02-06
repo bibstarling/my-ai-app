@@ -84,7 +84,7 @@ function calculateLanguageScores(text: string): LanguageScore[] {
   if (totalScore === 0) {
     return [
       { language: 'en', score: 0, confidence: 0 },
-      { language: 'pt', score: 0, confidence: 0 },
+      { language: 'pt-BR', score: 0, confidence: 0 },
     ];
   }
   
@@ -93,7 +93,7 @@ function calculateLanguageScores(text: string): LanguageScore[] {
   const enConfidence = enScore / totalScore;
   
   return [
-    { language: 'pt', score: ptScore, confidence: ptConfidence },
+    { language: 'pt-BR', score: ptScore, confidence: ptConfidence },
     { language: 'en', score: enScore, confidence: enConfidence },
   ];
 }
@@ -146,7 +146,7 @@ export function detectJobLanguage(
 export function getLanguageName(language: string): string {
   const names: Record<string, string> = {
     en: 'English',
-    pt: 'Português',
+    'pt-BR': 'Português (Brasil)',
     unknown: 'Unknown',
   };
   return names[language] || 'Unknown';
@@ -158,7 +158,7 @@ export function getLanguageName(language: string): string {
 export function getLanguageFlag(language: string): string {
   const flags: Record<string, string> = {
     en: '🇬🇧',
-    pt: '🇧🇷',
+    'pt-BR': '🇧🇷',
     unknown: '🌐',
   };
   return flags[language] || '🌐';
