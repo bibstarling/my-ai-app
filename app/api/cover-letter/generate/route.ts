@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { getSupabaseServiceRole } from '@/lib/supabase-server';
-import { portfolioData, getPortfolioSummary } from '@/lib/portfolio-data';
 import type { GenerateCoverLetterRequest, GenerateCoverLetterResponse } from '@/lib/types/cover-letter';
 import { sendDocumentReadyEmail } from '@/lib/email';
 
 /**
- * POST /api/cover-letter/generate - Auto-generate cover letter from portfolio data
+ * POST /api/cover-letter/generate - Auto-generate cover letter from portfolio markdown
  */
 export async function POST(req: Request) {
   try {
@@ -17,6 +16,28 @@ export async function POST(req: Request) {
 
     const body: GenerateCoverLetterRequest = await req.json();
     const supabase = getSupabaseServiceRole();
+
+    // Get user's portfolio markdown (source of truth)
+    const { data: userPortfolio, error: portfolioError } = await supabase
+      .from('user_portfolios')
+      .select('portfolio_data, markdown_content')
+      .eq('clerk_id', userId)
+      .single();
+
+    if (portfolioError || !userPortfolio) {
+      return NextResponse.json(
+        { error: 'Portfolio not found. Please create your portfolio first.' },
+        { status: 404 }
+      );
+    }
+
+    const portfolioMarkdown = userPortfolio.markdown_content || '';
+    if (!portfolioMarkdown || portfolioMarkdown.length < 50) {
+      return NextResponse.json(
+        { error: 'Portfolio markdown is empty. Please add content to your portfolio first.' },
+        { status: 400 }
+      );
+    }
 
     let jobTitle = body.job_title || '';
     let jobCompany = body.job_company || '';
@@ -44,7 +65,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Generate cover letter using AI
+    // Generate cover letter using AI with portfolio markdown
     const result = await generateCoverLetter({
       jobTitle,
       jobCompany,
@@ -52,6 +73,7 @@ export async function POST(req: Request) {
       tone: body.tone || 'professional',
       recipientName: body.recipient_name,
       recipientTitle: body.recipient_title,
+      portfolioMarkdown,
     });
 
     // Save cover letter
@@ -131,6 +153,7 @@ async function generateCoverLetter(params: {
   tone: string;
   recipientName?: string;
   recipientTitle?: string;
+  portfolioMarkdown: string;
 }): Promise<CoverLetterGeneration> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   
@@ -142,50 +165,15 @@ async function generateCoverLetter(params: {
     ? `Dear ${params.recipientName},`
     : `Dear Hiring Manager,`;
 
-  const prompt = `You are an expert career coach writing a compelling cover letter. Analyze the job posting and candidate's portfolio to create a persuasive, specific cover letter.
+  const prompt = `You are an expert career coach writing a compelling cover letter. Analyze the job posting and candidate's portfolio markdown to create a persuasive, specific cover letter.
 
 JOB POSTING:
 Title: ${params.jobTitle}
 Company: ${params.jobCompany}
 Description: ${params.jobDescription.slice(0, 3000)}
 
-CANDIDATE PROFILE:
-Name: ${portfolioData.fullName}
-Title: ${portfolioData.tagline}
-Location: ${portfolioData.location}
-Performance Level: Exceeding High Expectations
-
-🏆 AWARDS & RECOGNITION (weave these naturally into your writing):
-1. Agility Award Q1 2025: Recognized for resilience and resourcefulness—managing behemoth projects (Creator Hub + CMS) through organizational change, delivering creative solutions with limited resources, maintaining momentum through pivots and ambiguity
-
-2. Curiosity Award Q2 2024: Recognized for AI pioneering—bringing practical innovation to drive efficiency through AI-assisted classification and custom AI tools
-
-PM TRAITS (naturally reflect these in tone and content):
-- Resilient through change: Adapted quickly after organizational shifts, maintained momentum on behemoth projects
-- Takes on behemoths: Manages massive initiatives with ambiguity (Creator Hub + CMS simultaneously)
-- Proactively anticipates: Plans ahead, moves fast when priorities shift
-- Strategic thinker: Ready to champion product vision and influence roadmap
-- AI pioneer: Ships practical AI products (ChatGPT App, semantic search), not just strategy
-- Cross-functional force: Supports teams beyond core role with data and quick experiments
-- Creative solver: Finds right-sized solutions with limited resources
-
-CANDIDATE PORTFOLIO:
-
-EXPERIENCES:
-${portfolioData.experiences.map((exp, i) => `
-${i}. ${exp.title} at ${exp.company} (${exp.period})
-   ${exp.description}
-   Skills: ${exp.skills.join(', ')}
-   Highlights: ${exp.highlights.join(', ')}
-`).join('\n')}
-
-PROJECTS:
-${portfolioData.projects.map((proj, i) => `
-${i}. ${proj.title}
-   ${proj.cardTeaser}
-   Outcome: ${proj.outcome}
-   Tags: ${proj.tags.join(', ')}
-`).join('\n')}
+CANDIDATE PORTFOLIO (Markdown):
+${params.portfolioMarkdown}
 
 INSTRUCTIONS:
 Write a compelling cover letter with this structure:
