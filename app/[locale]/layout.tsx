@@ -25,14 +25,11 @@ export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
 
-export default async function LocaleLayout({
-  children,
-  params,
-}: {
+export default async function LocaleLayout(props: {
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
-  // Handle params directly (Next.js 16 handles this async internally)
+  const params = await props.params;
   const locale = params.locale;
   
   // Ensure that the incoming `locale` is valid
@@ -51,12 +48,12 @@ export default async function LocaleLayout({
           {publishableKey ? (
             <ClientAuthWrapper publishableKey={publishableKey}>
               <AppLayout>
-                {children}
+                {props.children}
               </AppLayout>
             </ClientAuthWrapper>
           ) : (
             <AppLayout>
-              {children}
+              {props.children}
             </AppLayout>
           )}
         </NextIntlClientProvider>
