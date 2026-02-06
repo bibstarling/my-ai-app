@@ -1,5 +1,5 @@
 import { render } from '@react-email/render';
-import { resend, emailConfig } from './config';
+import { getResend, emailConfig } from './config';
 import { shouldSendEmailByAddress } from './preferences';
 import WelcomeEmail from './templates/WelcomeEmail';
 import WaitingApprovalEmail from './templates/WaitingApprovalEmail';
@@ -35,7 +35,7 @@ export async function sendWelcomeEmail({ to, userName, skipPreferenceCheck = fal
       })
     );
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: emailConfig.from,
       to: [to],
       subject: `Welcome to ${emailConfig.appName}!`,
@@ -79,7 +79,7 @@ export async function sendWaitingApprovalEmail({
       })
     );
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: emailConfig.from,
       to: [to],
       subject: `Account Pending Approval - ${emailConfig.appName}`,
@@ -124,7 +124,7 @@ export async function sendApprovalConfirmationEmail({
       })
     );
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: emailConfig.from,
       to: [to],
       subject: `Account Approved! - ${emailConfig.appName}`,
@@ -175,7 +175,7 @@ export async function sendPasswordResetEmail({
       })
     );
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: emailConfig.from,
       to: [to],
       subject: `Reset Your Password - ${emailConfig.appName}`,
@@ -234,7 +234,7 @@ export async function sendJobApplicationEmail({
       })
     );
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: emailConfig.from,
       to: [to],
       subject: `Application Prepared: ${jobTitle} at ${companyName}`,
@@ -292,7 +292,7 @@ export async function sendDocumentReadyEmail({
     const docTypeName =
       documentType === 'resume' ? 'Resume' : 'Cover Letter';
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: emailConfig.from,
       to: [to],
       subject: `Your ${docTypeName} is Ready!`,
@@ -327,7 +327,7 @@ export async function sendCustomEmail({
   replyTo,
 }: CustomEmailParams) {
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: emailConfig.from,
       to: Array.isArray(to) ? to : [to],
       subject,

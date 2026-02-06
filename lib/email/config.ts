@@ -1,7 +1,14 @@
 import { Resend } from 'resend';
 
-// Initialize Resend with API key
-export const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization of Resend client
+let resendInstance: Resend | null = null;
+
+export const getResend = () => {
+  if (!resendInstance) {
+    resendInstance = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resendInstance;
+};
 
 // Email configuration
 export const emailConfig = {
