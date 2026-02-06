@@ -27,6 +27,7 @@ export default function PortfolioBuilderPage() {
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [markdownContent, setMarkdownContent] = useState('');
   const [isSavingMarkdown, setIsSavingMarkdown] = useState(false);
+  const [activeView, setActiveView] = useState<'editor' | 'chat' | 'preview'>('editor');
 
   // Initialize portfolio
   useEffect(() => {
@@ -191,8 +192,45 @@ export default function PortfolioBuilderPage() {
           <div>
             <h1 className="text-2xl font-bold text-foreground">My Portfolio ✨</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Edit your portfolio with a beautiful editor
+              Edit, chat with AI, or preview your portfolio
             </p>
+          </div>
+
+          {/* View Toggle */}
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-background p-1">
+            <button
+              onClick={() => setActiveView('editor')}
+              className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                activeView === 'editor'
+                  ? 'bg-accent text-white'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <FileText className="h-4 w-4" />
+              Editor
+            </button>
+            <button
+              onClick={() => setActiveView('chat')}
+              className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                activeView === 'chat'
+                  ? 'bg-accent text-white'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <MessageSquare className="h-4 w-4" />
+              AI Assistant
+            </button>
+            <button
+              onClick={() => setActiveView('preview')}
+              className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                activeView === 'preview'
+                  ? 'bg-accent text-white'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Eye className="h-4 w-4" />
+              Preview
+            </button>
           </div>
           
           <div className="flex items-center gap-3">
@@ -238,14 +276,30 @@ export default function PortfolioBuilderPage() {
         </div>
       </div>
 
-      {/* Main Content - WYSIWYG Editor */}
+      {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
-        <WYSIWYGEditor
-          markdown={markdownContent}
-          onChange={setMarkdownContent}
-          onSave={handleMarkdownSave}
-          isSaving={isSavingMarkdown}
-        />
+        {/* Editor View */}
+        {activeView === 'editor' && (
+          <WYSIWYGEditor
+            markdown={markdownContent}
+            onChange={setMarkdownContent}
+            onSave={handleMarkdownSave}
+            isSaving={isSavingMarkdown}
+          />
+        )}
+
+        {/* AI Assistant View */}
+        {activeView === 'chat' && (
+          <AIAssistantPanel
+            markdown={markdownContent}
+            onMarkdownUpdate={setMarkdownContent}
+          />
+        )}
+
+        {/* Preview View */}
+        {activeView === 'preview' && (
+          <PortfolioPreview markdown={markdownContent} />
+        )}
       </div>
     </div>
   );
