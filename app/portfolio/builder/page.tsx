@@ -237,6 +237,12 @@ export default function PortfolioBuilderPage() {
             ...prev,
             portfolio_data: data.portfolioData,
           }));
+          
+          // If in markdown mode, update markdown content from new portfolio data
+          if (editMode === 'markdown') {
+            const updatedMarkdown = convertDataToMarkdown(data.portfolioData);
+            setMarkdownContent(updatedMarkdown);
+          }
         }
       } else {
         setMessages((prev) => [
