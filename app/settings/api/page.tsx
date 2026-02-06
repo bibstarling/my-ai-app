@@ -47,13 +47,17 @@ export default function APISettingsPage() {
 
   const loadAPIConfig = async () => {
     try {
-      const res = await fetch('/api/settings/api-config');
+      const res = await fetch('/api/settings/api-config', {
+        credentials: 'include',
+      });
       const data = await res.json();
 
       if (data.success && data.config) {
         setConfig(data.config);
         setSelectedProvider(data.config.provider);
         setApiKey(data.config.apiKey || '');
+      } else if (res.status === 401) {
+        console.error('Unauthorized - user not authenticated');
       }
     } catch (error) {
       console.error('Failed to load API config:', error);
@@ -75,6 +79,7 @@ export default function APISettingsPage() {
       const res = await fetch('/api/settings/api-config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           provider: selectedProvider,
           apiKey: apiKey.trim(),
@@ -109,6 +114,7 @@ export default function APISettingsPage() {
       const res = await fetch('/api/settings/api-config/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           provider: selectedProvider,
           apiKey: apiKey.trim(),
@@ -137,6 +143,7 @@ export default function APISettingsPage() {
     try {
       const res = await fetch('/api/settings/api-config', {
         method: 'DELETE',
+        credentials: 'include',
       });
 
       const data = await res.json();

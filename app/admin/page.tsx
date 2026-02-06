@@ -105,7 +105,13 @@ function AdminContent() {
 
   const checkAdmin = async () => {
     if (!user) return;
+    
+    console.log('[Admin Check] User email:', user.primaryEmailAddress?.emailAddress);
+    console.log('[Admin Check] User ID:', user.id);
+    console.log('[Admin Check] Expected admin email:', ADMIN_EMAIL);
+    
     if (user.primaryEmailAddress?.emailAddress === ADMIN_EMAIL) {
+      console.log('[Admin Check] Email matches admin email, granting access');
       setIsAdmin(true);
       setAdminChecked(true);
       return;
@@ -113,11 +119,26 @@ function AdminContent() {
     
     // Check via API to avoid RLS issues
     try {
+      console.log('[Admin Check] Checking admin status via API...');
       const response = await fetch('/api/users/list');
+      const data = await response.json();
+      
+      console.log('[Admin Check] API response:', { 
+        ok: response.ok, 
+        status: response.status,
+        error: data.error 
+      });
+      
       // If user can access the list endpoint, they're an admin
       setIsAdmin(response.ok);
-    } catch {
+      
+      if (!response.ok) {
+        setError(data.error || 'Failed to verify admin access');
+      }
+    } catch (err) {
+      console.error('[Admin Check] API error:', err);
       setIsAdmin(false);
+      setError('Failed to connect to admin API');
     }
     setAdminChecked(true);
   };
@@ -371,9 +392,26 @@ function AdminContent() {
               <h1 className="mb-2 text-2xl font-bold text-foreground">
                 Not authorized
               </h1>
-              <p className="mb-8 text-muted-foreground">
+              <p className="mb-4 text-muted-foreground">
                 You need admin access to view this page.
               </p>
+              
+              {error && (
+                <div className="mb-6 rounded-lg border border-red-500/50 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400 text-left">
+                  <p className="font-semibold mb-1">Error:</p>
+                  <p>{error}</p>
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Logged in as: {user?.primaryEmailAddress?.emailAddress}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Clerk ID: {user?.id}
+                  </p>
+                  <p className="mt-2 text-xs">
+                    Check the browser console (F12) for more details.
+                  </p>
+                </div>
+              )}
+              
               <Link
                 href="/assistant"
                 className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm text-foreground hover:border-accent/50 transition-colors"

@@ -4,11 +4,18 @@ import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import Groq from 'groq-sdk';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
   try {
-    const { userId } = await auth();
+    const authResult = await auth();
+    console.log('[API Config TEST] Auth result:', { userId: authResult?.userId, hasAuth: !!authResult });
+    
+    const { userId } = authResult;
     
     if (!userId) {
+      console.error('[API Config TEST] No userId found in auth');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

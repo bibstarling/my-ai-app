@@ -2,11 +2,18 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { getSupabaseServiceRole } from '@/lib/supabase-server';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
-    const { userId } = await auth();
+    const authResult = await auth();
+    console.log('[API Config GET] Auth result:', { userId: authResult?.userId, hasAuth: !!authResult });
+    
+    const { userId } = authResult;
     
     if (!userId) {
+      console.error('[API Config GET] No userId found in auth');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -40,9 +47,13 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await auth();
+    const authResult = await auth();
+    console.log('[API Config POST] Auth result:', { userId: authResult?.userId, hasAuth: !!authResult });
+    
+    const { userId } = authResult;
     
     if (!userId) {
+      console.error('[API Config POST] No userId found in auth');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -98,9 +109,13 @@ export async function POST(req: Request) {
 
 export async function DELETE() {
   try {
-    const { userId } = await auth();
+    const authResult = await auth();
+    console.log('[API Config DELETE] Auth result:', { userId: authResult?.userId, hasAuth: !!authResult });
+    
+    const { userId } = authResult;
     
     if (!userId) {
+      console.error('[API Config DELETE] No userId found in auth');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
