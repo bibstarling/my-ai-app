@@ -162,10 +162,9 @@ export default function LoginPage() {
                   }}
                   routing="path"
                   path="/login"
-                  redirectUrl="/dashboard"
-                  afterSignInUrl="/dashboard"
-                  afterSignUpUrl="/dashboard"
                   signUpUrl="/login"
+                  forceRedirectUrl="/dashboard"
+                  fallbackRedirectUrl="/dashboard"
                 />
               </div>
 
