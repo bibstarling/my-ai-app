@@ -120,7 +120,9 @@ function AdminContent() {
     // Check via API to avoid RLS issues
     try {
       console.log('[Admin Check] Checking admin status via API...');
-      const response = await fetch('/api/users/list');
+      const response = await fetch('/api/users/list', {
+        credentials: 'include',
+      });
       const data = await response.json();
       
       console.log('[Admin Check] API response:', { 
@@ -154,7 +156,9 @@ function AdminContent() {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch('/api/users/list');
+        const response = await fetch('/api/users/list', {
+          credentials: 'include',
+        });
         
         if (!response.ok) {
           const data = await response.json();
@@ -249,6 +253,7 @@ function AdminContent() {
         const response = await fetch('/api/users/approve', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ userId: id }),
         });
 
@@ -274,6 +279,7 @@ function AdminContent() {
       const response = await fetch('/api/users/update', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ userId: id, updates: changes }),
       });
 
@@ -316,6 +322,7 @@ function AdminContent() {
     try {
       const response = await fetch('/api/users/sync-emails', {
         method: 'POST',
+        credentials: 'include',
       });
 
       const data = await response.json();
@@ -328,7 +335,9 @@ function AdminContent() {
       setSyncMessage(data.message || `Updated ${data.updated} users`);
       
       // Refresh the user list
-      const listResponse = await fetch('/api/users/list');
+      const listResponse = await fetch('/api/users/list', {
+        credentials: 'include',
+      });
       if (listResponse.ok) {
         const listData = await listResponse.json();
         if (listData.success && listData.users) {
