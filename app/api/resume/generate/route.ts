@@ -216,7 +216,7 @@ export async function POST(req: Request) {
     if (userEmail) {
       sendDocumentReadyEmail({
         to: userEmail,
-        userName,
+        userName: userName || undefined,
         documentType: 'resume',
         documentTitle: resume.title || `Resume for ${jobTitle || 'Job Application'}`,
         documentUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/resume-builder/${resume.id}`,

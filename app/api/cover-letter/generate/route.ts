@@ -91,7 +91,7 @@ export async function POST(req: Request) {
     if (userEmail) {
       sendDocumentReadyEmail({
         to: userEmail,
-        userName,
+        userName: userName || undefined,
         documentType: 'cover-letter',
         documentTitle: `Cover Letter for ${jobTitle} at ${jobCompany}`,
         documentUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/cover-letters/${coverLetter.id}`,
