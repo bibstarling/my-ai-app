@@ -118,12 +118,12 @@ export async function scrapeUrl(url: string): Promise<ScrapedData> {
         description: description.trim(),
         content,
         metadata: {
-          ogTitle,
-          ogDescription,
-          ogImage,
-          favicon,
-          author,
-          publishDate,
+          ogTitle: ogTitle || undefined,
+          ogDescription: ogDescription || undefined,
+          ogImage: ogImage || undefined,
+          favicon: favicon || undefined,
+          author: author || undefined,
+          publishDate: publishDate || undefined,
         },
       };
     });
