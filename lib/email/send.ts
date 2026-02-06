@@ -26,6 +26,12 @@ export async function sendWelcomeEmail({ to, userName, skipPreferenceCheck = fal
       }
     }
 
+    const resend = getResend();
+    if (!resend) {
+      console.log('Resend not configured, skipping welcome email');
+      return { success: true, skipped: true };
+    }
+
     const html = await render(
       WelcomeEmail({
         userEmail: to,
@@ -35,7 +41,7 @@ export async function sendWelcomeEmail({ to, userName, skipPreferenceCheck = fal
       })
     );
 
-    const { data, error } = await getResend().emails.send({
+    const { data, error } = await resend.emails.send({
       from: emailConfig.from,
       to: [to],
       subject: `Welcome to ${emailConfig.appName}!`,
@@ -71,6 +77,12 @@ export async function sendWaitingApprovalEmail({
       }
     }
 
+    const resend = getResend();
+    if (!resend) {
+      console.log('Resend not configured, skipping waiting approval email');
+      return { success: true, skipped: true };
+    }
+
     const html = await render(
       WaitingApprovalEmail({
         userEmail: to,
@@ -79,7 +91,7 @@ export async function sendWaitingApprovalEmail({
       })
     );
 
-    const { data, error } = await getResend().emails.send({
+    const { data, error } = await resend.emails.send({
       from: emailConfig.from,
       to: [to],
       subject: `Account Pending Approval - ${emailConfig.appName}`,
@@ -115,6 +127,12 @@ export async function sendApprovalConfirmationEmail({
       }
     }
 
+    const resend = getResend();
+    if (!resend) {
+      console.log('Resend not configured, skipping approval confirmation email');
+      return { success: true, skipped: true };
+    }
+
     const html = await render(
       ApprovalConfirmationEmail({
         userEmail: to,
@@ -124,7 +142,7 @@ export async function sendApprovalConfirmationEmail({
       })
     );
 
-    const { data, error } = await getResend().emails.send({
+    const { data, error } = await resend.emails.send({
       from: emailConfig.from,
       to: [to],
       subject: `Account Approved! - ${emailConfig.appName}`,
@@ -166,6 +184,12 @@ export async function sendPasswordResetEmail({
       }
     }
 
+    const resend = getResend();
+    if (!resend) {
+      console.log('Resend not configured, skipping password reset email');
+      return { success: true, skipped: true };
+    }
+
     const html = await render(
       PasswordResetEmail({
         userEmail: to,
@@ -175,7 +199,7 @@ export async function sendPasswordResetEmail({
       })
     );
 
-    const { data, error } = await getResend().emails.send({
+    const { data, error } = await resend.emails.send({
       from: emailConfig.from,
       to: [to],
       subject: `Reset Your Password - ${emailConfig.appName}`,
@@ -222,6 +246,12 @@ export async function sendJobApplicationEmail({
       }
     }
 
+    const resend = getResend();
+    if (!resend) {
+      console.log('Resend not configured, skipping job application email');
+      return { success: true, skipped: true };
+    }
+
     const html = await render(
       JobApplicationEmail({
         userName,
@@ -234,7 +264,7 @@ export async function sendJobApplicationEmail({
       })
     );
 
-    const { data, error } = await getResend().emails.send({
+    const { data, error } = await resend.emails.send({
       from: emailConfig.from,
       to: [to],
       subject: `Application Prepared: ${jobTitle} at ${companyName}`,
@@ -279,6 +309,12 @@ export async function sendDocumentReadyEmail({
       }
     }
 
+    const resend = getResend();
+    if (!resend) {
+      console.log('Resend not configured, skipping document ready email');
+      return { success: true, skipped: true };
+    }
+
     const html = await render(
       DocumentReadyEmail({
         userName,
@@ -292,7 +328,7 @@ export async function sendDocumentReadyEmail({
     const docTypeName =
       documentType === 'resume' ? 'Resume' : 'Cover Letter';
 
-    const { data, error } = await getResend().emails.send({
+    const { data, error } = await resend.emails.send({
       from: emailConfig.from,
       to: [to],
       subject: `Your ${docTypeName} is Ready!`,
@@ -327,7 +363,13 @@ export async function sendCustomEmail({
   replyTo,
 }: CustomEmailParams) {
   try {
-    const { data, error } = await getResend().emails.send({
+    const resend = getResend();
+    if (!resend) {
+      console.log('Resend not configured, skipping custom email');
+      return { success: true, skipped: true };
+    }
+
+    const { data, error } = await resend.emails.send({
       from: emailConfig.from,
       to: Array.isArray(to) ? to : [to],
       subject,
