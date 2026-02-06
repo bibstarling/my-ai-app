@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
 /**
@@ -28,15 +28,17 @@ export async function POST(request: Request) {
       );
     }
 
-    // Use OpenAI to parse the markdown into structured data
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+    // Use Claude to parse the markdown into structured data
+    const message = await anthropic.messages.create({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 4096,
+      temperature: 0.3,
       messages: [
         {
-          role: 'system',
+          role: 'user',
           content: `You are a portfolio data parser. Parse the provided markdown content into a structured JSON format for a professional portfolio.
 
-IMPORTANT: Return ONLY valid JSON, no markdown code blocks, no explanations, no extra text.
+IMPORTANT: Return ONLY valid JSON, no markdown code blocks, no explanations, no extra text. Just the raw JSON object.
 
 The JSON structure should be:
 {
@@ -124,27 +126,33 @@ Parse intelligently:
 - Be flexible with markdown formatting variations
 - Preserve the user's exact wording and content
 - Extract metrics and numbers when present
-- Identify and categorize skills appropriately`,
-        },
-        {
-          role: 'user',
-          content: markdown,
+- Identify and categorize skills appropriately
+
+Here is the markdown to parse:
+
+${markdown}`,
         },
       ],
-      temperature: 0.3,
-      response_format: { type: 'json_object' },
     });
 
-    const content = completion.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error('No response from AI');
+    const content = message.content[0];
+    if (!content || content.type !== 'text') {
+      throw new Error('No text response from AI');
     }
 
     let portfolioData;
     try {
-      portfolioData = JSON.parse(content);
+      // Remove any markdown code blocks if Claude added them
+      let jsonText = content.text.trim();
+      if (jsonText.startsWith('```json')) {
+        jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?$/g, '').trim();
+      } else if (jsonText.startsWith('```')) {
+        jsonText = jsonText.replace(/```\n?/g, '').trim();
+      }
+      
+      portfolioData = JSON.parse(jsonText);
     } catch (parseError) {
-      console.error('Failed to parse AI response:', content);
+      console.error('Failed to parse AI response:', content.text);
       throw new Error('Invalid JSON response from AI');
     }
 
