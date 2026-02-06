@@ -16,13 +16,8 @@ import {
 export default function LandingPage() {
   const { isSignedIn, isLoaded } = useAuth();
 
-  // Show loading state while checking auth
-  if (!isLoaded) {
-    return <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="animate-pulse text-muted">Loading...</div>
-    </div>;
-  }
-
+  // Don't block page render - show content immediately
+  // Auth state will update in background
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}

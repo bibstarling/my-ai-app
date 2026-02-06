@@ -4,7 +4,6 @@ import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { SignInButton, SignedIn, SignedOut, useUser } from '@clerk/nextjs';
 import { useEmbedMode } from '../ClientAuthWrapper';
-import { supabase } from '@/lib/supabase';
 import { 
   Loader2, 
   UserCheck, 
@@ -85,6 +84,8 @@ function AdminContent() {
   const [error, setError] = useState<string | null>(null);
   const [adminChecked, setAdminChecked] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [syncingEmails, setSyncingEmails] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'approved' | 'pending'>('all');
   const [sortField, setSortField] = useState<SortField>('created_at');
@@ -109,12 +110,15 @@ function AdminContent() {
       setAdminChecked(true);
       return;
     }
-    const { data } = await supabase
-      .from('users')
-      .select('is_admin')
-      .eq('clerk_id', user.id)
-      .maybeSingle();
-    setIsAdmin(!!data?.is_admin);
+    
+    // Check via API to avoid RLS issues
+    try {
+      const response = await fetch('/api/users/list');
+      // If user can access the list endpoint, they're an admin
+      setIsAdmin(response.ok);
+    } catch {
+      setIsAdmin(false);
+    }
     setAdminChecked(true);
   };
 
@@ -129,17 +133,22 @@ function AdminContent() {
       setLoading(true);
       setError(null);
       try {
-        const { data: list, error: fetchError } = await supabase
-          .from('users')
-          .select('id, email, clerk_id, approved, is_admin, created_at')
-          .order('created_at', { ascending: false });
-
-        if (fetchError) {
-          setError(fetchError.message);
-        } else if (list) {
-          setUsers(list as UserRow[]);
+        const response = await fetch('/api/users/list');
+        
+        if (!response.ok) {
+          const data = await response.json();
+          setError(data.error || 'Failed to load users');
+          return;
         }
-      } catch {
+
+        const data = await response.json();
+        if (data.success && data.users) {
+          setUsers(data.users as UserRow[]);
+        } else {
+          setError('Failed to load users');
+        }
+      } catch (err) {
+        console.error('Error fetching users:', err);
         setError('Failed to load users');
       }
       setLoading(false);
@@ -239,19 +248,28 @@ function AdminContent() {
       }
     }
 
-    // For other updates, use direct Supabase update
-    const { error: updateError } = await supabase
-      .from('users')
-      .update(changes)
-      .eq('id', id);
+    // For other updates, use the API endpoint
+    try {
+      const response = await fetch('/api/users/update', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: id, updates: changes }),
+      });
 
-    if (updateError) {
-      setError(updateError.message);
-      return;
+      if (!response.ok) {
+        const data = await response.json();
+        setError(data.error || 'Failed to update user');
+        return;
+      }
+
+      // Update local state
+      setUsers((prev) =>
+        prev.map((u) => (u.id === id ? { ...u, ...changes } : u)),
+      );
+    } catch (err) {
+      console.error('Error updating user:', err);
+      setError('Failed to update user');
     }
-    setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, ...changes } : u)),
-    );
   };
 
   const showConfirmation = (
@@ -267,6 +285,41 @@ function AdminContent() {
       onConfirm,
       variant,
     });
+  };
+
+  const syncEmails = async () => {
+    setSyncingEmails(true);
+    setSyncMessage(null);
+    setError(null);
+    
+    try {
+      const response = await fetch('/api/users/sync-emails', {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Failed to sync emails');
+        return;
+      }
+
+      setSyncMessage(data.message || `Updated ${data.updated} users`);
+      
+      // Refresh the user list
+      const listResponse = await fetch('/api/users/list');
+      if (listResponse.ok) {
+        const listData = await listResponse.json();
+        if (listData.success && listData.users) {
+          setUsers(listData.users as UserRow[]);
+        }
+      }
+    } catch (err) {
+      console.error('Error syncing emails:', err);
+      setError('Failed to sync emails');
+    } finally {
+      setSyncingEmails(false);
+    }
   };
 
   if (!isLoaded || !adminChecked) {
@@ -358,6 +411,12 @@ function AdminContent() {
                 </div>
               )}
 
+              {syncMessage && (
+                <div className="mb-6 rounded-lg border border-green-500/50 bg-green-500/10 px-4 py-3 text-sm text-green-600 dark:text-green-400">
+                  {syncMessage}
+                </div>
+              )}
+
               {/* Metrics Cards */}
               {!loading && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -387,6 +446,32 @@ function AdminContent() {
                     trend={metrics.newThisWeek > 0 ? 'up' : undefined}
                     color="bg-success"
                   />
+                </div>
+              )}
+
+              {/* Sync emails button */}
+              {!loading && users.some((u) => !u.email) && (
+                <div className="mb-6">
+                  <button
+                    onClick={syncEmails}
+                    disabled={syncingEmails}
+                    className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {syncingEmails ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Syncing emails...
+                      </>
+                    ) : (
+                      <>
+                        <UserCheck className="h-4 w-4" />
+                        Sync Missing Emails from Clerk
+                      </>
+                    )}
+                  </button>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {users.filter((u) => !u.email).length} user(s) missing email address
+                  </p>
                 </div>
               )}
 

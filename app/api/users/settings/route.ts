@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { getSupabaseServiceRole } from '@/lib/supabase-server';
 
 export async function GET() {
@@ -25,11 +25,16 @@ export async function GET() {
     }
 
     if (!user) {
+      // Get user info from Clerk to save email
+      const clerkUser = await currentUser();
+      const userEmail = clerkUser?.emailAddresses?.[0]?.emailAddress;
+      
       // Create user record with defaults
       const { data: newUser, error: createError } = await supabase
         .from('users')
         .insert({
           clerk_id: userId,
+          email: userEmail || null,
           content_language: 'en',
           onboarding_completed: false,
         })
@@ -79,11 +84,16 @@ export async function POST(request: Request) {
 
     const supabase = getSupabaseServiceRole();
     
+    // Get user info from Clerk to ensure email is saved
+    const clerkUser = await currentUser();
+    const userEmail = clerkUser?.emailAddresses?.[0]?.emailAddress;
+    
     // Upsert user settings
     const { error } = await supabase
       .from('users')
       .upsert({
         clerk_id: userId,
+        email: userEmail || null,
         content_language,
         updated_at: new Date().toISOString(),
       }, {
@@ -116,8 +126,14 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
+    
+    // Get user info from Clerk to ensure email is saved
+    const clerkUser = await currentUser();
+    const userEmail = clerkUser?.emailAddresses?.[0]?.emailAddress;
+    
     const updates: Record<string, any> = {
       clerk_id: userId,
+      email: userEmail || null,
       updated_at: new Date().toISOString(),
     };
 

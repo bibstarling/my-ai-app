@@ -143,21 +143,35 @@ export default function LoginPage() {
                 </p>
               </div>
               
-              <div className="flex justify-center">
+              <div className="flex justify-center w-full">
                 <SignIn
                   appearance={{
                     elements: {
                       formButtonPrimary: 
                         'bg-accent hover:bg-accent/90 text-white',
-                      card: 'shadow-none',
+                      card: 'shadow-none w-full',
+                      rootBox: 'w-full',
                       headerTitle: 'hidden',
                       headerSubtitle: 'hidden',
                       socialButtonsBlockButton:
                         'border-border hover:bg-muted/50 transition-colors',
+                      socialButtonsBlockButtonText:
+                        'font-medium',
                       formFieldInput:
                         'border-border focus:border-accent focus:ring-accent',
                       footerActionLink:
+                        'text-accent hover:text-accent/80 font-medium',
+                      identityPreviewText: 'font-medium',
+                      formFieldLabel: 'font-medium',
+                      otpCodeFieldInput:
+                        'border-border focus:border-accent',
+                      formResendCodeLink:
                         'text-accent hover:text-accent/80',
+                      footer: 'hidden',
+                    },
+                    layout: {
+                      socialButtonsPlacement: 'top',
+                      socialButtonsVariant: 'blockButton',
                     },
                   }}
                   routing="path"
@@ -165,13 +179,22 @@ export default function LoginPage() {
                   signUpUrl="/login"
                   forceRedirectUrl="/dashboard"
                   fallbackRedirectUrl="/dashboard"
+                  signUpForceRedirectUrl="/dashboard"
+                  signUpFallbackRedirectUrl="/dashboard"
                 />
               </div>
 
               <div className="mt-8 pt-8 border-t border-border">
-                <p className="text-xs text-center text-muted">
-                  By continuing, you agree to our Terms of Service and Privacy Policy
-                </p>
+                <div className="space-y-3">
+                  <p className="text-xs text-center text-muted">
+                    By continuing, you agree to our Terms of Service and Privacy Policy
+                  </p>
+                  <div className="bg-accent/5 border border-accent/20 rounded-lg p-3">
+                    <p className="text-xs text-center text-muted-foreground">
+                      💡 <strong>New here?</strong> Click "Don't have an account? Sign up" below the form to create your account with email.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
