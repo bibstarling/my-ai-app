@@ -19,20 +19,18 @@ export default function AppleIcon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#0f172a',
+          background: 'linear-gradient(135deg, #e07a5f 0%, #d4663f 100%)',
           borderRadius: '32px',
         }}
       >
         <div
           style={{
-            fontSize: '90px',
-            fontWeight: 700,
+            fontSize: '100px',
             color: '#ffffff',
             fontFamily: 'sans-serif',
-            letterSpacing: '-2px',
           }}
         >
-          BS
+          👏
         </div>
       </div>
     ),

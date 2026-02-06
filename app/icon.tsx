@@ -19,20 +19,20 @@ export default function Icon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#0f172a',
+          background: 'linear-gradient(135deg, #e07a5f 0%, #d4663f 100%)',
           borderRadius: '6px',
         }}
       >
         <div
           style={{
-            fontSize: '18px',
+            fontSize: '20px',
             fontWeight: 700,
             color: '#ffffff',
             fontFamily: 'sans-serif',
             letterSpacing: '-0.5px',
           }}
         >
-          BS
+          👏
         </div>
       </div>
     ),

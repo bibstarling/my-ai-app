@@ -7,8 +7,8 @@ import { AppLayout } from './components/AppLayout';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Bianca Starling | Lead Product Manager",
-  description: "Lead Product Manager focused on discovery, retention, and AI-powered products. Proven track record in driving measurable outcomes through strategic product thinking.",
+  title: "Applause - AI-Powered Career Platform | Build Portfolios, Resumes & Land Jobs",
+  description: "AI-powered platform to build stunning portfolios, create standout resumes, and land your dream job. Smart job matching, career coaching, and application tracking—all in one place.",
   icons: {
     icon: '/icon',
     apple: '/apple-icon',
