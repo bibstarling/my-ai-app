@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { currentUser } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { getSupabaseServiceRole } from '@/lib/supabase-server';
 
 export const runtime = 'nodejs';
@@ -7,15 +7,20 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    const authData = await auth();
     const user = await currentUser();
-    console.log('[API Config GET] User:', { userId: user?.id, hasUser: !!user });
     
-    if (!user) {
+    console.log('[API Config GET] Auth:', { 
+      authUserId: authData?.userId, 
+      currentUserId: user?.id 
+    });
+    
+    const userId = authData?.userId || user?.id;
+    
+    if (!userId) {
       console.error('[API Config GET] No user found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
-    const userId = user.id;
 
     const supabase = getSupabaseServiceRole();
     
@@ -47,15 +52,20 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const authData = await auth();
     const user = await currentUser();
-    console.log('[API Config POST] User:', { userId: user?.id, hasUser: !!user });
     
-    if (!user) {
+    console.log('[API Config POST] Auth:', { 
+      authUserId: authData?.userId, 
+      currentUserId: user?.id 
+    });
+    
+    const userId = authData?.userId || user?.id;
+    
+    if (!userId) {
       console.error('[API Config POST] No user found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
-    const userId = user.id;
 
     const { provider, apiKey } = await req.json();
 
@@ -109,15 +119,20 @@ export async function POST(req: Request) {
 
 export async function DELETE() {
   try {
+    const authData = await auth();
     const user = await currentUser();
-    console.log('[API Config DELETE] User:', { userId: user?.id, hasUser: !!user });
     
-    if (!user) {
+    console.log('[API Config DELETE] Auth:', { 
+      authUserId: authData?.userId, 
+      currentUserId: user?.id 
+    });
+    
+    const userId = authData?.userId || user?.id;
+    
+    if (!userId) {
       console.error('[API Config DELETE] No user found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
-    const userId = user.id;
 
     const supabase = getSupabaseServiceRole();
 

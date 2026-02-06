@@ -263,14 +263,19 @@ function APITab() {
       });
 
       const data = await res.json();
+      
+      console.log('[APITab] Save response:', { status: res.status, data });
 
-      if (data.success) {
+      if (res.status === 401) {
+        alert('Authentication failed. Please refresh the page and try again.');
+      } else if (data.success) {
         setConfig(data.config);
         alert('API configuration saved successfully!');
       } else {
         alert(`Failed: ${data.error}`);
       }
     } catch (error) {
+      console.error('[APITab] Save error:', error);
       alert('Failed to save API configuration');
     } finally {
       setSaving(false);
@@ -298,11 +303,22 @@ function APITab() {
       });
 
       const data = await res.json();
-      setTestResult({
-        success: data.success,
-        message: data.message || (data.success ? 'Connection successful!' : 'Connection failed'),
-      });
+      
+      console.log('[APITab] Test response:', { status: res.status, data });
+      
+      if (res.status === 401) {
+        setTestResult({
+          success: false,
+          message: data.message || 'Authentication failed. Please refresh the page and try again.',
+        });
+      } else {
+        setTestResult({
+          success: data.success,
+          message: data.message || (data.success ? 'Connection successful!' : 'Connection failed'),
+        });
+      }
     } catch (error) {
+      console.error('[APITab] Test error:', error);
       setTestResult({ success: false, message: 'Failed to test connection' });
     } finally {
       setTestingConnection(false);
