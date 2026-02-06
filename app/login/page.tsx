@@ -6,6 +6,9 @@ import { useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 
+// Force dynamic rendering for Clerk hooks
+export const dynamic = 'force-dynamic';
+
 export default function LoginPage() {
   const { isSignedIn } = useAuth();
   const router = useRouter();
