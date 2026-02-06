@@ -188,6 +188,7 @@ async function callOpenAI(
   messages: AIMessage[],
   maxTokens: number = 4096
 ): Promise<AIResponse> {
+  console.log(`[OpenAI] Calling model: ${model}, keyPrefix: ${apiKey.substring(0, 15)}..., maxTokens: ${maxTokens}`);
   const openai = new OpenAI({ apiKey });
 
   const response = await openai.chat.completions.create({
@@ -201,6 +202,8 @@ async function callOpenAI(
       })),
     ],
   });
+  
+  console.log(`[OpenAI] Response received: ${response.usage?.total_tokens} tokens`);
 
   const content = response.choices[0]?.message?.content || '';
 
@@ -276,11 +279,13 @@ export async function generateAICompletion(
     provider = userConfig.provider;
     apiKey = userConfig.apiKey;
     model = userConfig.model;
+    console.log(`[AI Provider] Using user config: provider=${provider}, model=${model}, keyPrefix=${apiKey.substring(0, 10)}...`);
   } else {
     // Fallback to system API (your API key)
     provider = 'system';
     apiKey = process.env.ANTHROPIC_API_KEY || '';
     model = 'claude-sonnet-4-20250514';
+    console.log(`[AI Provider] Using system fallback: provider=${provider}, model=${model}`);
     
     if (!apiKey) {
       throw new Error('No API key available. Please configure your own API key in settings.');
@@ -307,9 +312,11 @@ export async function generateAICompletion(
 
   // Call the appropriate provider
   let response: AIResponse;
+  const actualProvider = provider === 'system' ? 'anthropic' : provider;
+  console.log(`[AI Provider] Calling provider: ${actualProvider}`);
   
   try {
-    switch (provider === 'system' ? 'anthropic' : provider) {
+    switch (actualProvider) {
       case 'anthropic':
         response = await callAnthropic(apiKey, model, systemPrompt, messages, maxTokens);
         break;
@@ -320,7 +327,7 @@ export async function generateAICompletion(
         response = await callGroq(apiKey, model, systemPrompt, messages, maxTokens);
         break;
       default:
-        throw new Error(`Unsupported provider: ${provider}`);
+        throw new Error(`Unsupported provider: ${actualProvider}`);
     }
 
     // Log usage
@@ -363,16 +370,23 @@ export async function generateAICompletionMultimodal(
     provider = userConfig.provider;
     apiKey = userConfig.apiKey;
     model = userConfig.model;
+    console.log(`[AI Provider Multimodal] Using user config: provider=${provider}, model=${model}`);
     
-    // Multimodal only supported by Anthropic currently
-    if (provider !== 'anthropic') {
-      throw new Error('Multimodal content (images) is only supported with Anthropic models. Please configure an Anthropic API key or use text-only content.');
+    // Multimodal (images) only supported by Anthropic currently
+    // If content is array (contains images), enforce Anthropic
+    if (Array.isArray(content) && provider !== 'anthropic') {
+      console.log(`[AI Provider Multimodal] Content has images, but provider is ${provider}. Falling back to system Anthropic.`);
+      // Fall back to system for multimodal content
+      provider = 'system';
+      apiKey = process.env.ANTHROPIC_API_KEY || '';
+      model = 'claude-sonnet-4-20250514';
     }
   } else {
     // Fallback to system API (Anthropic)
     provider = 'system';
     apiKey = process.env.ANTHROPIC_API_KEY || '';
     model = 'claude-sonnet-4-20250514';
+    console.log(`[AI Provider Multimodal] Using system fallback: provider=${provider}, model=${model}`);
     
     if (!apiKey) {
       throw new Error('No API key available. Please configure your own API key in settings.');
@@ -397,38 +411,63 @@ export async function generateAICompletionMultimodal(
     }
   }
 
-  // Call Anthropic with multimodal content
+  // If content is text-only and user has OpenAI/Groq, use their provider
+  let response: AIResponse;
+  const actualProvider = provider === 'system' ? 'anthropic' : provider;
+  
+  // Convert string content to appropriate format
+  const isTextOnly = typeof content === 'string';
+  
   try {
-    const anthropic = new Anthropic({ apiKey });
+    if (isTextOnly && actualProvider !== 'anthropic') {
+      // Use OpenAI or Groq for text-only content
+      console.log(`[AI Provider Multimodal] Using ${actualProvider} for text-only content`);
+      const messages: AIMessage[] = [{ role: 'user', content: content as string }];
+      
+      switch (actualProvider) {
+        case 'openai':
+          response = await callOpenAI(apiKey, model, '', messages, maxTokens);
+          break;
+        case 'groq':
+          response = await callGroq(apiKey, model, '', messages, maxTokens);
+          break;
+        default:
+          throw new Error(`Unsupported provider: ${actualProvider}`);
+      }
+    } else {
+      // Use Anthropic for multimodal content or when Anthropic is configured
+      console.log(`[AI Provider Multimodal] Using Anthropic for ${isTextOnly ? 'text' : 'multimodal'} content`);
+      const anthropic = new Anthropic({ apiKey });
 
-    const response = await anthropic.messages.create({
-      model,
-      max_tokens: maxTokens,
-      messages: [
-        {
-          role: 'user',
-          content,
+      const anthropicResponse = await anthropic.messages.create({
+        model,
+        max_tokens: maxTokens,
+        messages: [
+          {
+            role: 'user',
+            content,
+          },
+        ],
+      });
+      
+      const textContent = anthropicResponse.content[0].type === 'text' ? anthropicResponse.content[0].text : '';
+
+      response = {
+        content: textContent,
+        usage: {
+          promptTokens: anthropicResponse.usage.input_tokens,
+          completionTokens: anthropicResponse.usage.output_tokens,
+          totalTokens: anthropicResponse.usage.input_tokens + anthropicResponse.usage.output_tokens,
         },
-      ],
-    });
-
-    const textContent = response.content[0].type === 'text' ? response.content[0].text : '';
-
-    const aiResponse: AIResponse = {
-      content: textContent,
-      usage: {
-        promptTokens: response.usage.input_tokens,
-        completionTokens: response.usage.output_tokens,
-        totalTokens: response.usage.input_tokens + response.usage.output_tokens,
-      },
-      model: response.model,
-      provider: provider === 'system' ? 'system' : 'anthropic',
-    };
+        model: anthropicResponse.model,
+        provider: provider === 'system' ? 'system' : 'anthropic',
+      };
+    }
 
     // Log usage
-    await logAPIUsage(userId, provider, aiResponse.model, feature, aiResponse.usage);
+    await logAPIUsage(userId, response.provider, response.model, feature, response.usage);
 
-    return aiResponse;
+    return response;
   } catch (error: any) {
     console.error('AI API error:', error);
     
