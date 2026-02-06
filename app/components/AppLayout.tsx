@@ -18,9 +18,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   // Only show menu on tool pages (not on the portfolio home page or login page)
   // Check if pathname ends with locale or is the home page (e.g., /en, /pt-BR, /en/, /pt-BR/)
   const isHomePage = pathname === '/' || /^\/(en|pt-BR)\/?$/.test(pathname);
-  const isLoginPage = pathname === '/login' || pathname.startsWith('/login/') || 
-                      pathname === '/en/login' || pathname.startsWith('/en/login/') ||
-                      pathname === '/pt-BR/login' || pathname.startsWith('/pt-BR/login/');
+  const isLoginPage = pathname === '/login' || pathname.startsWith('/login/');
   const showMenu = !isHomePage && !isLoginPage && !pathname.startsWith('/_') && !pathname.startsWith('/api');
 
   return (
