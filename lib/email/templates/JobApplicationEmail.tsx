@@ -48,13 +48,13 @@ export const JobApplicationEmail = ({
             your dashboard.
           </Text>
           <Section style={jobBox}>
-            <Text style={jobTitle}>
+            <Text style={jobTitleStyle}>
               <strong>{jobTitle}</strong>
             </Text>
-            <Text style={companyText}>{companyName}</Text>
+            <Text style={companyTextStyle}>{companyName}</Text>
             {matchPercentage && (
               <Section style={matchBadge}>
-                <Text style={matchText}>{matchPercentage}% Match</Text>
+                <Text style={matchTextStyle}>{matchPercentage}% Match</Text>
               </Section>
             )}
           </Section>
@@ -139,14 +139,14 @@ const jobBox = {
   borderLeft: '4px solid #5469d4',
 };
 
-const jobTitle = {
+const jobTitleStyle = {
   color: '#1a1a1a',
   fontSize: '20px',
   fontWeight: 'bold',
   margin: '0 0 8px 0',
 };
 
-const companyText = {
+const companyTextStyle = {
   color: '#666',
   fontSize: '16px',
   margin: '0 0 12px 0',
@@ -159,7 +159,7 @@ const matchBadge = {
   display: 'inline-block',
 };
 
-const matchText = {
+const matchTextStyle = {
   color: '#fff',
   fontSize: '14px',
   fontWeight: 'bold',
