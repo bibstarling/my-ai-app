@@ -13,10 +13,6 @@ import {
   Settings,
 } from 'lucide-react';
 
-// Force dynamic rendering - these exports must be after imports
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
-
 interface UsageStat {
   provider: string;
   feature: string;
