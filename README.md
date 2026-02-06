@@ -117,6 +117,24 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+### 💳 API Configuration & Usage Tracking
+Users can connect their own LLM API keys instead of using the shared system API:
+
+**Supported Providers:**
+- **Groq** (FREE tier - recommended!) - Up to 7,000 requests/day free
+- **OpenAI** (GPT-4o, GPT-4o-mini, GPT-3.5-turbo)
+- **Anthropic** (Claude Sonnet 4, Claude Haiku)
+
+**Features:**
+- 🔑 Secure API key management
+- 📊 Detailed usage tracking by feature and provider
+- 💰 Real-time cost estimates
+- 🚨 Usage limits and alerts for shared API
+- ⚡ Automatic fallback to system API if not configured
+
+**Documentation:**
+- [docs/API_CONFIGURATION.md](./docs/API_CONFIGURATION.md) - Complete setup guide
+
 ### Environment Setup
 
 Required environment variables (see `.env.example` for full reference):
@@ -131,7 +149,7 @@ NEXT_PUBLIC_SUPABASE_URL=your_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_key
 
-# AI (Anthropic Claude)
+# AI (Anthropic Claude) - Used as system fallback API
 ANTHROPIC_API_KEY=your_key
 
 # Email (Resend) - Get free key at resend.com
@@ -153,6 +171,7 @@ Run the migrations in your Supabase SQL Editor:
 4. Username support: `supabase/migrations/20260209_add_username_to_users.sql`
 5. Portfolio tables: `supabase/migrations/20260209_create_portfolio_tables.sql`
 6. Portfolio storage: `supabase/migrations/20260209_create_portfolio_storage.sql`
+7. API keys & usage tracking: `supabase/migrations/20260210_add_api_keys_and_usage.sql`
 
 ## Project Structure
 

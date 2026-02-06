@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseServiceRole } from '@/lib/supabase-server';
-import portfolioData from '@/lib/portfolio-data';
+import { portfolioData } from '@/lib/portfolio-data';
 
 /**
  * GET /api/portfolio/[username]

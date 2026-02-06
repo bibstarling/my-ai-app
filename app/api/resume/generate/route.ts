@@ -53,7 +53,7 @@ export async function POST(req: Request) {
     }
 
     // Use AI to select most relevant content
-    const selection = await selectRelevantContent(jobTitle, jobDescription, jobCompany);
+    const selection = await selectRelevantContent(jobTitle, jobDescription, jobCompany, userId);
 
     // Create resume
     const resumeTitle = body.resume_title || `${jobTitle} Resume`;
@@ -345,36 +345,15 @@ Return ONLY valid JSON in this exact format:
 }`;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 2048,
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-      }),
-    });
+    const response = await generateAICompletion(
+      userId,
+      'resume_generation',
+      'You are an expert resume writer. Analyze job postings and select relevant content from candidate portfolios.',
+      [{ role: 'user', content: prompt }],
+      2048
+    );
 
-    const data = await response.json();
-
-    if (data.error) {
-      throw new Error(data.error.message || 'AI API error');
-    }
-
-    if (!data.content || !data.content[0]) {
-      throw new Error('Unexpected AI response format');
-    }
-
-    let resultText = data.content[0].text.trim();
+    let resultText = response.content.trim();
     
     // Clean up markdown code blocks if present
     if (resultText.startsWith('```json')) {

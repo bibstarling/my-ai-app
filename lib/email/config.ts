@@ -5,7 +5,12 @@ let resendInstance: Resend | null = null;
 
 export const getResend = () => {
   if (!resendInstance) {
-    resendInstance = new Resend(process.env.RESEND_API_KEY);
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      console.warn('RESEND_API_KEY not configured. Email functionality will be disabled.');
+      return null;
+    }
+    resendInstance = new Resend(apiKey);
   }
   return resendInstance;
 };
