@@ -17,11 +17,13 @@ import {
   Settings,
   Briefcase,
   Shield,
+  HelpCircle,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuthSafe } from '@/app/hooks/useAuthSafe';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { SettingsModal } from './SettingsModal';
+import { useRouter } from 'next/navigation';
 
 type MenuItem = {
   id: string;
@@ -95,6 +97,7 @@ type AppMenuProps = {
 
 export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, isEmbedMode } = useAuthSafe();
   const { isAdmin } = useIsAdmin();
   const menuItems = getMenuItems(isAdmin);
@@ -182,6 +185,11 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
                   }}
                 >
                   <UserButton.MenuItems>
+                    <UserButton.Action
+                      label="Help Center"
+                      labelIcon={<HelpCircle className="h-4 w-4" />}
+                      onClick={() => router.push('/help')}
+                    />
                     <UserButton.Action
                       label="Settings"
                       labelIcon={<Settings className="h-4 w-4" />}

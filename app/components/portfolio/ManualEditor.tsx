@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Trash2, Save } from 'lucide-react';
+import { Plus, Trash2, Save, X } from 'lucide-react';
 
 interface ManualEditorProps {
   portfolioData: any;
@@ -53,8 +53,8 @@ export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
 
   const tabs = [
     { id: 'basic', label: 'Basic Info' },
-    { id: 'positioning', label: 'PM Positioning' },
     { id: 'about', label: 'About' },
+    { id: 'strengths', label: 'Strengths & Awards' },
     { id: 'experience', label: 'Experience' },
     { id: 'projects', label: 'Projects' },
     { id: 'skills', label: 'Skills' },
@@ -199,40 +199,69 @@ export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
             </div>
           )}
 
-          {/* PM Positioning Tab */}
-          {activeTab === 'positioning' && (
+          {/* About Tab */}
+          {activeTab === 'about' && (
             <div className="space-y-6">
-              <h2 className="text-xl font-bold text-foreground">PM Positioning</h2>
+              <h2 className="text-xl font-bold text-foreground">About You</h2>
               
               <div>
                 <label className="mb-1 block text-sm font-medium text-foreground">
-                  Performance Level
+                  Professional Summary
+                </label>
+                <textarea
+                  value={data.about || ''}
+                  onChange={(e) => updateField('about', e.target.value)}
+                  rows={6}
+                  className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-accent focus:outline-none"
+                  placeholder="A brief introduction about yourself, your background, and what you do..."
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Optional - tell visitors about yourself
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-foreground">
+                  Professional Style (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={data.pmArchetype || data.workStyle || ''}
+                  onChange={(e) => {
+                    updateField('pmArchetype', e.target.value);
+                    updateField('workStyle', e.target.value);
+                  }}
+                  className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-accent focus:outline-none"
+                  placeholder="Strategic Builder, Creative Problem Solver, Technical Leader, etc."
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  A short phrase describing your working style or archetype
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-foreground">
+                  Current Level/Stage (Optional)
                 </label>
                 <input
                   type="text"
                   value={data.performanceLevel || ''}
                   onChange={(e) => updateField('performanceLevel', e.target.value)}
                   className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-accent focus:outline-none"
-                  placeholder="Exceeding High Expectations"
+                  placeholder="Senior Level, Top Performer, Exceeding Expectations, etc."
                 />
               </div>
+            </div>
+          )}
 
+          {/* Strengths & Awards Tab */}
+          {activeTab === 'strengths' && (
+            <div className="space-y-6">
+              <h2 className="text-xl font-bold text-foreground">Your Strengths & Recognition</h2>
+              
               <div>
                 <label className="mb-1 block text-sm font-medium text-foreground">
-                  PM Archetype
-                </label>
-                <input
-                  type="text"
-                  value={data.pmArchetype || ''}
-                  onChange={(e) => updateField('pmArchetype', e.target.value)}
-                  className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-accent focus:outline-none"
-                  placeholder="Strategic High-Agency Builder"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-foreground">
-                  Superpowers (one per line)
+                  Key Strengths & What Makes You Unique (one per line)
                 </label>
                 <textarea
                   value={data.superpowers?.join('\n') || ''}
@@ -244,14 +273,78 @@ export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
                   }
                   rows={8}
                   className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-accent focus:outline-none"
-                  placeholder="Resilient through organizational change&#10;Takes on multiple complex initiatives&#10;..."
+                  placeholder="Strong technical background with business acumen&#10;Excellent at stakeholder management&#10;Quick learner who adapts to new challenges&#10;..."
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  What are your superpowers? What sets you apart from others in your field?
+                </p>
+              </div>
+
+          {/* Strengths & Awards Tab */}
+          {activeTab === 'strengths' && (
+            <div className="space-y-6">
+              <h2 className="text-xl font-bold text-foreground">Your Strengths & Recognition</h2>
+              <p className="text-sm text-muted-foreground">
+                Showcase what makes you exceptional and the recognition you've received.
+              </p>
+              
+              <div>
+                <label className="mb-1 block text-sm font-medium text-foreground">
+                  Your Professional Style (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={data.pmArchetype || data.workStyle || ''}
+                  onChange={(e) => {
+                    updateField('pmArchetype', e.target.value);
+                    updateField('workStyle', e.target.value);
+                  }}
+                  className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-accent focus:outline-none"
+                  placeholder="Strategic Builder, Creative Problem Solver, Data-Driven Leader, etc."
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  A short phrase that captures how you work
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-foreground">
+                  Performance/Experience Level (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={data.performanceLevel || ''}
+                  onChange={(e) => updateField('performanceLevel', e.target.value)}
+                  className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-accent focus:outline-none"
+                  placeholder="Senior Professional, Top Performer, Industry Expert, etc."
                 />
               </div>
 
-              {/* Awards */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-foreground">
+                  Key Strengths & What Makes You Unique
+                </label>
+                <p className="mb-2 text-xs text-muted-foreground">
+                  List your superpowers - what sets you apart from others? One strength per line.
+                </p>
+                <textarea
+                  value={data.superpowers?.join('\n') || ''}
+                  onChange={(e) =>
+                    updateField(
+                      'superpowers',
+                      e.target.value.split('\n').filter((s: string) => s.trim())
+                    )
+                  }
+                  rows={8}
+                  className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-accent focus:outline-none"
+                  placeholder="Strong technical background with business acumen&#10;Excellent at cross-functional collaboration&#10;Quick learner who thrives in ambiguous situations&#10;Track record of delivering high-impact results&#10;..."
+                />
+              </div>
+
+              {/* Awards & Recognition */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-foreground">Awards</h3>
+                  <h3 className="text-lg font-semibold text-foreground">Awards & Recognition</h3>
                   <button
                     onClick={() =>
                       addItem('awards', {
@@ -264,7 +357,7 @@ export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
                     className="flex items-center gap-2 rounded-lg bg-accent px-3 py-1.5 text-sm font-semibold text-white hover:bg-accent/90"
                   >
                     <Plus className="h-3 w-3" />
-                    Add Award
+                    Add
                   </button>
                 </div>
 
@@ -294,12 +387,13 @@ export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
                       />
                       <input
                         type="text"
-                        value={award.quarter || ''}
-                        onChange={(e) =>
-                          updateNestedField('awards', index, 'quarter', e.target.value)
-                        }
+                        value={award.quarter || award.date || ''}
+                        onChange={(e) => {
+                          updateNestedField('awards', index, 'quarter', e.target.value);
+                          updateNestedField('awards', index, 'date', e.target.value);
+                        }}
                         className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none"
-                        placeholder="Q1 2025"
+                        placeholder="When (Q1 2025, Jan 2024, etc.)"
                       />
                       <textarea
                         value={award.description || ''}
@@ -308,11 +402,11 @@ export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
                         }
                         rows={2}
                         className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none"
-                        placeholder="Award description..."
+                        placeholder="What was this recognition for?"
                       />
                       <div>
                         <label className="mb-1 block text-xs font-medium text-foreground">
-                          Key Traits (comma-separated)
+                          Key Qualities/Traits (Optional)
                         </label>
                         <input
                           type="text"
@@ -326,7 +420,7 @@ export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
                             )
                           }
                           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none"
-                          placeholder="Resilience, Innovation, Leadership"
+                          placeholder="Leadership, Innovation, Excellence, etc."
                         />
                       </div>
                     </div>
@@ -339,18 +433,31 @@ export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
           {/* About Tab */}
           {activeTab === 'about' && (
             <div className="space-y-4">
-              <h2 className="text-xl font-bold text-foreground">About</h2>
+              <h2 className="text-xl font-bold text-foreground">About Section</h2>
+              
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                <p className="text-sm text-blue-900">
+                  This is the main introduction that appears at the top of your portfolio. Tell visitors about your background, expertise, and what drives you.
+                </p>
+              </div>
+              
               <div>
-                <label className="mb-1 block text-sm font-medium text-foreground">
-                  About Me
+                <label className="mb-2 block text-sm font-medium text-foreground">
+                  About Me (Multiple Paragraphs)
                 </label>
+                <p className="mb-2 text-xs text-muted-foreground">
+                  Write multiple paragraphs separated by blank lines. Each paragraph will be displayed separately for better readability.
+                </p>
                 <textarea
                   value={data.about || ''}
                   onChange={(e) => updateField('about', e.target.value)}
-                  rows={8}
-                  className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-accent focus:outline-none"
-                  placeholder="Tell visitors about yourself, your background, and what drives you..."
+                  rows={12}
+                  className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-accent focus:outline-none font-sans"
+                  placeholder="I'm a [your role] with [X years] of experience in [your field]...&#10;&#10;Throughout my career, I've focused on [your specialization]...&#10;&#10;What drives me is [your passion/motivation]..."
                 />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {(data.about || '').length} characters
+                </p>
               </div>
             </div>
           )}
@@ -596,6 +703,122 @@ export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
                         className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-accent focus:outline-none"
                         placeholder="Design, UX, Mobile App"
                       />
+                    </div>
+
+                    {/* Project Details Section */}
+                    <div className="mt-6 space-y-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-semibold text-blue-900">
+                          Detailed Project Information
+                        </h4>
+                        <button
+                          onClick={() => {
+                            const newDetails = [...(project.details || []), {
+                              heading: '',
+                              paragraphs: [''],
+                              list: [],
+                            }];
+                            updateNestedField('projects', index, 'details', newDetails);
+                          }}
+                          className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700"
+                        >
+                          <Plus className="h-3 w-3" />
+                          Add Section
+                        </button>
+                      </div>
+
+                      {project.details?.map((detail: any, detailIdx: number) => (
+                        <div key={detailIdx} className="rounded-lg border border-blue-300 bg-white p-3">
+                          <div className="mb-3 flex items-center justify-between">
+                            <input
+                              type="text"
+                              value={detail.heading || ''}
+                              onChange={(e) => {
+                                const newDetails = [...project.details];
+                                newDetails[detailIdx].heading = e.target.value;
+                                updateNestedField('projects', index, 'details', newDetails);
+                              }}
+                              className="flex-1 rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-semibold text-foreground focus:border-accent focus:outline-none"
+                              placeholder="Section Heading (e.g., 'The Challenge', 'My Role')"
+                            />
+                            <button
+                              onClick={() => {
+                                const newDetails = project.details.filter((_: any, i: number) => i !== detailIdx);
+                                updateNestedField('projects', index, 'details', newDetails);
+                              }}
+                              className="ml-2 text-red-500 hover:text-red-700"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
+
+                          <div className="space-y-3">
+                            <div>
+                              <label className="mb-1 block text-xs font-medium text-foreground">
+                                Paragraphs (one per box, click + to add more)
+                              </label>
+                              {detail.paragraphs?.map((para: string, paraIdx: number) => (
+                                <div key={paraIdx} className="mb-2 flex gap-2">
+                                  <textarea
+                                    value={para || ''}
+                                    onChange={(e) => {
+                                      const newDetails = [...project.details];
+                                      newDetails[detailIdx].paragraphs[paraIdx] = e.target.value;
+                                      updateNestedField('projects', index, 'details', newDetails);
+                                    }}
+                                    rows={2}
+                                    className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none"
+                                    placeholder="Paragraph content..."
+                                  />
+                                  <button
+                                    onClick={() => {
+                                      const newDetails = [...project.details];
+                                      newDetails[detailIdx].paragraphs = newDetails[detailIdx].paragraphs.filter((_: any, i: number) => i !== paraIdx);
+                                      updateNestedField('projects', index, 'details', newDetails);
+                                    }}
+                                    className="text-red-500 hover:text-red-700"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              ))}
+                              <button
+                                onClick={() => {
+                                  const newDetails = [...project.details];
+                                  newDetails[detailIdx].paragraphs = [...(newDetails[detailIdx].paragraphs || []), ''];
+                                  updateNestedField('projects', index, 'details', newDetails);
+                                }}
+                                className="text-xs text-blue-600 hover:text-blue-800"
+                              >
+                                + Add Paragraph
+                              </button>
+                            </div>
+
+                            <div>
+                              <label className="mb-1 block text-xs font-medium text-foreground">
+                                Bullet List (one per line, optional)
+                              </label>
+                              <textarea
+                                value={detail.list?.join('\n') || ''}
+                                onChange={(e) => {
+                                  const newDetails = [...project.details];
+                                  newDetails[detailIdx].list = e.target.value.split('\n').filter((l: string) => l.trim());
+                                  updateNestedField('projects', index, 'details', newDetails);
+                                }}
+                                rows={3}
+                                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none"
+                                placeholder="Bullet point 1&#10;Bullet point 2&#10;Bullet point 3"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {(!project.details || project.details.length === 0) && (
+                        <p className="text-xs text-blue-700">
+                          No detailed sections yet. Add sections to provide in-depth information about this project (challenges, solutions, outcomes, etc.)
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -17,6 +17,7 @@ import {
   Check,
   MessageSquare,
   Edit3,
+  Settings,
 } from 'lucide-react';
 import { ManualEditor } from '@/app/components/portfolio/ManualEditor';
 
