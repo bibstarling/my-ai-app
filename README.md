@@ -2,6 +2,25 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Features
 
+### 🎨 AI Portfolio Builder
+Build your professional portfolio website by chatting with AI:
+
+**Content Input:**
+- **Natural Conversation**: Tell AI about your work and achievements
+- **File Uploads**: Upload resumes, certificates, project screenshots
+- **URL Scraping**: Add links to GitHub, LinkedIn, articles, projects
+- **Clipboard Paste**: Paste screenshots directly with Ctrl+V
+
+**Features:**
+- **Live Preview**: See your portfolio update in real-time
+- **Custom URLs**: Get your unique portfolio at `/user/username`
+- **Privacy Controls**: Public or private portfolio settings
+- **AI-Powered**: AI structures your content professionally
+- **Admin Sync**: Admin's portfolio updates the main page automatically
+
+**Documentation:**
+- [docs/PORTFOLIO_BUILDER.md](./docs/PORTFOLIO_BUILDER.md) - Complete feature documentation
+
 ### 🚀 Smart Resume & Cover Letter Builder
 An AI-powered resume builder that automatically generates job-specific resumes from your portfolio:
 
@@ -131,30 +150,44 @@ Run the migrations in your Supabase SQL Editor:
 1. Job ingestion schema: `supabase/migrations/20260204000000_job_ingestion_schema.sql`
 2. Resume builder schema: `supabase/migrations/20260204100000_resume_builder_schema.sql`
 3. Cover letter schema: `supabase/migrations/20260204110000_cover_letter_schema.sql`
+4. Username support: `supabase/migrations/20260209_add_username_to_users.sql`
+5. Portfolio tables: `supabase/migrations/20260209_create_portfolio_tables.sql`
+6. Portfolio storage: `supabase/migrations/20260209_create_portfolio_storage.sql`
 
 ## Project Structure
 
 ```
 app/
 ├── assistant/          # AI assistant interface
+├── portfolio/          # Portfolio builder
+│   └── builder/       # Chat-based portfolio builder UI
+├── user/[username]/    # Public portfolio pages
 ├── resume-builder/     # Resume builder and job adaptation
 │   ├── [id]/          # Resume editor
 │   ├── [id]/adapt/    # Job adaptation interface
 │   └── [id]/preview/  # Resume preview and export
+├── settings/          # User settings
+│   └── portfolio/     # Portfolio settings (username, privacy)
 ├── admin/             # Admin dashboard
 └── api/
     ├── chat/          # AI chat endpoint
+    ├── portfolio/     # Portfolio APIs (CRUD, chat, upload, scrape)
     ├── jobs/          # Job listings API
     ├── matches/       # Job matching API
     └── resume/        # Resume CRUD and adaptation
 lib/
 ├── jobs-ingestion/    # Job scraping and deduplication
+├── portfolio-builder.ts  # Portfolio AI logic
+├── file-processor.ts    # File upload and AI analysis
+├── url-scraper.ts       # URL scraping with Puppeteer
+├── username.ts          # Username validation and generation
 ├── email/             # Email system and templates
 │   ├── templates/     # React Email templates
 │   ├── config.ts      # Email configuration
 │   └── send.ts        # Email sending functions
 └── types/             # TypeScript types
 docs/
+├── PORTFOLIO_BUILDER.md  # Portfolio builder documentation
 ├── RESUME_BUILDER.md     # Resume builder documentation
 ├── JOB_INGESTION.md      # Job ingestion documentation
 ├── EMAIL_SETUP_GUIDE.md  # Quick email setup (5 min)

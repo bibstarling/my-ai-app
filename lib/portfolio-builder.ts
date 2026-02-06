@@ -1,9 +1,5 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { getSupabaseServiceRole } from './supabase-server';
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+import { generateAICompletion, AIMessage } from './ai-provider';
 
 interface PortfolioContext {
   portfolioData: any;
@@ -189,8 +185,8 @@ export async function processChatMessage(
   // Build system prompt
   const systemPrompt = buildPortfolioSystemPrompt(context);
   
-  // Prepare messages for Claude
-  const messages: Anthropic.MessageParam[] = [
+  // Prepare messages for AI
+  const messages: AIMessage[] = [
     // Include recent chat history for context
     ...context.chatHistory.map(m => ({
       role: m.role as 'user' | 'assistant',
@@ -203,17 +199,16 @@ export async function processChatMessage(
     },
   ];
 
-  // Call Claude API
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 4096,
-    system: systemPrompt,
-    messages: messages,
-  });
+  // Call AI with user's configured provider or fallback to system
+  const response = await generateAICompletion(
+    userId,
+    'portfolio_chat',
+    systemPrompt,
+    messages,
+    4096
+  );
 
-  const responseText = response.content[0].type === 'text' 
-    ? response.content[0].text 
-    : '';
+  const responseText = response.content;
 
   // Try to parse JSON response
   let parsedResponse;

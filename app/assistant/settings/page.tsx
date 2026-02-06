@@ -10,6 +10,7 @@ import {
   ArrowLeft,
   ChevronRight,
   Loader2,
+  Briefcase,
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -39,6 +40,19 @@ export default function SettingsPage() {
   }
 
   const settingsSections = [
+    {
+      title: 'Portfolio',
+      description: 'Manage your portfolio website and visibility',
+      icon: <Briefcase className="h-6 w-6" />,
+      items: [
+        {
+          label: 'Portfolio Settings',
+          description: 'Configure username, privacy, and SEO',
+          icon: <Briefcase className="h-5 w-5" />,
+          href: '/settings/portfolio',
+        },
+      ],
+    },
     {
       title: 'Notifications',
       description: 'Manage your email and notification preferences',

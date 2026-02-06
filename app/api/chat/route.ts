@@ -1,53 +1,36 @@
 import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
+import { generateAICompletion } from '@/lib/ai-provider';
 
 export async function POST(req: Request) {
   try {
+    const { userId } = await auth();
+    
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { message } = await req.json();
 
-    console.log('Sending message to Claude:', message);
-
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY || '',
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1024,
-        messages: [
-          {
-            role: 'user',
-            content: message,
-          },
-        ],
-      }),
-    });
-
-    const data = await response.json();
-    console.log('Response from Claude:', data);
-
-    // Check if there's an error in the response
-    if (data.error) {
-      console.error('API Error:', data.error);
-      return NextResponse.json(
-        { error: data.error.message || 'API request failed' },
-        { status: 500 }
-      );
+    if (!message) {
+      return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
-    // Check if content exists
-    if (!data.content || !data.content[0]) {
-      console.error('Unexpected response structure:', data);
-      return NextResponse.json(
-        { error: 'Unexpected response from API' },
-        { status: 500 }
-      );
-    }
+    console.log('Sending message to AI:', message);
+
+    // Use the AI provider system (user's API or system fallback)
+    const response = await generateAICompletion(
+      userId,
+      'assistant_chat',
+      'You are a helpful AI assistant specializing in career guidance and job search. Be concise and actionable.',
+      [{ role: 'user', content: message }],
+      1024
+    );
+
+    console.log('Response from AI:', response);
     
     return NextResponse.json({ 
-      response: data.content[0].text 
+      response: response.content 
     });
   } catch (error) {
     console.error('Error:', error);

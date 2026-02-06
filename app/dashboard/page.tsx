@@ -1,34 +1,249 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
-import { ArrowUpRight, Linkedin, Mail, ExternalLink, X } from 'lucide-react';
+import { 
+  Sparkles, 
+  FileText, 
+  Bot, 
+  Briefcase, 
+  Settings, 
+  ArrowRight,
+  CheckCircle,
+  TrendingUp
+} from 'lucide-react';
 
-type ProjectDetailSection = {
-  heading?: string;
-  paragraphs?: string[];
-  list?: string[];
-};
+export default function DashboardPage() {
+  const { user, isLoaded } = useUser();
 
-type SkillshareProject = {
-  id: string;
-  title: string;
-  company: string;
-  cardTeaser: string;
-  outcome: string;
-  tags: string[];
-  details: ProjectDetailSection[];
-};
+  const quickActions = [
+    {
+      icon: <Sparkles className="h-6 w-6" />,
+      title: 'Build Portfolio',
+      description: 'Create your professional portfolio with AI assistance',
+      href: '/portfolio/builder',
+      color: 'bg-purple-500',
+    },
+    {
+      icon: <FileText className="h-6 w-6" />,
+      title: 'Generate Resume',
+      description: 'Create job-specific resumes from your portfolio',
+      href: '/resume-builder',
+      color: 'bg-blue-500',
+    },
+    {
+      icon: <Bot className="h-6 w-6" />,
+      title: 'AI Assistant',
+      description: 'Get career coaching and interview prep',
+      href: '/assistant',
+      color: 'bg-green-500',
+    },
+    {
+      icon: <Briefcase className="h-6 w-6" />,
+      title: 'Find Jobs',
+      description: 'Search for jobs matching your skills',
+      href: '/assistant/job-search',
+      color: 'bg-orange-500',
+    },
+  ];
 
-const navItems = [
-  { id: 'about', label: 'About' },
-  { id: 'experience', label: 'Experience' },
-  { id: 'work', label: 'Work' },
-  { id: 'approach', label: 'Approach' },
-  { id: 'contact', label: 'Contact' },
-];
+  const recentActivity = [
+    {
+      type: 'resume',
+      title: 'Resume updated',
+      description: 'Your resume was last updated 2 days ago',
+      time: '2 days ago',
+    },
+    {
+      type: 'job',
+      title: 'New job matches',
+      description: '5 new jobs match your profile',
+      time: '3 days ago',
+    },
+  ];
 
-const experiences = [
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      {/* Header */}
+      <div className="bg-white border-b border-border">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">
+                Welcome back{user?.firstName ? `, ${user.firstName}` : ''}!
+              </h1>
+              <p className="text-muted mt-2">
+                Continue building your career with AI-powered tools
+              </p>
+            </div>
+            <Link
+              href="/settings/portfolio"
+              className="flex items-center gap-2 px-4 py-2 bg-muted/50 hover:bg-muted rounded-lg transition-colors"
+            >
+              <Settings className="h-4 w-4" />
+              <span className="text-sm">Settings</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Quick Actions */}
+            <section>
+              <h2 className="text-xl font-bold text-foreground mb-4">Quick Actions</h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                {quickActions.map((action, index) => (
+                  <Link
+                    key={index}
+                    href={action.href}
+                    className="group bg-white rounded-xl border border-border p-6 hover:border-accent hover:shadow-lg transition-all"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className={`p-3 ${action.color} rounded-lg text-white`}>
+                        {action.icon}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-foreground group-hover:text-accent transition-colors mb-1">
+                          {action.title}
+                        </h3>
+                        <p className="text-sm text-muted leading-relaxed">
+                          {action.description}
+                        </p>
+                      </div>
+                      <ArrowRight className="h-5 w-5 text-muted group-hover:text-accent group-hover:translate-x-1 transition-all" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+
+            {/* Getting Started */}
+            <section className="bg-gradient-to-br from-accent/5 to-transparent rounded-xl border border-accent/20 p-6">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-accent/10 rounded-lg">
+                  <TrendingUp className="h-6 w-6 text-accent" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-foreground mb-2">
+                    Get Started in 3 Steps
+                  </h3>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-accent shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Build Your Portfolio</p>
+                        <p className="text-xs text-muted">Let AI help structure your experience</p>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-muted shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Generate Resumes</p>
+                        <p className="text-xs text-muted">Create tailored resumes for specific jobs</p>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-muted shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Apply to Jobs</p>
+                        <p className="text-xs text-muted">Find and track your applications</p>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Profile Status */}
+            <div className="bg-white rounded-xl border border-border p-6">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-accent mb-4">
+                Profile Status
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-foreground">Portfolio</span>
+                    <span className="text-xs text-muted">0%</span>
+                  </div>
+                  <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
+                    <div className="h-full bg-accent w-0" />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-foreground">Resume</span>
+                    <span className="text-xs text-muted">0%</span>
+                  </div>
+                  <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
+                    <div className="h-full bg-accent w-0" />
+                  </div>
+                </div>
+              </div>
+              <Link
+                href="/portfolio/builder"
+                className="mt-6 block w-full text-center px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors text-sm font-medium"
+              >
+                Complete Your Profile
+              </Link>
+            </div>
+
+            {/* Recent Activity */}
+            <div className="bg-white rounded-xl border border-border p-6">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-accent mb-4">
+                Recent Activity
+              </h3>
+              <div className="space-y-4">
+                {recentActivity.length > 0 ? (
+                  recentActivity.map((activity, index) => (
+                    <div key={index} className="flex gap-3">
+                      <div className="w-2 h-2 rounded-full bg-accent mt-2" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-foreground">{activity.title}</p>
+                        <p className="text-xs text-muted mt-0.5">{activity.description}</p>
+                        <p className="text-xs text-muted mt-1">{activity.time}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted">No recent activity yet</p>
+                )}
+              </div>
+            </div>
+
+            {/* Tips Card */}
+            <div className="bg-gradient-to-br from-blue-50 to-transparent rounded-xl border border-blue-200 p-6">
+              <div className="flex items-start gap-3">
+                <Sparkles className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-bold text-blue-900 mb-2">Pro Tip</h4>
+                  <p className="text-xs text-blue-800 leading-relaxed">
+                    Upload your resume or paste your LinkedIn profile to quickly build your portfolio with AI
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/*const experiences = [
   {
     period: 'Mar 2024 - Present',
     title: 'Lead Product Manager',
@@ -795,530 +1010,6 @@ const achievements = [
   },
 ];
 
-function ProjectModal({
-  project,
-  onClose,
-}: {
-  project: SkillshareProject;
-  onClose: () => void;
-}) {
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleEscape);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = '';
-    };
-  }, [onClose]);
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-12 pb-24"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="project-modal-title"
-    >
-      <div
-        className="relative w-full max-w-2xl rounded-lg border border-border bg-white shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-border bg-white p-6 pb-4">
-          <div>
-            <p className="text-xs font-medium text-muted uppercase tracking-wider">{project.company}</p>
-            <h2 id="project-modal-title" className="mt-1 text-xl font-semibold text-foreground">
-              {project.title}
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="shrink-0 rounded p-1 text-muted hover:bg-muted hover:text-foreground transition-colors"
-            aria-label="Close"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        <div className="max-h-[calc(100vh-12rem)] overflow-y-auto p-6 pt-4">
-          <div className="space-y-6">
-            {project.details.map((section, i) => (
-              <div key={i}>
-                {section.heading && (
-                  <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-accent">
-                    {section.heading}
-                  </h3>
-                )}
-                {section.paragraphs?.map((p, j) => (
-                  <p key={j} className="text-sm text-muted leading-relaxed mb-3 last:mb-0">
-                    {p}
-                  </p>
-                ))}
-                {section.list && (
-                  <ul className="list-disc list-inside space-y-1 text-sm text-muted">
-                    {section.list.map((item, j) => (
-                      <li key={j}>{item}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function HomePage() {
-  const [activeSection, setActiveSection] = useState('about');
-  const [modalProject, setModalProject] = useState<SkillshareProject | null>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
-        });
-      },
-      { rootMargin: '-50% 0px -50% 0px' }
-    );
-
-    navItems.forEach(({ id }) => {
-      const element = document.getElementById(id);
-      if (element) observer.observe(element);
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-white lg:flex">
-      {/* Left Sidebar - Sticky on Desktop */}
-      <header className="lg:fixed lg:top-0 lg:left-0 lg:flex lg:h-screen lg:w-1/3 lg:flex-col lg:justify-between lg:py-24 lg:px-24 px-6 py-16">
-        <div>
-          <h1 className="text-4xl font-bold text-foreground lg:text-5xl tracking-tight">
-            Bianca Starling
-          </h1>
-          <h2 className="mt-3 text-xl font-medium text-foreground/90 lg:text-2xl">
-            Lead Product Manager
-          </h2>
-          <p className="mt-4 max-w-xs text-muted leading-relaxed">
-            Building community-driven EdTech products and AI-powered experiences. Based in Brasília, working globally.
-          </p>
-
-          {/* Navigation - Desktop Only */}
-          <nav className="mt-16 hidden lg:block">
-            <ul className="flex flex-col gap-4">
-              {navItems.map(({ id, label }) => (
-                <li key={id}>
-                  <a
-                    href={`#${id}`}
-                    className={`group flex items-center gap-4 py-1 transition-all duration-300 ${
-                      activeSection === id ? 'text-foreground' : 'text-muted hover:text-foreground'
-                    }`}
-                  >
-                    <span
-                      className={`h-px transition-all duration-300 ${
-                        activeSection === id
-                          ? 'w-16 bg-accent'
-                          : 'w-8 bg-muted group-hover:w-16 group-hover:bg-foreground'
-                      }`}
-                    />
-                    <span className="text-xs font-semibold uppercase tracking-widest">
-                      {label}
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
-
-        {/* Social Links */}
-        <div className="mt-8 flex items-center gap-6 lg:mt-0">
-          <a
-            href="https://linkedin.com/in/biancastarling"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="LinkedIn"
-            className="text-muted hover:text-accent transition-colors"
-          >
-            <Linkedin className="h-5 w-5" />
-          </a>
-          <a
-            href="mailto:bibstarling@gmail.com"
-            aria-label="Email"
-            className="text-muted hover:text-accent transition-colors"
-          >
-            <Mail className="h-5 w-5" />
-          </a>
-        </div>
-      </header>
-
-      {/* Right Content - Scrollable */}
-      <main className="lg:ml-[33.333333%] lg:w-2/3 lg:py-24 lg:px-24 px-6 pb-24">
-        {/* About Section */}
-        <section id="about" className="mb-24 scroll-mt-24 lg:mb-36">
-          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            About
-          </h3>
-          <div className="space-y-4 text-muted leading-relaxed">
-            <p>
-              I'm a <span className="text-foreground font-semibold">Product Manager</span> who builds{' '}
-              <span className="text-foreground">AI products</span> and ships platform infrastructure. Right now I'm leading AI strategy at{' '}
-              <span className="text-foreground">Skillshare</span>, where I shipped the{' '}
-              <span className="text-foreground">ChatGPT App</span> and built semantic search that powers discovery across the product. Before that, I rebuilt publishing systems, launched marketplace products, and architected content management platforms.
-            </p>
-            <p>
-              My track record: <span className="text-foreground">25% increase in daily engagement</span> at Skillshare. 200% revenue growth at Unyleya. Digital transformation across 500+ schools at SENAI. I've worked at startups, growth-stage companies, and a national education department. I get results in different contexts.
-            </p>
-            <p>
-              What I'm good at: Taking messy problems and turning them into shipped products. Running discovery that actually informs decisions. Working with engineering to figure out what's possible, then making it happen. I'm comfortable with ambiguity. I make things simpler, not more complex.
-            </p>
-            <p>
-              What I want next: More ownership over <span className="text-foreground">product strategy and direction</span>. I've been executing on roadmaps and shipping products for years. I'm ready to shape where the product goes, not just how we get there. I want to be in the room when we decide what to build next.
-            </p>
-          </div>
-
-          {/* Featured Awards & Impact */}
-          <div className="mt-12 space-y-4">
-            {/* Awards */}
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-lg border-2 border-accent bg-accent/5 p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-2xl">🏆</span>
-                  <p className="text-sm font-bold text-accent">Agility Award Q1 2025</p>
-                </div>
-                <p className="text-xs text-muted leading-relaxed">
-                  Awarded for finding creative ways to ship when resources are tight, keeping multiple complex projects moving through organizational shifts
-                </p>
-              </div>
-              <div className="rounded-lg border-2 border-accent bg-accent/5 p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-2xl">🔬</span>
-                  <p className="text-sm font-bold text-accent">Curiosity Award Q2 2024</p>
-                </div>
-                <p className="text-xs text-muted leading-relaxed">
-                  Awarded for bringing AI innovation to product development, building practical solutions that drive real efficiency gains
-                </p>
-              </div>
-            </div>
-            
-            {/* Impact Metrics */}
-            <div className="grid gap-4 sm:grid-cols-4">
-              <div className="rounded-lg border border-border bg-card/30 p-4">
-                <p className="text-2xl font-bold text-accent">25%</p>
-                <p className="text-xs text-muted">Daily engagement increase</p>
-              </div>
-              <div className="rounded-lg border border-border bg-card/30 p-4">
-                <p className="text-2xl font-bold text-accent">0-to-1</p>
-                <p className="text-xs text-muted">ChatGPT App & AI products</p>
-              </div>
-              <div className="rounded-lg border border-border bg-card/30 p-4">
-                <p className="text-2xl font-bold text-accent">200%</p>
-                <p className="text-xs text-muted">Revenue growth (Unyleya)</p>
-              </div>
-              <div className="rounded-lg border border-border bg-card/30 p-4">
-                <p className="text-2xl font-bold text-accent">500+</p>
-                <p className="text-xs text-muted">Schools transformed</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Experience Section */}
-        <section id="experience" className="mb-24 scroll-mt-24 lg:mb-36">
-          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            Experience
-          </h3>
-          <div className="space-y-12">
-            {experiences.map((exp, index) => (
-              <div
-                key={index}
-                className="group relative grid gap-4 pb-1 transition-all sm:grid-cols-8 sm:gap-8"
-              >
-                <div className="absolute -inset-x-4 -inset-y-4 z-0 hidden rounded-md transition-all group-hover:bg-card/50 group-hover:shadow-[inset_0_1px_0_0_rgba(148,163,184,0.1)] lg:block" />
-                <div className="z-10 sm:col-span-2">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-muted">
-                    {exp.period}
-                  </span>
-                </div>
-                <div className="z-10 sm:col-span-6">
-                  <h4 className="font-medium text-foreground group-hover:text-accent transition-colors">
-                    {exp.title}
-                  </h4>
-                  {exp.subtitle && (
-                    <p className="text-xs text-accent mt-0.5">{exp.subtitle}</p>
-                  )}
-                  <p className="text-sm text-foreground/80">{exp.company}</p>
-                  <p className="text-xs text-muted">{exp.location}</p>
-                  <p className="mt-3 text-sm text-muted leading-relaxed">{exp.description}</p>
-                  {exp.highlights && exp.highlights.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {exp.highlights.map((highlight) => (
-                        <span
-                          key={highlight}
-                          className="text-xs font-medium text-accent"
-                        >
-                          {highlight}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  <ul className="mt-4 flex flex-wrap gap-2">
-                    {exp.skills.map((skill) => (
-                      <li
-                        key={skill}
-                        className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent"
-                      >
-                        {skill}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Skills */}
-          <div className="mt-16 space-y-6">
-            <div>
-              <h4 className="mb-4 text-sm font-semibold text-foreground">Strategy & Leadership</h4>
-              <ul className="flex flex-wrap gap-2">
-                {skills.strategy.map((skill) => (
-                  <li
-                    key={skill}
-                    className="rounded-full border border-border px-3 py-1 text-xs text-muted"
-                  >
-                    {skill}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4 className="mb-4 text-sm font-semibold text-foreground">Discovery & Research</h4>
-              <ul className="flex flex-wrap gap-2">
-                {skills.discovery.map((skill) => (
-                  <li
-                    key={skill}
-                    className="rounded-full border border-border px-3 py-1 text-xs text-muted"
-                  >
-                    {skill}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4 className="mb-4 text-sm font-semibold text-foreground">AI & Technical</h4>
-              <ul className="flex flex-wrap gap-2">
-                {skills.technical.map((skill) => (
-                  <li
-                    key={skill}
-                    className="rounded-full border border-border px-3 py-1 text-xs text-muted"
-                  >
-                    {skill}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4 className="mb-4 text-sm font-semibold text-foreground">Tools</h4>
-              <ul className="flex flex-wrap gap-2">
-                {skills.tools.map((skill) => (
-                  <li
-                    key={skill}
-                    className="rounded-full border border-border px-3 py-1 text-xs text-muted"
-                  >
-                    {skill}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <a
-            href="/resume.pdf"
-            className="mt-12 inline-flex items-center gap-2 text-sm font-semibold text-foreground hover:text-accent transition-colors group"
-          >
-            View Full Resume
-            <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-          </a>
-        </section>
-
-        {/* Work Section - Skillshare projects */}
-        <section id="work" className="mb-24 scroll-mt-24 lg:mb-36">
-          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            Work
-          </h3>
-          <div className="space-y-12">
-            {skillshareProjects.map((project) => (
-              <div
-                key={project.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => setModalProject(project)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setModalProject(project); } }}
-                className="group relative grid gap-4 pb-1 transition-all cursor-pointer"
-              >
-                <div className="absolute -inset-x-4 -inset-y-4 z-0 hidden rounded-md transition-all group-hover:bg-card/50 group-hover:shadow-[inset_0_1px_0_0_rgba(148,163,184,0.1)] lg:block" />
-                <div className="z-10">
-                  <p className="text-xs font-medium text-muted uppercase tracking-wider">{project.company}</p>
-                  <h4 className="mt-1 font-medium text-foreground group-hover:text-accent transition-colors">
-                    {project.title}
-                  </h4>
-                  <p className="mt-2 text-sm text-muted leading-relaxed">{project.cardTeaser}</p>
-                  <p className="mt-3 text-sm font-medium text-accent">{project.outcome}</p>
-                  <ul className="mt-4 flex flex-wrap gap-2">
-                    {project.tags.map((tag) => (
-                      <li
-                          key={tag}
-                        className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent"
-                      >
-                        {tag}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            ))}
-          </div>
-          {modalProject && (
-            <ProjectModal project={modalProject} onClose={() => setModalProject(null)} />
-          )}
-
-          {/* Speaking & Recognition */}
-          <div className="mt-16">
-            <h4 className="mb-6 text-sm font-semibold text-foreground">Speaking & Recognition</h4>
-            <div className="space-y-4">
-              {achievements.map((achievement, index) => (
-                <a
-                  key={index}
-                  href={achievement.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-start gap-3 text-muted hover:text-foreground transition-colors"
-                >
-                  <ExternalLink className="h-4 w-4 mt-0.5 text-accent shrink-0" />
-                  <div>
-                    <span className="text-sm font-medium text-foreground group-hover:text-accent transition-colors">
-                      {achievement.title}
-                    </span>
-                    <span className="text-xs text-muted ml-2">{achievement.date}</span>
-                    <p className="text-xs text-muted mt-0.5">{achievement.description}</p>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Approach Section */}
-        <section id="approach" className="mb-24 scroll-mt-24 lg:mb-36">
-          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            Approach
-          </h3>
-          <div className="space-y-8">
-            <p className="text-muted leading-relaxed">
-              My product philosophy is simple: <span className="text-foreground font-medium">ship fast, learn fast, iterate fast</span>. I thrive in ambiguity and constraints, turning limited resources into creative advantages. I focus on delivering user value quickly through scrappy experimentation and right-sized solutions.
-            </p>
-            {approachItems.map((item, index) => (
-              <div key={index} className="group border-l-2 border-border pl-4 hover:border-accent transition-colors">
-                <h4 className="font-medium text-foreground group-hover:text-accent transition-colors">
-                  {item.title}
-                </h4>
-                <p className="mt-2 text-sm text-muted leading-relaxed">{item.description}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Certifications */}
-          <div className="mt-16">
-            <h4 className="mb-6 text-sm font-semibold text-foreground">Certifications</h4>
-            <ul className="space-y-3 text-sm text-muted">
-              <li className="flex items-start gap-3">
-                <span className="text-accent">•</span>
-                <span>Product-led Certification (Pendo & Mind the Product)</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-accent">•</span>
-                <span>Identifying Hidden Assumptions (Product Talk Academy)</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-accent">•</span>
-                <span>Educational Product Manager (Future Education)</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-accent">•</span>
-                <span>Strategic Digital Transformation (TDS Company)</span>
-              </li>
-            </ul>
-          </div>
-
-          {/* Education */}
-          <div className="mt-12">
-            <h4 className="mb-6 text-sm font-semibold text-foreground">Education</h4>
-            <ul className="space-y-3 text-sm text-muted">
-              <li className="flex items-start gap-3">
-                <span className="text-accent">•</span>
-                <span>Specialization in Visual Arts (SENAC, 2012)</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-accent">•</span>
-                <span>Bachelor in Product Design & Graphic Design (University of Brasília, 2011)</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-accent">•</span>
-                <span>Mechatronics Engineer (2004-2006, incomplete)</span>
-              </li>
-            </ul>
-          </div>
-        </section>
-
-        {/* Contact Section */}
-        <section id="contact" className="scroll-mt-24">
-          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            Contact
-          </h3>
-          <div className="space-y-6">
-            <p className="text-muted leading-relaxed">
-              I'm always interested in hearing about new opportunities, especially roles focused on{' '}
-              <span className="text-foreground">AI-powered products</span>,{' '}
-              <span className="text-foreground">community-driven platforms</span>, or{' '}
-              <span className="text-foreground">EdTech innovation</span>.
-            </p>
-            <div className="flex flex-col gap-4">
-              <a
-                href="mailto:bibstarling@gmail.com"
-                className="group inline-flex items-center gap-3 text-foreground hover:text-accent transition-colors"
-              >
-                <Mail className="h-5 w-5" />
-                <span>bibstarling@gmail.com</span>
-                <ArrowUpRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-              </a>
-              <a
-                href="https://linkedin.com/in/biancastarling"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group inline-flex items-center gap-3 text-foreground hover:text-accent transition-colors"
-              >
-                <Linkedin className="h-5 w-5" />
-                <span>linkedin.com/in/biancastarling</span>
-                <ArrowUpRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-              </a>
-            </div>
-            <p className="text-sm text-muted pt-4">
-              Based in Brasília, Brazil. Available for remote work globally.
-            </p>
-          </div>
-        </section>
-
-        
-      </main>
-    </div>
-  );
-}
+/*
+Old content moved out 
+*/

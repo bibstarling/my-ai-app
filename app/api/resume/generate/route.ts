@@ -4,6 +4,7 @@ import { getSupabaseServiceRole } from '@/lib/supabase-server';
 import { portfolioData, getPortfolioSummary } from '@/lib/portfolio-data';
 import type { SectionType } from '@/lib/types/resume';
 import { sendDocumentReadyEmail } from '@/lib/email';
+import { generateAICompletion } from '@/lib/ai-provider';
 
 type GenerateRequest = {
   job_id?: string;
@@ -253,21 +254,9 @@ type ContentSelection = {
 async function selectRelevantContent(
   jobTitle: string,
   jobDescription: string,
-  jobCompany: string
+  jobCompany: string,
+  userId: string
 ): Promise<ContentSelection> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  
-  if (!apiKey) {
-    // Fallback: include everything
-    return {
-      summary: getPortfolioSummary(),
-      experienceIndices: [0, 1, 2], // Top 3 experiences
-      projectIndices: [0, 1, 2], // Top 3 projects
-      skills: Object.values(portfolioData.skills).flat(),
-      includeCertifications: true,
-      reasoning: 'Using default selection (AI not configured)',
-    };
-  }
 
     const prompt = `You are an expert resume writer. Analyze the job posting and select the most relevant content from this candidate's portfolio.
 

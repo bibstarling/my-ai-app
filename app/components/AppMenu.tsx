@@ -15,6 +15,7 @@ import {
   Mail,
   User,
   Settings,
+  Briefcase,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuthSafe } from '@/app/hooks/useAuthSafe';
@@ -61,6 +62,7 @@ function Tooltip({ content, children, show }: TooltipProps) {
 
 const getMenuItems = (t: (key: string) => string): MenuItem[] => [
   { id: 'dashboard', label: t('dashboard'), icon: <LayoutDashboard className="w-5 h-5" />, href: '/assistant' },
+  { id: 'portfolio-builder', label: t('portfolioBuilder'), icon: <Briefcase className="w-5 h-5" />, href: '/portfolio/builder' },
   { id: 'job-search', label: t('jobSearch'), icon: <Search className="w-5 h-5" />, href: '/assistant/job-search' },
   { id: 'my-jobs', label: t('myJobs'), icon: <Kanban className="w-5 h-5" />, href: '/assistant/my-jobs' },
   { id: 'chat', label: t('aiAssistant'), icon: <MessageSquare className="w-5 h-5" />, href: '/assistant/chat' },
