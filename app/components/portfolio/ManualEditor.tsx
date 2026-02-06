@@ -258,32 +258,6 @@ export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
           {activeTab === 'strengths' && (
             <div className="space-y-6">
               <h2 className="text-xl font-bold text-foreground">Your Strengths & Recognition</h2>
-              
-              <div>
-                <label className="mb-1 block text-sm font-medium text-foreground">
-                  Key Strengths & What Makes You Unique (one per line)
-                </label>
-                <textarea
-                  value={data.superpowers?.join('\n') || ''}
-                  onChange={(e) =>
-                    updateField(
-                      'superpowers',
-                      e.target.value.split('\n').filter((s: string) => s.trim())
-                    )
-                  }
-                  rows={8}
-                  className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-accent focus:outline-none"
-                  placeholder="Strong technical background with business acumen&#10;Excellent at stakeholder management&#10;Quick learner who adapts to new challenges&#10;..."
-                />
-                <p className="mt-1 text-xs text-muted-foreground">
-                  What are your superpowers? What sets you apart from others in your field?
-                </p>
-              </div>
-
-          {/* Strengths & Awards Tab */}
-          {activeTab === 'strengths' && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-bold text-foreground">Your Strengths & Recognition</h2>
               <p className="text-sm text-muted-foreground">
                 Showcase what makes you exceptional and the recognition you've received.
               </p>
