@@ -64,7 +64,7 @@ function Tooltip({ content, children, show }: TooltipProps) {
 const getMenuItems = (isAdmin: boolean): MenuItem[] => {
   const items: MenuItem[] = [
     { id: 'portfolio', label: 'Portfolio', icon: <Home className="w-5 h-5" />, href: '/' },
-    { id: 'dashboard', label: 'Control Room', icon: <LayoutDashboard className="w-5 h-5" />, href: '/dashboard' },
+    { id: 'dashboard', label: 'Werk Room', icon: <LayoutDashboard className="w-5 h-5" />, href: '/dashboard' },
     { id: 'portfolio-builder', label: 'My Portfolio', icon: <Briefcase className="w-5 h-5" />, href: '/portfolio/builder' },
     { id: 'job-search', label: 'Find Jobs', icon: <Search className="w-5 h-5" />, href: '/assistant/job-search' },
     { id: 'my-jobs', label: 'Applications', icon: <Kanban className="w-5 h-5" />, href: '/assistant/my-jobs' },

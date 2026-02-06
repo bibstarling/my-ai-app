@@ -280,14 +280,14 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white lg:flex">
-      {/* Control Room Button - Top Right - Only shown when logged in */}
+      {/* Werk Room Button - Top Right - Only shown when logged in */}
       {isLoaded && isSignedIn && !isEmbed && (
         <Link
           href="/dashboard"
           className="fixed top-6 right-6 z-50 flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition-all hover:bg-accent/90 hover:shadow-xl"
         >
           <LayoutDashboard className="h-4 w-4" />
-          <span>Control Room</span>
+          <span>Werk Room</span>
         </Link>
       )}
       
