@@ -53,6 +53,7 @@ export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
 
   const tabs = [
     { id: 'basic', label: 'Basic Info' },
+    { id: 'positioning', label: 'PM Positioning' },
     { id: 'about', label: 'About' },
     { id: 'experience', label: 'Experience' },
     { id: 'projects', label: 'Projects' },
@@ -194,6 +195,143 @@ export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
                   className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-accent focus:outline-none"
                   placeholder="https://yourwebsite.com"
                 />
+              </div>
+            </div>
+          )}
+
+          {/* PM Positioning Tab */}
+          {activeTab === 'positioning' && (
+            <div className="space-y-6">
+              <h2 className="text-xl font-bold text-foreground">PM Positioning</h2>
+              
+              <div>
+                <label className="mb-1 block text-sm font-medium text-foreground">
+                  Performance Level
+                </label>
+                <input
+                  type="text"
+                  value={data.performanceLevel || ''}
+                  onChange={(e) => updateField('performanceLevel', e.target.value)}
+                  className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-accent focus:outline-none"
+                  placeholder="Exceeding High Expectations"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-foreground">
+                  PM Archetype
+                </label>
+                <input
+                  type="text"
+                  value={data.pmArchetype || ''}
+                  onChange={(e) => updateField('pmArchetype', e.target.value)}
+                  className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-accent focus:outline-none"
+                  placeholder="Strategic High-Agency Builder"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-foreground">
+                  Superpowers (one per line)
+                </label>
+                <textarea
+                  value={data.superpowers?.join('\n') || ''}
+                  onChange={(e) =>
+                    updateField(
+                      'superpowers',
+                      e.target.value.split('\n').filter((s: string) => s.trim())
+                    )
+                  }
+                  rows={8}
+                  className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-accent focus:outline-none"
+                  placeholder="Resilient through organizational change&#10;Takes on multiple complex initiatives&#10;..."
+                />
+              </div>
+
+              {/* Awards */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-foreground">Awards</h3>
+                  <button
+                    onClick={() =>
+                      addItem('awards', {
+                        title: '',
+                        quarter: '',
+                        description: '',
+                        keyTraits: [],
+                      })
+                    }
+                    className="flex items-center gap-2 rounded-lg bg-accent px-3 py-1.5 text-sm font-semibold text-white hover:bg-accent/90"
+                  >
+                    <Plus className="h-3 w-3" />
+                    Add Award
+                  </button>
+                </div>
+
+                {data.awards?.map((award: any, index: number) => (
+                  <div key={index} className="rounded-lg border border-border bg-white p-4">
+                    <div className="mb-3 flex items-start justify-between">
+                      <h4 className="text-sm font-semibold text-foreground">
+                        Award {index + 1}
+                      </h4>
+                      <button
+                        onClick={() => removeItem('awards', index)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      <input
+                        type="text"
+                        value={award.title || ''}
+                        onChange={(e) =>
+                          updateNestedField('awards', index, 'title', e.target.value)
+                        }
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none"
+                        placeholder="Award Title"
+                      />
+                      <input
+                        type="text"
+                        value={award.quarter || ''}
+                        onChange={(e) =>
+                          updateNestedField('awards', index, 'quarter', e.target.value)
+                        }
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none"
+                        placeholder="Q1 2025"
+                      />
+                      <textarea
+                        value={award.description || ''}
+                        onChange={(e) =>
+                          updateNestedField('awards', index, 'description', e.target.value)
+                        }
+                        rows={2}
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none"
+                        placeholder="Award description..."
+                      />
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-foreground">
+                          Key Traits (comma-separated)
+                        </label>
+                        <input
+                          type="text"
+                          value={award.keyTraits?.join(', ') || ''}
+                          onChange={(e) =>
+                            updateNestedField(
+                              'awards',
+                              index,
+                              'keyTraits',
+                              e.target.value.split(',').map((t: string) => t.trim()).filter((t: string) => t)
+                            )
+                          }
+                          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none"
+                          placeholder="Resilience, Innovation, Leadership"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -725,13 +863,13 @@ export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
                 />
               </div>
 
-              {/* Articles */}
+              {/* Articles & Talks */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-bold text-foreground">Articles & Talks</h2>
                   <button
                     onClick={() =>
-                      addItem('articles', {
+                      addItem('articlesAndTalks', {
                         title: '',
                         type: 'Article',
                         organization: '',
@@ -746,14 +884,14 @@ export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
                   </button>
                 </div>
 
-                {data.articles?.map((article: any, index: number) => (
+                {(data.articlesAndTalks || data.articles)?.map((article: any, index: number) => (
                   <div key={index} className="rounded-lg border border-border bg-white p-4">
                     <div className="mb-3 flex items-start justify-between">
                       <h4 className="text-sm font-semibold text-foreground">
                         Article {index + 1}
                       </h4>
                       <button
-                        onClick={() => removeItem('articles', index)}
+                        onClick={() => removeItem(data.articlesAndTalks ? 'articlesAndTalks' : 'articles', index)}
                         className="text-red-500 hover:text-red-700"
                       >
                         <Trash2 className="h-3 w-3" />
@@ -765,7 +903,7 @@ export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
                         type="text"
                         value={article.title || ''}
                         onChange={(e) =>
-                          updateNestedField('articles', index, 'title', e.target.value)
+                          updateNestedField(data.articlesAndTalks ? 'articlesAndTalks' : 'articles', index, 'title', e.target.value)
                         }
                         className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none"
                         placeholder="Title"
@@ -774,7 +912,7 @@ export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
                         <select
                           value={article.type || 'Article'}
                           onChange={(e) =>
-                            updateNestedField('articles', index, 'type', e.target.value)
+                            updateNestedField(data.articlesAndTalks ? 'articlesAndTalks' : 'articles', index, 'type', e.target.value)
                           }
                           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none"
                         >
@@ -787,7 +925,7 @@ export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
                           type="text"
                           value={article.organization || ''}
                           onChange={(e) =>
-                            updateNestedField('articles', index, 'organization', e.target.value)
+                            updateNestedField(data.articlesAndTalks ? 'articlesAndTalks' : 'articles', index, 'organization', e.target.value)
                           }
                           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none"
                           placeholder="Publication/Event"
@@ -796,7 +934,7 @@ export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
                           type="text"
                           value={article.date || ''}
                           onChange={(e) =>
-                            updateNestedField('articles', index, 'date', e.target.value)
+                            updateNestedField(data.articlesAndTalks ? 'articlesAndTalks' : 'articles', index, 'date', e.target.value)
                           }
                           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none"
                           placeholder="Date"
@@ -806,7 +944,7 @@ export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
                         type="url"
                         value={article.url || ''}
                         onChange={(e) =>
-                          updateNestedField('articles', index, 'url', e.target.value)
+                          updateNestedField(data.articlesAndTalks ? 'articlesAndTalks' : 'articles', index, 'url', e.target.value)
                         }
                         className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none"
                         placeholder="URL"
