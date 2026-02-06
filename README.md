@@ -65,10 +65,19 @@ Professional email notifications powered by **Resend** with beautiful React Emai
 3. Add `RESEND_API_KEY` to `.env.local`
 4. Done! Emails are automatically sent
 
+**User Preferences:**
+Users can control which emails they receive via `/settings/email-preferences` with 5 categories:
+- Account & Security
+- Document Notifications  
+- Job Applications
+- Weekly Digests
+- Marketing & Tips
+
 **Documentation:**
 - [docs/EMAIL_SETUP_GUIDE.md](./docs/EMAIL_SETUP_GUIDE.md) - Quick 5-minute setup
 - [docs/EMAIL_SYSTEM.md](./docs/EMAIL_SYSTEM.md) - Complete documentation
 - [docs/EMAIL_FLOWS.md](./docs/EMAIL_FLOWS.md) - Visual flow diagrams
+- [docs/EMAIL_PREFERENCES.md](./docs/EMAIL_PREFERENCES.md) - User preferences system
 
 **Preview Templates:**
 Visit `http://localhost:3000/api/email/preview?template=welcome` to see templates in your browser.

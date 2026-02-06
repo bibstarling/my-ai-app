@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { createSupabaseServerClient } from '@/lib/supabase-server';
+import { getSupabaseServiceRole } from '@/lib/supabase-server';
 
 export async function GET() {
   try {
@@ -10,7 +10,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabase = createSupabaseServerClient();
+    const supabase = getSupabaseServiceRole();
     
     // Get or create user settings
     const { data: user, error } = await supabase
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid language' }, { status: 400 });
     }
 
-    const supabase = createSupabaseServerClient();
+    const supabase = getSupabaseServiceRole();
     
     // Upsert user settings
     const { error } = await supabase

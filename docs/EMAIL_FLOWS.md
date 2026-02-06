@@ -262,10 +262,15 @@ await sendWelcomeEmail({
 
 - ✅ All emails require user authentication
 - ✅ Email addresses are never shared
-- ✅ Unsubscribe link in marketing emails (future)
-- ✅ Email preferences management (future)
-- ✅ GDPR compliant
+- ✅ Email preferences management (users can opt-out)
+- ✅ Granular category controls
+- ✅ GDPR and CAN-SPAM compliant
 - ✅ SSL/TLS encryption in transit
+- ✅ Automatic preference checking before sending
+
+**User Preferences:** Users can manage their email preferences at `/settings/email-preferences`
+
+See [EMAIL_PREFERENCES.md](./EMAIL_PREFERENCES.md) for details.
 
 ## 📊 Email Performance
 

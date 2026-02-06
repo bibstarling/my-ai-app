@@ -31,6 +31,12 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 - [ ] Run `npm run dev`
 - [ ] Wait for server to start
 
+### Step 5: Setup Email Preferences (5 minutes)
+- [ ] Go to Supabase SQL Editor
+- [ ] Run migration: `supabase/migrations/20260206_email_preferences.sql`
+- [ ] Verify table created: `SELECT * FROM email_preferences LIMIT 1;`
+- [ ] Test preferences page: `http://localhost:3000/settings/email-preferences`
+
 ## ✅ Testing (Optional but Recommended)
 
 ### Test 1: Preview Email Templates
@@ -58,6 +64,8 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 - **Quick Setup:** [docs/EMAIL_SETUP_GUIDE.md](./docs/EMAIL_SETUP_GUIDE.md)
 - **Full Docs:** [docs/EMAIL_SYSTEM.md](./docs/EMAIL_SYSTEM.md)
 - **Flow Diagrams:** [docs/EMAIL_FLOWS.md](./docs/EMAIL_FLOWS.md)
+- **User Preferences:** [docs/EMAIL_PREFERENCES.md](./docs/EMAIL_PREFERENCES.md)
+- **Preferences Setup:** [docs/EMAIL_PREFERENCES_SETUP.md](./docs/EMAIL_PREFERENCES_SETUP.md)
 - **Implementation Summary:** [docs/EMAIL_IMPLEMENTATION_SUMMARY.md](./docs/EMAIL_IMPLEMENTATION_SUMMARY.md)
 
 ## 🎯 What Emails Are Active?
@@ -67,6 +75,17 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 - ✅ **Approval Confirmation** - When admin approves
 - ✅ **Resume Ready** - When resume is generated
 - ✅ **Cover Letter Ready** - When cover letter is generated
+
+## 🔔 Email Preferences
+
+Users can control which emails they receive:
+- ✅ Account & Security emails
+- ✅ Document notifications
+- ✅ Job application emails
+- ✅ Weekly digests
+- ✅ Marketing & tips
+
+**Settings page:** `/settings/email-preferences`
 
 ## 🚀 Production Setup (When Ready)
 
