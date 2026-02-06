@@ -1,24 +1,45 @@
 import { NextResponse } from 'next/server';
-import { auth, currentUser } from '@clerk/nextjs/server';
+import { auth, currentUser, createClerkClient } from '@clerk/nextjs/server';
 import { getSupabaseServiceRole } from '@/lib/supabase-server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    // Try to get auth from multiple sources
     const authData = await auth();
     const user = await currentUser();
     
-    console.log('[API Config GET] Auth:', { 
+    // Try to get token from Authorization header
+    const authHeader = req.headers.get('authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    
+    console.log('[API Config GET] Auth methods:', { 
       authUserId: authData?.userId, 
-      currentUserId: user?.id 
+      currentUserId: user?.id,
+      hasToken: !!token,
+      authHeader: authHeader?.substring(0, 20)
     });
     
-    const userId = authData?.userId || user?.id;
+    let userId = authData?.userId || user?.id;
+    
+    // If we have a token but no userId, try to verify the token
+    if (!userId && token) {
+      try {
+        const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY! });
+        const verified = await clerkClient.verifyToken(token, {
+          jwtKey: process.env.CLERK_JWT_KEY,
+        });
+        userId = verified.sub;
+        console.log('[API Config GET] Verified token, userId:', userId);
+      } catch (error) {
+        console.error('[API Config GET] Token verification failed:', error);
+      }
+    }
     
     if (!userId) {
-      console.error('[API Config GET] No user found');
+      console.error('[API Config GET] No user found from any method');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -55,12 +76,31 @@ export async function POST(req: Request) {
     const authData = await auth();
     const user = await currentUser();
     
-    console.log('[API Config POST] Auth:', { 
+    // Try to get token from Authorization header
+    const authHeader = req.headers.get('authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    
+    console.log('[API Config POST] Auth methods:', { 
       authUserId: authData?.userId, 
-      currentUserId: user?.id 
+      currentUserId: user?.id,
+      hasToken: !!token
     });
     
-    const userId = authData?.userId || user?.id;
+    let userId = authData?.userId || user?.id;
+    
+    // If we have a token but no userId, try to verify the token
+    if (!userId && token) {
+      try {
+        const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY! });
+        const verified = await clerkClient.verifyToken(token, {
+          jwtKey: process.env.CLERK_JWT_KEY,
+        });
+        userId = verified.sub;
+        console.log('[API Config POST] Verified token, userId:', userId);
+      } catch (error) {
+        console.error('[API Config POST] Token verification failed:', error);
+      }
+    }
     
     if (!userId) {
       console.error('[API Config POST] No user found');
@@ -117,17 +157,36 @@ export async function POST(req: Request) {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(req: Request) {
   try {
     const authData = await auth();
     const user = await currentUser();
     
-    console.log('[API Config DELETE] Auth:', { 
+    // Try to get token from Authorization header
+    const authHeader = req.headers.get('authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    
+    console.log('[API Config DELETE] Auth methods:', { 
       authUserId: authData?.userId, 
-      currentUserId: user?.id 
+      currentUserId: user?.id,
+      hasToken: !!token
     });
     
-    const userId = authData?.userId || user?.id;
+    let userId = authData?.userId || user?.id;
+    
+    // If we have a token but no userId, try to verify the token
+    if (!userId && token) {
+      try {
+        const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY! });
+        const verified = await clerkClient.verifyToken(token, {
+          jwtKey: process.env.CLERK_JWT_KEY,
+        });
+        userId = verified.sub;
+        console.log('[API Config DELETE] Verified token, userId:', userId);
+      } catch (error) {
+        console.error('[API Config DELETE] Token verification failed:', error);
+      }
+    }
     
     if (!userId) {
       console.error('[API Config DELETE] No user found');

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth, currentUser } from '@clerk/nextjs/server';
+import { auth, currentUser, verifyToken } from '@clerk/nextjs/server';
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import Groq from 'groq-sdk';
@@ -9,21 +9,35 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
-    // Try both auth methods for debugging
     const authData = await auth();
     const user = await currentUser();
     
-    console.log('[API Config TEST] Auth data:', { 
+    // Try to get token from Authorization header
+    const authHeader = req.headers.get('authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    
+    console.log('[API Config TEST] Auth methods:', { 
       authUserId: authData?.userId, 
       currentUserId: user?.id, 
-      hasUser: !!user,
-      hasAuth: !!authData?.userId 
+      hasToken: !!token,
+      authHeader: authHeader?.substring(0, 20)
     });
     
-    const userId = authData?.userId || user?.id;
+    let userId = authData?.userId || user?.id;
+    
+    // If we have a token but no userId, try to verify the token
+    if (!userId && token) {
+      try {
+        const verified = await verifyToken(token);
+        userId = verified.sub;
+        console.log('[API Config TEST] Verified token, userId:', userId);
+      } catch (error) {
+        console.error('[API Config TEST] Token verification failed:', error);
+      }
+    }
     
     if (!userId) {
-      console.error('[API Config TEST] No user found via auth or currentUser');
+      console.error('[API Config TEST] No user found via any method');
       return NextResponse.json({ 
         error: 'Unauthorized',
         success: false,

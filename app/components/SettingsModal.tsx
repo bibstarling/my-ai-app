@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { useUser } from '@clerk/nextjs';
+import { useUser, useAuth } from '@clerk/nextjs';
 import {
   X,
   User,
@@ -209,6 +209,7 @@ function AccountTab({ user }: { user: any }) {
 
 // API Configuration Tab
 function APITab() {
+  const { getToken } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [config, setConfig] = useState<APIConfig | null>(null);
@@ -225,7 +226,13 @@ function APITab() {
 
   const loadAPIConfig = async () => {
     try {
+      const token = await getToken();
+      console.log('[APITab] Loading config with token:', !!token);
+      
       const res = await fetch('/api/settings/api-config', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
         credentials: 'include',
       });
       const data = await res.json();
@@ -252,9 +259,15 @@ function APITab() {
     setTestResult(null);
 
     try {
+      const token = await getToken();
+      console.log('[APITab] Saving config with token:', !!token);
+      
       const res = await fetch('/api/settings/api-config', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         credentials: 'include',
         body: JSON.stringify({
           provider: selectedProvider,
@@ -292,9 +305,15 @@ function APITab() {
     setTestResult(null);
 
     try {
+      const token = await getToken();
+      console.log('[APITab] Testing connection with token:', !!token);
+      
       const res = await fetch('/api/settings/api-config/test', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         credentials: 'include',
         body: JSON.stringify({
           provider: selectedProvider,
@@ -333,8 +352,13 @@ function APITab() {
     setSaving(true);
 
     try {
+      const token = await getToken();
+      
       const res = await fetch('/api/settings/api-config', {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
         credentials: 'include',
       });
 
