@@ -112,30 +112,90 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid provider' }, { status: 400 });
     }
 
+    // Validate API key format
+    const trimmedApiKey = apiKey.trim();
+    if (!trimmedApiKey || trimmedApiKey.length < 10) {
+      return NextResponse.json({ error: 'Invalid API key format' }, { status: 400 });
+    }
+
     const supabase = getSupabaseServiceRole();
 
-    // Deactivate any existing configs
-    await supabase
+    console.log('[API Config POST] Saving config:', { 
+      userId, 
+      provider, 
+      hasApiKey: !!trimmedApiKey,
+      apiKeyLength: trimmedApiKey.length,
+      apiKeyPrefix: trimmedApiKey.substring(0, 10)
+    });
+
+    // Deactivate any existing configs for this user
+    const { error: deactivateError } = await supabase
       .from('user_api_configs')
       .update({ is_active: false })
       .eq('clerk_id', userId);
 
+    if (deactivateError) {
+      console.error('[API Config POST] Error deactivating old configs:', deactivateError);
+    }
+
     // Insert or update the new config
+    // The upsert uses the UNIQUE(clerk_id, provider) constraint
     const { data, error } = await supabase
       .from('user_api_configs')
       .upsert({
         clerk_id: userId,
         provider,
-        api_key: apiKey, // In production, encrypt this!
+        api_key: trimmedApiKey, // In production, encrypt this!
         is_active: true,
         updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'clerk_id,provider', // Specify the conflict columns
       })
       .select()
       .single();
 
     if (error) {
-      console.error('Error saving API config:', error);
-      return NextResponse.json({ error: 'Failed to save configuration' }, { status: 500 });
+      console.error('[API Config POST] Error saving API config:', error);
+      console.error('[API Config POST] Error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      });
+      return NextResponse.json({ 
+        error: 'Failed to save configuration',
+        details: error.message 
+      }, { status: 500 });
+    }
+
+    console.log('[API Config POST] Config saved successfully:', { 
+      id: data?.id, 
+      provider: data?.provider,
+      isActive: data?.is_active,
+      hasApiKey: !!data?.api_key
+    });
+
+    // Verify the config was saved by reading it back
+    const { data: verifyData, error: verifyError } = await supabase
+      .from('user_api_configs')
+      .select('*')
+      .eq('clerk_id', userId)
+      .eq('provider', provider)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (verifyError) {
+      console.error('[API Config POST] Error verifying saved config:', verifyError);
+    } else if (!verifyData) {
+      console.error('[API Config POST] ⚠️ Config was not saved properly - verification failed');
+    } else {
+      console.log('[API Config POST] ✅ Verification successful:', {
+        id: verifyData.id,
+        provider: verifyData.provider,
+        isActive: verifyData.is_active,
+        hasApiKey: !!verifyData.api_key,
+        apiKeyLength: verifyData.api_key?.length
+      });
     }
 
     return NextResponse.json({

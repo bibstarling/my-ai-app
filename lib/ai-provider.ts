@@ -85,16 +85,24 @@ export async function getUserAPIConfig(userId: string): Promise<{
 } | null> {
   const supabase = getSupabaseServiceRole();
   
-  const { data } = await supabase
+  console.log(`[getUserAPIConfig] Fetching config for userId: ${userId}`);
+  
+  const { data, error } = await supabase
     .from('user_api_configs')
     .select('*')
     .eq('clerk_id', userId)
     .eq('is_active', true)
     .order('created_at', { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
+
+  if (error) {
+    console.error('[getUserAPIConfig] Database error:', error);
+    return null;
+  }
 
   if (!data) {
+    console.log('[getUserAPIConfig] No active config found');
     return null;
   }
 
@@ -106,11 +114,15 @@ export async function getUserAPIConfig(userId: string): Promise<{
     system: 'claude-sonnet-4-20250514',
   };
 
-  return {
+  const config = {
     provider: data.provider as AIProvider,
     apiKey: data.api_key,
     model: defaultModels[data.provider as AIProvider],
   };
+
+  console.log(`[getUserAPIConfig] Found config: provider=${config.provider}, hasApiKey=${!!config.apiKey}, model=${config.model}`);
+
+  return config;
 }
 
 /**
@@ -267,6 +279,8 @@ export async function generateAICompletion(
   messages: AIMessage[],
   maxTokens: number = 4096
 ): Promise<AIResponse> {
+  console.log(`[generateAICompletion] Starting for userId=${userId}, feature=${feature}`);
+  
   // Try to get user's API configuration
   const userConfig = await getUserAPIConfig(userId);
   
@@ -279,13 +293,13 @@ export async function generateAICompletion(
     provider = userConfig.provider;
     apiKey = userConfig.apiKey;
     model = userConfig.model;
-    console.log(`[AI Provider] Using user config: provider=${provider}, model=${model}, keyPrefix=${apiKey.substring(0, 10)}...`);
+    console.log(`[generateAICompletion] ✅ Using user's ${provider.toUpperCase()} API with model ${model}`);
   } else {
     // Fallback to system API (your API key)
     provider = 'system';
     apiKey = process.env.ANTHROPIC_API_KEY || '';
     model = 'claude-sonnet-4-20250514';
-    console.log(`[AI Provider] Using system fallback: provider=${provider}, model=${model}`);
+    console.log(`[generateAICompletion] ⚠️ Using SYSTEM fallback (user has no API key configured)`);
     
     if (!apiKey) {
       throw new Error('No API key available. Please configure your own API key in settings.');
@@ -313,7 +327,7 @@ export async function generateAICompletion(
   // Call the appropriate provider
   let response: AIResponse;
   const actualProvider = provider === 'system' ? 'anthropic' : provider;
-  console.log(`[AI Provider] Calling provider: ${actualProvider}`);
+  console.log(`[generateAICompletion] Calling ${actualProvider} API...`);
   
   try {
     switch (actualProvider) {
@@ -330,18 +344,35 @@ export async function generateAICompletion(
         throw new Error(`Unsupported provider: ${actualProvider}`);
     }
 
+    console.log(`[generateAICompletion] ✅ Success! Used ${response.usage.totalTokens} tokens with ${response.provider}/${response.model}`);
+
     // Log usage
     await logAPIUsage(userId, provider, response.model, feature, response.usage);
 
     return response;
   } catch (error: any) {
-    console.error('AI API error:', error);
+    console.error(`[generateAICompletion] ❌ Error calling ${actualProvider}:`, error.message);
+    console.error('[generateAICompletion] Error details:', {
+      status: error.status,
+      statusCode: error.statusCode,
+      message: error.message,
+      type: error.type,
+      code: error.code,
+    });
     
     // Provide helpful error messages
     if (error.status === 401) {
       throw new Error('Invalid API key. Please check your API configuration in settings.');
     } else if (error.status === 429) {
-      throw new Error('Rate limit exceeded. Please try again later or upgrade your API plan.');
+      // More detailed rate limit error
+      const errorMessage = error.message || '';
+      if (errorMessage.includes('insufficient_quota') || errorMessage.includes('quota')) {
+        throw new Error('OpenAI account setup required. This error happens on NEW accounts without a payment method. Add one at: https://platform.openai.com/settings/organization/billing (You need this even if you haven\'t used the API yet)');
+      } else if (errorMessage.includes('rate_limit')) {
+        throw new Error('OpenAI account has restrictions. This "rate limit" error does NOT mean you overused - it means your account needs setup. Add payment method at: https://platform.openai.com/settings/organization/billing OR check limits at: https://platform.openai.com/account/limits');
+      } else {
+        throw new Error(`OpenAI error (likely account setup issue): ${errorMessage}. Check: https://platform.openai.com/settings/organization/billing`);
+      }
     } else {
       throw new Error(`AI request failed: ${error.message}`);
     }
@@ -358,6 +389,8 @@ export async function generateAICompletionMultimodal(
   content: string | any[], // Can be text string or array of text/image blocks
   maxTokens: number = 4096
 ): Promise<AIResponse> {
+  console.log(`[generateAICompletionMultimodal] Starting for userId=${userId}, feature=${feature}`);
+  
   // Try to get user's API configuration
   const userConfig = await getUserAPIConfig(userId);
   
@@ -370,12 +403,12 @@ export async function generateAICompletionMultimodal(
     provider = userConfig.provider;
     apiKey = userConfig.apiKey;
     model = userConfig.model;
-    console.log(`[AI Provider Multimodal] Using user config: provider=${provider}, model=${model}`);
+    console.log(`[generateAICompletionMultimodal] ✅ Using user's ${provider.toUpperCase()} API with model ${model}`);
     
     // Multimodal (images) only supported by Anthropic currently
     // If content is array (contains images), enforce Anthropic
     if (Array.isArray(content) && provider !== 'anthropic') {
-      console.log(`[AI Provider Multimodal] Content has images, but provider is ${provider}. Falling back to system Anthropic.`);
+      console.log(`[generateAICompletionMultimodal] ⚠️ Content has images, but provider is ${provider}. Falling back to system Anthropic.`);
       // Fall back to system for multimodal content
       provider = 'system';
       apiKey = process.env.ANTHROPIC_API_KEY || '';
@@ -386,7 +419,7 @@ export async function generateAICompletionMultimodal(
     provider = 'system';
     apiKey = process.env.ANTHROPIC_API_KEY || '';
     model = 'claude-sonnet-4-20250514';
-    console.log(`[AI Provider Multimodal] Using system fallback: provider=${provider}, model=${model}`);
+    console.log(`[generateAICompletionMultimodal] ⚠️ Using SYSTEM fallback (user has no API key configured)`);
     
     if (!apiKey) {
       throw new Error('No API key available. Please configure your own API key in settings.');
@@ -418,10 +451,11 @@ export async function generateAICompletionMultimodal(
   // Convert string content to appropriate format
   const isTextOnly = typeof content === 'string';
   
+  console.log(`[generateAICompletionMultimodal] Calling ${actualProvider} API (isTextOnly=${isTextOnly})...`);
+  
   try {
     if (isTextOnly && actualProvider !== 'anthropic') {
       // Use OpenAI or Groq for text-only content
-      console.log(`[AI Provider Multimodal] Using ${actualProvider} for text-only content`);
       const messages: AIMessage[] = [{ role: 'user', content: content as string }];
       
       switch (actualProvider) {
@@ -436,7 +470,6 @@ export async function generateAICompletionMultimodal(
       }
     } else {
       // Use Anthropic for multimodal content or when Anthropic is configured
-      console.log(`[AI Provider Multimodal] Using Anthropic for ${isTextOnly ? 'text' : 'multimodal'} content`);
       const anthropic = new Anthropic({ apiKey });
 
       const anthropicResponse = await anthropic.messages.create({
@@ -464,12 +497,14 @@ export async function generateAICompletionMultimodal(
       };
     }
 
+    console.log(`[generateAICompletionMultimodal] ✅ Success! Used ${response.usage.totalTokens} tokens with ${response.provider}/${response.model}`);
+
     // Log usage
     await logAPIUsage(userId, response.provider, response.model, feature, response.usage);
 
     return response;
   } catch (error: any) {
-    console.error('AI API error:', error);
+    console.error(`[generateAICompletionMultimodal] ❌ Error calling ${actualProvider}:`, error.message);
     
     if (error.status === 401) {
       throw new Error('Invalid API key. Please check your API configuration in settings.');
