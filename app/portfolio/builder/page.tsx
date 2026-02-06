@@ -10,6 +10,7 @@ import {
   Link as LinkIcon,
   X,
   File,
+  FileText,
   ExternalLink,
   Eye,
   Globe,
@@ -20,6 +21,8 @@ import {
   Settings,
 } from 'lucide-react';
 import { ManualEditor } from '@/app/components/portfolio/ManualEditor';
+import { MarkdownEditor } from '@/app/components/portfolio/MarkdownEditor';
+import { convertDataToMarkdown } from '@/app/components/portfolio/markdown-utils';
 
 type Message = {
   role: 'user' | 'assistant' | 'system';
@@ -50,7 +53,9 @@ export default function PortfolioBuilderPage() {
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-  const [editMode, setEditMode] = useState<'chat' | 'manual'>('chat');
+  const [editMode, setEditMode] = useState<'chat' | 'manual' | 'markdown'>('markdown');
+  const [markdownContent, setMarkdownContent] = useState('');
+  const [isSavingMarkdown, setIsSavingMarkdown] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -84,13 +89,18 @@ export default function PortfolioBuilderPage() {
         setMessages(currentData.portfolio.messages || []);
         setUsername(currentData.portfolio.username || '');
         setIsSuperAdmin(currentData.portfolio.isSuperAdmin || false);
+        
+        // Initialize markdown content from portfolio data
+        const portfolioData = currentData.portfolio.portfolio_data || {};
+        const initialMarkdown = convertDataToMarkdown(portfolioData);
+        setMarkdownContent(initialMarkdown);
 
         // Add welcome message if no messages
         if ((!currentData.portfolio.messages || currentData.portfolio.messages.length === 0) && initData.isNew) {
           setMessages([
             {
               role: 'assistant',
-              content: `Hey there! Let's build something amazing together! 🎉\n\nI'm your AI portfolio assistant, and I'm excited to help you show off your incredible work. Here's how we can get started:\n\n✨ Tell me about your achievements and projects\n📄 Upload your resume or certificates\n🔗 Share links (GitHub, LinkedIn, articles, projects)\n📸 Paste screenshots directly (Ctrl+V or Cmd+V)\n\nWhat would you like to showcase first?`,
+              content: `Hey there! Let's build something amazing together! 🎉\n\nI'm your AI portfolio assistant, and I'm excited to help you show off your incredible work. Here's how we can get started:\n\n✨ Tell me about your achievements and projects\n📄 Upload your resume or certificates\n🔗 Share links (GitHub, LinkedIn, articles, projects)\n📸 Paste screenshots directly (Ctrl+V or Cmd+V)\n\nYou can also edit your portfolio directly in markdown format on the right side!\n\nWhat would you like to showcase first?`,
             },
           ]);
         }
@@ -356,6 +366,64 @@ export default function PortfolioBuilderPage() {
     }
   };
 
+  const handleMarkdownSave = async () => {
+    if (!portfolio) return;
+    
+    setIsSavingMarkdown(true);
+    
+    try {
+      // Parse markdown to structured data using AI
+      const parseRes = await fetch('/api/portfolio/parse-markdown', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ markdown: markdownContent }),
+      });
+
+      if (!parseRes.ok) {
+        throw new Error('Failed to parse markdown');
+      }
+
+      const { portfolioData } = await parseRes.json();
+
+      // Save the parsed portfolio data
+      const saveRes = await fetch('/api/portfolio/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ portfolioData }),
+      });
+
+      const saveData = await saveRes.json();
+      if (saveData.success) {
+        setPortfolio((prev: any) => ({
+          ...prev,
+          portfolio_data: portfolioData,
+        }));
+        
+        // Show success message
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'system',
+            content: '✅ Portfolio saved successfully!',
+          },
+        ]);
+      } else {
+        throw new Error(saveData.error || 'Failed to save');
+      }
+    } catch (error) {
+      console.error('Failed to save markdown:', error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'system',
+          content: `❌ Failed to save: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        },
+      ]);
+    } finally {
+      setIsSavingMarkdown(false);
+    }
+  };
+
   const handlePublish = async () => {
     if (!portfolio) return;
 
@@ -451,7 +519,18 @@ export default function PortfolioBuilderPage() {
                 }`}
               >
                 <MessageSquare className="h-4 w-4" />
-                Chat with AI
+                AI Chat
+              </button>
+              <button
+                onClick={() => setEditMode('markdown')}
+                className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  editMode === 'markdown'
+                    ? 'bg-accent text-white'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <FileText className="h-4 w-4" />
+                Markdown
               </button>
               <button
                 onClick={() => setEditMode('manual')}
@@ -462,7 +541,7 @@ export default function PortfolioBuilderPage() {
                 }`}
               >
                 <Edit3 className="h-4 w-4" />
-                Manual Edit
+                Forms
               </button>
             </div>
           </div>
@@ -516,8 +595,148 @@ export default function PortfolioBuilderPage() {
           <div className="flex w-full flex-col lg:w-1/2">
             <ManualEditor portfolioData={portfolioData} onSave={handleManualSave} />
           </div>
+        ) : editMode === 'markdown' ? (
+          /* Markdown Mode: Chat on left, Markdown editor on right */
+          <>
+          {/* Left Panel - Chat */}
+          <div
+            ref={chatContainerRef}
+            className="flex w-full flex-col border-r border-border bg-background lg:w-1/2"
+          >
+            <div className="flex-1 overflow-y-auto p-6">
+              {messages.length === 0 ? (
+                <div className="flex h-full flex-col items-center justify-center text-center">
+                  <div className="mb-4 rounded-full bg-accent/10 p-6">
+                    <MessageSquare className="h-12 w-12 text-accent" />
+                  </div>
+                  <h2 className="mb-2 text-xl font-semibold text-foreground">
+                    Let's Build Your Portfolio! ✨
+                  </h2>
+                  <p className="max-w-md text-muted-foreground">
+                    Tell me what to add, and I'll update your markdown on the right →
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {messages.map((message, index) => (
+                    <div
+                      key={index}
+                      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[85%] rounded-lg px-4 py-3 ${
+                          message.role === 'user'
+                            ? 'bg-accent text-white'
+                            : message.role === 'system'
+                            ? 'bg-muted text-muted-foreground text-sm'
+                            : 'bg-muted text-foreground'
+                        }`}
+                      >
+                        <div className="whitespace-pre-wrap break-words">
+                          {message.content}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={messagesEndRef} />
+                </div>
+              )}
+            </div>
+
+            {/* Chat Input */}
+            <div className="border-t border-border bg-card p-4">
+              {pendingAttachments.length > 0 && (
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {pendingAttachments.map((attachment, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                    >
+                      <File className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-foreground">{attachment.name}</span>
+                      <button
+                        onClick={() =>
+                          setPendingAttachments((prev) => prev.filter((_, i) => i !== index))
+                        }
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    placeholder="Ask AI to update your portfolio..."
+                    className="w-full resize-none rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground focus:border-accent focus:outline-none"
+                    rows={3}
+                    disabled={loading || uploadProgress}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    className="hidden"
+                    accept="image/*,.pdf,.doc,.docx,.txt"
+                    onChange={handleFileSelect}
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={loading || uploadProgress}
+                    className="rounded-lg border border-border bg-background p-3 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+                    title="Upload file"
+                  >
+                    <Upload className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={() => setShowLinkModal(true)}
+                    disabled={loading}
+                    className="rounded-lg border border-border bg-background p-3 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+                    title="Add link"
+                  >
+                    <LinkIcon className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={handleSendMessage}
+                    disabled={loading || uploadProgress || !input.trim()}
+                    className="rounded-lg bg-accent p-3 text-white transition-colors hover:bg-accent/90 disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <Send className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Panel - Markdown Editor */}
+          <div className="hidden lg:flex lg:w-1/2">
+            <MarkdownEditor
+              markdown={markdownContent}
+              onChange={setMarkdownContent}
+              onSave={handleMarkdownSave}
+              isSaving={isSavingMarkdown}
+            />
+          </div>
+          </>
         ) : (
-          /* Chat Mode */
+          /* Chat Mode with Preview */
           <>
           {/* Left Panel - Chat */}
           <div
