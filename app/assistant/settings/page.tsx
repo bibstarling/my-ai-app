@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Loader2,
   Briefcase,
+  Key,
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -40,6 +41,19 @@ export default function SettingsPage() {
   }
 
   const settingsSections = [
+    {
+      title: 'API & Usage',
+      description: 'Configure your own LLM API keys and view usage',
+      icon: <Key className="h-6 w-6" />,
+      items: [
+        {
+          label: 'API Configuration',
+          description: 'Add your own OpenAI, Anthropic, or Groq API key',
+          icon: <Key className="h-5 w-5" />,
+          href: '/settings/api',
+        },
+      ],
+    },
     {
       title: 'Portfolio',
       description: 'Manage your portfolio website and visibility',
