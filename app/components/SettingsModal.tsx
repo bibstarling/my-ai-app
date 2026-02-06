@@ -45,7 +45,7 @@ interface UsageSummary {
   byFeature: Record<string, { requests: number; tokens: number; cost: number }>;
 }
 
-type SettingsTab = 'account' | 'api' | 'usage';
+type SettingsTab = 'account' | 'usage';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -58,7 +58,6 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   const tabs = [
     { id: 'account' as SettingsTab, label: 'Account', icon: <User className="h-4 w-4" /> },
-    { id: 'api' as SettingsTab, label: 'API Config', icon: <Key className="h-4 w-4" /> },
     { id: 'usage' as SettingsTab, label: 'Usage & Costs', icon: <Activity className="h-4 w-4" /> },
   ];
 
@@ -131,7 +130,6 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 {/* Content */}
                 <div className="max-h-[calc(100vh-300px)] overflow-y-auto bg-background">
                   {activeTab === 'account' && <AccountTab user={user} />}
-                  {activeTab === 'api' && <APITab />}
                   {activeTab === 'usage' && <UsageTab />}
                 </div>
               </Dialog.Panel>
@@ -207,8 +205,8 @@ function AccountTab({ user }: { user: any }) {
   );
 }
 
-// API Configuration Tab
-function APITab() {
+// Usage & Costs Tab
+function UsageTab() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [config, setConfig] = useState<APIConfig | null>(null);
