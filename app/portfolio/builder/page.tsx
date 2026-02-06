@@ -463,6 +463,51 @@ export default function PortfolioBuilderPage() {
           ref={chatContainerRef}
           className="flex w-full flex-col border-r border-border bg-background lg:w-1/2"
         >
+          {/* Mobile Preview - Only visible on small screens */}
+          <div className="border-b border-border bg-muted p-4 lg:hidden">
+            <div className="mb-3">
+              <h3 className="text-sm font-semibold text-foreground">Live Preview 👀</h3>
+              <p className="text-xs text-muted-foreground">
+                Your portfolio updates as we chat
+              </p>
+            </div>
+            <div className="max-h-60 overflow-y-auto rounded-lg border border-border bg-background p-4">
+              {portfolioData.fullName ? (
+                <div className="space-y-3">
+                  <div>
+                    <h2 className="text-lg font-bold text-foreground">
+                      {portfolioData.fullName}
+                    </h2>
+                    {portfolioData.title && (
+                      <p className="text-sm text-muted-foreground">
+                        {portfolioData.title}
+                      </p>
+                    )}
+                  </div>
+                  {portfolioData.about && (
+                    <p className="text-xs text-muted-foreground line-clamp-3">
+                      {portfolioData.about}
+                    </p>
+                  )}
+                  {(portfolioData.experiences?.length > 0 || portfolioData.projects?.length > 0) && (
+                    <div className="flex gap-4 text-xs text-muted-foreground">
+                      {portfolioData.experiences?.length > 0 && (
+                        <span>{portfolioData.experiences.length} experiences</span>
+                      )}
+                      {portfolioData.projects?.length > 0 && (
+                        <span>{portfolioData.projects.length} projects</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-center text-xs text-muted-foreground">
+                  Start chatting to see your portfolio! ✨
+                </p>
+              )}
+            </div>
+          </div>
+
           <div className="flex-1 overflow-y-auto p-6">
             {messages.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center text-center">
