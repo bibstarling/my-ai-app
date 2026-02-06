@@ -2,8 +2,19 @@
 
 import { SignIn } from '@clerk/nextjs';
 import { CheckCircle, Sparkles, Briefcase, FileText, Bot, Zap } from 'lucide-react';
+import { useEffect } from 'react';
+import { useAuth } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
+  const { isSignedIn } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isSignedIn) {
+      router.push('/dashboard');
+    }
+  }, [isSignedIn, router]);
 
   const features = [
     {
