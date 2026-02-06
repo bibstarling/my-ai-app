@@ -43,7 +43,7 @@ export async function POST(req: Request) {
       try {
         const { portfolioData } = await import('@/lib/portfolio-data');
         // Convert structured data to markdown-like format for context
-        profileContext = `# ${portfolioData.fullName}\n${portfolioData.title}\n\n${portfolioData.about}\n\n## Experience\n${portfolioData.experiences.map((exp: any) => `### ${exp.title} at ${exp.company}\n${exp.description}`).join('\n\n')}`;
+        profileContext = `# ${portfolioData.fullName}\n${portfolioData.title}\n\n${portfolioData.tagline}\n\n## Experience\n${portfolioData.experiences.map((exp: any) => `### ${exp.title} at ${exp.company}\n${exp.description}`).join('\n\n')}`;
       } catch (error) {
         console.error('Failed to load super admin portfolio:', error);
       }
