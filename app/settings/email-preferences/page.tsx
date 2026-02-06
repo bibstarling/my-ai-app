@@ -35,7 +35,7 @@ export default function EmailPreferencesPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/email-preferences');
+      const response = await fetch('/api/email-preferences', { credentials: 'include' });
       const data = await response.json();
 
       if (data.success && data.preferences) {
@@ -66,6 +66,7 @@ export default function EmailPreferencesPage() {
       const response = await fetch('/api/email-preferences', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ [category]: value }),
       });
 

@@ -57,6 +57,7 @@ export default function ChatPage() {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
+        credentials: 'include',
         body: JSON.stringify({ message: userMessage }),
       });
 

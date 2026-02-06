@@ -26,8 +26,8 @@ export default function AdaptResumePage({ params }: PageProps) {
   async function fetchData() {
     try {
       const [resumeRes, jobsRes] = await Promise.all([
-        fetch(`/api/resume/${id}`),
-        fetch('/api/matches', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) }),
+        fetch(`/api/resume/${id}`, { credentials: 'include' }),
+        fetch('/api/matches', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({}) }),
       ]);
       
       const resumeData = await resumeRes.json();

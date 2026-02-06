@@ -88,6 +88,7 @@ export function InteractiveOnboarding() {
     fetch('/api/users/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ onboarding_completed: true }),
     }).catch(console.error);
   };
@@ -99,6 +100,7 @@ export function InteractiveOnboarding() {
     fetch('/api/users/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ onboarding_completed: true }),
     }).catch(console.error);
   };

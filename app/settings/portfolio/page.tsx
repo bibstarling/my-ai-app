@@ -34,7 +34,7 @@ export default function PortfolioSettingsPage() {
 
   const loadPortfolio = async () => {
     try {
-      const res = await fetch('/api/portfolio/current');
+      const res = await fetch('/api/portfolio/current', { credentials: 'include' });
       const data = await res.json();
 
       if (data.success) {
@@ -59,6 +59,7 @@ export default function PortfolioSettingsPage() {
       const res = await fetch('/api/portfolio/settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ includePortfolioLink: !includePortfolioLink }),
       });
 

@@ -21,6 +21,7 @@ export function PortfolioPreview({ markdown }: PortfolioPreviewProps) {
         const res = await fetch('/api/portfolio/parse-markdown', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ markdown }),
         });
 

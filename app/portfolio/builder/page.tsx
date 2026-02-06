@@ -82,6 +82,7 @@ export default function PortfolioBuilderPage() {
       // Initialize portfolio
       const initRes = await fetch('/api/portfolio/init', {
         method: 'POST',
+        credentials: 'include',
       });
       const initData = await initRes.json();
 
@@ -90,7 +91,7 @@ export default function PortfolioBuilderPage() {
       }
 
       // Get full portfolio data
-      const currentRes = await fetch('/api/portfolio/current');
+      const currentRes = await fetch('/api/portfolio/current', { credentials: 'include' });
       const currentData = await currentRes.json();
 
       if (currentData.success) {
@@ -128,6 +129,7 @@ export default function PortfolioBuilderPage() {
       const res = await fetch('/api/portfolio/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ 
           portfolioData: { 
             ...portfolio.portfolio_data,
@@ -365,6 +367,7 @@ export default function PortfolioBuilderPage() {
       const res = await fetch('/api/portfolio/scrape', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           url,
           portfolioId: portfolio.id,
@@ -506,6 +509,7 @@ export default function PortfolioBuilderPage() {
 
       const res = await fetch('/api/portfolio/upload', {
         method: 'POST',
+        credentials: 'include',
         body: formData,
       });
 
@@ -558,6 +562,7 @@ export default function PortfolioBuilderPage() {
 
             const res = await fetch('/api/portfolio/upload', {
               method: 'POST',
+              credentials: 'include',
               body: formData,
             });
 
@@ -621,6 +626,7 @@ export default function PortfolioBuilderPage() {
       const res = await fetch('/api/portfolio/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ publish: shouldPublish }),
       });
 
@@ -644,6 +650,7 @@ export default function PortfolioBuilderPage() {
       const res = await fetch('/api/portfolio/settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ isPublic: !portfolio.is_public }),
       });
 

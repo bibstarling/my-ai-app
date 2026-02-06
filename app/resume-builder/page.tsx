@@ -313,6 +313,7 @@ function GenerateFromJobModal({
       const response = await fetch('/api/matches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({}),
       });
       const data = await response.json();
@@ -328,7 +329,7 @@ function GenerateFromJobModal({
 
   async function fetchUserSettings() {
     try {
-      const response = await fetch('/api/users/settings');
+      const response = await fetch('/api/users/settings', { credentials: 'include' });
       const data = await response.json();
       if (data.settings) {
         setContentLanguage(data.settings.content_language || 'en');

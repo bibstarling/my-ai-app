@@ -55,6 +55,7 @@ export function AIAssistantPanel({ markdown, onMarkdownUpdate }: AIAssistantPane
 
       const res = await fetch('/api/portfolio/upload', {
         method: 'POST',
+        credentials: 'include',
         body: formData,
       });
 

@@ -23,7 +23,7 @@ export default function AdminDebugPage() {
   const fetchDebugData = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/debug-auth');
+      const response = await fetch('/api/debug-auth', { credentials: 'include' });
       const data = await response.json();
       setDebugData(data);
     } catch (error) {
@@ -39,6 +39,7 @@ export default function AdminDebugPage() {
     try {
       const response = await fetch('/api/admin/grant-self', {
         method: 'POST',
+        credentials: 'include',
       });
       const data = await response.json();
       

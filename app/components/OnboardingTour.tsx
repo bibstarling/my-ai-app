@@ -209,6 +209,7 @@ export function OnboardingTour({ isOpen, onClose, autoStart = false }: Onboardin
       await fetch('/api/users/settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ onboarding_completed: true }),
       });
     } catch (error) {
