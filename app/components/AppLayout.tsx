@@ -4,6 +4,8 @@ import { useState, createContext, useContext } from 'react';
 import { usePathname } from 'next/navigation';
 import { AppMenu } from './AppMenu';
 import { Footer } from './Footer';
+import { OnboardingTour } from './OnboardingTour';
+import { useOnboarding } from '../hooks/useOnboarding';
 
 const MenuContext = createContext({ isCollapsed: false, setIsCollapsed: (value: boolean) => {} });
 
@@ -14,6 +16,7 @@ export function useMenuContext() {
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
+  const { isOnboardingOpen, closeOnboarding } = useOnboarding();
   
   // Only show menu on tool pages (not on the portfolio home page or login page)
   // Check if pathname ends with locale or is the home page (e.g., /en, /pt-BR, /en/, /pt-BR/)
@@ -31,6 +34,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </main>
         </div>
         <Footer />
+        
+        {/* Global onboarding tour - auto-launches for new users */}
+        <OnboardingTour isOpen={isOnboardingOpen} onClose={closeOnboarding} autoStart />
       </div>
     </MenuContext.Provider>
   );

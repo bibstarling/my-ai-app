@@ -15,7 +15,7 @@ export async function GET() {
     // Get or create user settings
     const { data: user, error } = await supabase
       .from('users')
-      .select('content_language')
+      .select('content_language, onboarding_completed')
       .eq('clerk_id', userId)
       .single();
 
@@ -31,8 +31,9 @@ export async function GET() {
         .insert({
           clerk_id: userId,
           content_language: 'en',
+          onboarding_completed: false,
         })
-        .select('content_language')
+        .select('content_language, onboarding_completed')
         .single();
 
       if (createError) {
@@ -43,6 +44,7 @@ export async function GET() {
       return NextResponse.json({
         settings: {
           content_language: newUser.content_language || 'en',
+          onboarding_completed: newUser.onboarding_completed || false,
         },
       });
     }
@@ -50,6 +52,7 @@ export async function GET() {
     return NextResponse.json({
       settings: {
         content_language: user.content_language || 'en',
+        onboarding_completed: user.onboarding_completed || false,
       },
     });
   } catch (error) {
@@ -100,6 +103,60 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error('Error in POST /api/users/settings:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const { userId } = await auth();
+    
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const updates: Record<string, any> = {
+      clerk_id: userId,
+      updated_at: new Date().toISOString(),
+    };
+
+    // Handle onboarding completion
+    if ('onboarding_completed' in body) {
+      updates.onboarding_completed = body.onboarding_completed;
+      if (body.onboarding_completed) {
+        updates.onboarding_completed_at = new Date().toISOString();
+      }
+    }
+
+    // Handle language preference
+    if ('content_language' in body) {
+      if (!['en', 'pt-BR'].includes(body.content_language)) {
+        return NextResponse.json({ error: 'Invalid language' }, { status: 400 });
+      }
+      updates.content_language = body.content_language;
+    }
+
+    const supabase = getSupabaseServiceRole();
+    
+    // Upsert user settings
+    const { error } = await supabase
+      .from('users')
+      .upsert(updates, {
+        onConflict: 'clerk_id',
+      });
+
+    if (error) {
+      console.error('Error updating user settings:', error);
+      return NextResponse.json({ error: 'Failed to save settings' }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      settings: updates,
+    });
+  } catch (error) {
+    console.error('Error in PATCH /api/users/settings:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

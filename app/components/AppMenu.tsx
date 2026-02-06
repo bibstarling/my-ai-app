@@ -18,11 +18,13 @@ import {
   Briefcase,
   Shield,
   HelpCircle,
+  Sparkles,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuthSafe } from '@/app/hooks/useAuthSafe';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { SettingsModal } from './SettingsModal';
+import { OnboardingTour } from './OnboardingTour';
 import { useRouter } from 'next/navigation';
 
 type MenuItem = {
@@ -102,6 +104,7 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
   const { isAdmin } = useIsAdmin();
   const menuItems = getMenuItems(isAdmin);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
   const isActive = (href: string) => {
     if (href === '/') {
@@ -186,6 +189,11 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
                 >
                   <UserButton.MenuItems>
                     <UserButton.Action
+                      label="Take a Tour"
+                      labelIcon={<Sparkles className="h-4 w-4" />}
+                      onClick={() => setIsOnboardingOpen(true)}
+                    />
+                    <UserButton.Action
                       label="Help Center"
                       labelIcon={<HelpCircle className="h-4 w-4" />}
                       onClick={() => router.push('/help')}
@@ -253,6 +261,9 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
       
       {/* Settings Modal */}
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      
+      {/* Onboarding Tour */}
+      <OnboardingTour isOpen={isOnboardingOpen} onClose={() => setIsOnboardingOpen(false)} />
     </aside>
   );
 }
