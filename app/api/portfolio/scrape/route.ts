@@ -81,7 +81,7 @@ export async function POST(request: Request) {
       const scrapedData = await scrapeUrl(url);
       
       // Analyze scraped content with AI
-      const analysis = await analyzeScrapedContent(url, scrapedData);
+      const analysis = await analyzeScrapedContent(url, scrapedData, userId);
       
       // Update link record with scraped data
       const { error: updateError } = await supabase
