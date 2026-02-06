@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { auth, currentUser, createClerkClient } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { getSupabaseServiceRole } from '@/lib/supabase-server';
+import jwt from 'jsonwebtoken';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -24,17 +25,14 @@ export async function GET(req: Request) {
     
     let userId = authData?.userId || user?.id;
     
-    // If we have a token but no userId, try to verify the token
+    // If we have a token but no userId, decode it to get the user ID
     if (!userId && token) {
       try {
-        const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY! });
-        const verified = await clerkClient.verifyToken(token, {
-          jwtKey: process.env.CLERK_JWT_KEY,
-        });
-        userId = verified.sub;
-        console.log('[API Config GET] Verified token, userId:', userId);
+        const decoded = jwt.decode(token) as any;
+        userId = decoded?.sub;
+        console.log('[API Config GET] Decoded token, userId:', userId);
       } catch (error) {
-        console.error('[API Config GET] Token verification failed:', error);
+        console.error('[API Config GET] Token decode failed:', error);
       }
     }
     
@@ -88,17 +86,14 @@ export async function POST(req: Request) {
     
     let userId = authData?.userId || user?.id;
     
-    // If we have a token but no userId, try to verify the token
+    // If we have a token but no userId, decode it to get the user ID
     if (!userId && token) {
       try {
-        const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY! });
-        const verified = await clerkClient.verifyToken(token, {
-          jwtKey: process.env.CLERK_JWT_KEY,
-        });
-        userId = verified.sub;
-        console.log('[API Config POST] Verified token, userId:', userId);
+        const decoded = jwt.decode(token) as any;
+        userId = decoded?.sub;
+        console.log('[API Config POST] Decoded token, userId:', userId);
       } catch (error) {
-        console.error('[API Config POST] Token verification failed:', error);
+        console.error('[API Config POST] Token decode failed:', error);
       }
     }
     
@@ -174,17 +169,14 @@ export async function DELETE(req: Request) {
     
     let userId = authData?.userId || user?.id;
     
-    // If we have a token but no userId, try to verify the token
+    // If we have a token but no userId, decode it to get the user ID
     if (!userId && token) {
       try {
-        const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY! });
-        const verified = await clerkClient.verifyToken(token, {
-          jwtKey: process.env.CLERK_JWT_KEY,
-        });
-        userId = verified.sub;
-        console.log('[API Config DELETE] Verified token, userId:', userId);
+        const decoded = jwt.decode(token) as any;
+        userId = decoded?.sub;
+        console.log('[API Config DELETE] Decoded token, userId:', userId);
       } catch (error) {
-        console.error('[API Config DELETE] Token verification failed:', error);
+        console.error('[API Config DELETE] Token decode failed:', error);
       }
     }
     

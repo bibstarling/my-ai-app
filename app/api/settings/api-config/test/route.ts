@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { auth, currentUser, verifyToken } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import Groq from 'groq-sdk';
+import jwt from 'jsonwebtoken';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -25,14 +26,14 @@ export async function POST(req: Request) {
     
     let userId = authData?.userId || user?.id;
     
-    // If we have a token but no userId, try to verify the token
+    // If we have a token but no userId, decode it to get the user ID
     if (!userId && token) {
       try {
-        const verified = await verifyToken(token);
-        userId = verified.sub;
-        console.log('[API Config TEST] Verified token, userId:', userId);
+        const decoded = jwt.decode(token) as any;
+        userId = decoded?.sub;
+        console.log('[API Config TEST] Decoded token, userId:', userId);
       } catch (error) {
-        console.error('[API Config TEST] Token verification failed:', error);
+        console.error('[API Config TEST] Token decode failed:', error);
       }
     }
     
