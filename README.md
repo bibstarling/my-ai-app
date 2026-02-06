@@ -83,6 +83,19 @@ See [docs/JOB_INGESTION.md](./docs/JOB_INGESTION.md) for job ingestion details.
 - Interview preparation
 - Cover letter assistance
 
+### 🎓 Interactive Onboarding
+New users get a guided tour of all features:
+
+**Features:**
+- **Auto-Launch**: Automatically shows on first login
+- **6-Step Tour**: Portfolio, Resume, Cover Letter, Jobs, AI Coach
+- **Relaunchable**: Access "Take a Tour" from user menu anytime
+- **Progress Tracking**: Visual progress bar and step indicators
+- **Quick Actions**: Navigate directly to any feature from the tour
+
+**Documentation:**
+- [docs/ONBOARDING_SYSTEM.md](./docs/ONBOARDING_SYSTEM.md) - Complete onboarding documentation
+
 ### 📧 Email System
 Professional email notifications powered by **Resend** with beautiful React Email templates:
 
