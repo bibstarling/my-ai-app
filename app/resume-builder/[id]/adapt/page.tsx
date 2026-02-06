@@ -50,6 +50,7 @@ export default function AdaptResumePage({ params }: PageProps) {
       const response = await fetch('/api/resume/adapt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           resume_id: id,
           job_id: selectedJobId,
@@ -76,6 +77,7 @@ export default function AdaptResumePage({ params }: PageProps) {
       const response = await fetch('/api/resume/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           job_id: selectedJobId,
         }),
@@ -102,6 +104,7 @@ export default function AdaptResumePage({ params }: PageProps) {
       const response = await fetch('/api/cover-letter/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           job_id: selectedJobId,
           resume_id: id,

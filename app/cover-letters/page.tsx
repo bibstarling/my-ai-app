@@ -31,7 +31,9 @@ export default function CoverLettersPage() {
 
   async function fetchCoverLetters() {
     try {
-      const response = await fetch('/api/cover-letter');
+      const response = await fetch('/api/cover-letter', {
+        credentials: 'include',
+      });
       const data = await response.json();
       if (data.cover_letters) {
         setCoverLetters(data.cover_letters);
@@ -433,6 +435,7 @@ function GenerateCoverLetterModal({
       const response = await fetch('/api/cover-letter/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           job_id: selectedJobId,
           tone: 'professional',

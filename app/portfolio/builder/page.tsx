@@ -448,6 +448,7 @@ export default function PortfolioBuilderPage() {
       const res = await fetch('/api/portfolio/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           message: userMessage,
           attachments,

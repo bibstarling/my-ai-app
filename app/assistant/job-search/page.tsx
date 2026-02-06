@@ -174,6 +174,7 @@ export default function JobSearchPage() {
       const res = await fetch('/api/jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body,
       });
       
@@ -221,6 +222,7 @@ export default function JobSearchPage() {
           const fetchResponse = await fetch('/api/jobs/extract', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({ url: job.applyUrl }),
           });
 
@@ -274,6 +276,7 @@ export default function JobSearchPage() {
         const resumeRes = await fetch('/api/jobs/tailor-resume', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({
             jobDescription: job.description,
             jobTitle: job.title,
@@ -291,6 +294,7 @@ export default function JobSearchPage() {
         const clRes = await fetch('/api/jobs/tailor-cover-letter', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({
             jobDescription: job.description,
             jobTitle: job.title,
@@ -322,6 +326,7 @@ export default function JobSearchPage() {
           const matchResponse = await fetch('/api/jobs/calculate-match', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({ jobId: trackedJob.id }),
           });
 

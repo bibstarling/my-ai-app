@@ -81,6 +81,7 @@ export function GlobalAIAssistant({ isOpen, onClose }: GlobalAIAssistantProps) {
       const res = await fetch('/api/assistant/global', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           message: userMessage,
           context: {

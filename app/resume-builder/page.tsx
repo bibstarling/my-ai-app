@@ -31,7 +31,9 @@ export default function ResumeBuilderPage() {
 
   async function fetchResumes() {
     try {
-      const response = await fetch('/api/resume');
+      const response = await fetch('/api/resume', {
+        credentials: 'include',
+      });
       const data = await response.json();
       if (data.resumes) {
         setResumes(data.resumes);
@@ -61,6 +63,7 @@ export default function ResumeBuilderPage() {
       const createResponse = await fetch('/api/resume', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           title: `${resume.title} (Copy)`,
           full_name: resume.full_name,
@@ -356,6 +359,7 @@ function GenerateFromJobModal({
       const response = await fetch('/api/resume/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           job_id: selectedJobId,
           content_language: contentLanguage,
@@ -531,6 +535,7 @@ function CreateResumeModal({
       const response = await fetch('/api/resume', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
 
