@@ -101,27 +101,30 @@ export default function DashboardPage() {
           <div className="lg:col-span-2 space-y-8">
             {/* Quick Actions */}
             <section>
-              <h2 className="text-xl font-bold text-foreground mb-4">Quick Actions</h2>
+              <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-applause-purple" />
+                Quick Actions
+              </h2>
               <div className="grid md:grid-cols-2 gap-4">
                 {quickActions.map((action, index) => (
                   <Link
                     key={index}
                     href={action.href}
-                    className="group bg-white rounded-xl border border-border p-6 hover:border-accent hover:shadow-lg transition-all"
+                    className="group bg-white rounded-xl border-2 border-border p-6 hover:border-applause-purple hover:shadow-xl transition-all hover-lift"
                   >
                     <div className="flex items-start gap-4">
-                      <div className={`p-3 ${action.color} rounded-lg text-white`}>
+                      <div className={`p-3 ${action.color} rounded-xl text-white shadow-lg group-hover:scale-110 transition-transform`}>
                         {action.icon}
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-semibold text-foreground group-hover:text-accent transition-colors mb-1">
+                        <h3 className="font-bold text-foreground group-hover:text-applause-purple transition-colors mb-1">
                           {action.title}
                         </h3>
                         <p className="text-sm text-muted leading-relaxed">
                           {action.description}
                         </p>
                       </div>
-                      <ArrowRight className="h-5 w-5 text-muted group-hover:text-accent group-hover:translate-x-1 transition-all" />
+                      <ArrowRight className="h-5 w-5 text-muted group-hover:text-applause-purple group-hover:translate-x-1 transition-all" />
                     </div>
                   </Link>
                 ))}
@@ -129,35 +132,35 @@ export default function DashboardPage() {
             </section>
 
             {/* Getting Started */}
-            <section className="bg-gradient-to-br from-accent/5 to-transparent rounded-xl border border-accent/20 p-6">
+            <section className="gradient-primary rounded-2xl border-2 border-white/50 p-6 shadow-xl text-white">
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-accent/10 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-accent" />
+                <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl border border-white/30">
+                  <TrendingUp className="h-6 w-6 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-bold text-foreground mb-2">
-                    Get Started in 3 Steps
+                  <h3 className="text-lg font-bold mb-2 drop-shadow">
+                    Get Started in 3 Steps 🎯
                   </h3>
                   <ul className="space-y-3">
                     <li className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-accent shrink-0 mt-0.5" />
+                      <CheckCircle className="h-5 w-5 text-white shrink-0 mt-0.5 drop-shadow" />
                       <div>
-                        <p className="text-sm font-medium text-foreground">Build Your Portfolio</p>
-                        <p className="text-xs text-muted">Let AI help structure your experience</p>
+                        <p className="text-sm font-bold drop-shadow">Build Your Portfolio</p>
+                        <p className="text-xs text-white/90">Let AI help you shine! ✨</p>
                       </div>
                     </li>
                     <li className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-muted shrink-0 mt-0.5" />
+                      <CheckCircle className="h-5 w-5 text-white/70 shrink-0 mt-0.5 drop-shadow" />
                       <div>
-                        <p className="text-sm font-medium text-foreground">Generate Resumes</p>
-                        <p className="text-xs text-muted">Create tailored resumes for specific jobs</p>
+                        <p className="text-sm font-medium drop-shadow">Generate Resumes</p>
+                        <p className="text-xs text-white/90">Create standout applications 🎯</p>
                       </div>
                     </li>
                     <li className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-muted shrink-0 mt-0.5" />
+                      <CheckCircle className="h-5 w-5 text-white/70 shrink-0 mt-0.5 drop-shadow" />
                       <div>
-                        <p className="text-sm font-medium text-foreground">Apply to Jobs</p>
-                        <p className="text-xs text-muted">Find and track your applications</p>
+                        <p className="text-sm font-medium drop-shadow">Apply to Jobs</p>
+                        <p className="text-xs text-white/90">Find your dream role! 🚀</p>
                       </div>
                     </li>
                   </ul>
@@ -169,8 +172,9 @@ export default function DashboardPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Profile Status */}
-            <div className="bg-white rounded-xl border border-border p-6">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-accent mb-4">
+            <div className="bg-white rounded-xl border-2 border-border p-6 hover-lift">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-applause-purple mb-4 flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
                 Profile Status
               </h3>
               <div className="space-y-4">
@@ -180,7 +184,7 @@ export default function DashboardPage() {
                     <span className="text-xs text-muted">0%</span>
                   </div>
                   <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
-                    <div className="h-full bg-accent w-0" />
+                    <div className="h-full gradient-primary w-0" />
                   </div>
                 </div>
                 <div>
@@ -189,28 +193,29 @@ export default function DashboardPage() {
                     <span className="text-xs text-muted">0%</span>
                   </div>
                   <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
-                    <div className="h-full bg-accent w-0" />
+                    <div className="h-full gradient-primary w-0" />
                   </div>
                 </div>
               </div>
               <Link
                 href="/portfolio/builder"
-                className="mt-6 block w-full text-center px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors text-sm font-medium"
+                className="mt-6 block w-full text-center px-4 py-3 gradient-primary text-white rounded-lg hover:opacity-90 transition-all text-sm font-bold shadow-lg hover:shadow-xl"
               >
-                Complete Your Profile
+                Complete Your Profile 🎉
               </Link>
             </div>
 
             {/* Recent Activity */}
-            <div className="bg-white rounded-xl border border-border p-6">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-accent mb-4">
+            <div className="bg-white rounded-xl border-2 border-border p-6 hover-lift">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-applause-purple mb-4 flex items-center gap-2">
+                <Sparkles className="h-4 w-4" />
                 Recent Activity
               </h3>
               <div className="space-y-4">
                 {recentActivity.length > 0 ? (
                   recentActivity.map((activity, index) => (
                     <div key={index} className="flex gap-3">
-                      <div className="w-2 h-2 rounded-full bg-accent mt-2" />
+                      <div className="w-2 h-2 rounded-full bg-applause-purple mt-2" />
                       <div className="flex-1">
                         <p className="text-sm font-medium text-foreground">{activity.title}</p>
                         <p className="text-xs text-muted mt-0.5">{activity.description}</p>
@@ -225,13 +230,13 @@ export default function DashboardPage() {
             </div>
 
             {/* Tips Card */}
-            <div className="bg-gradient-to-br from-blue-50 to-transparent rounded-xl border border-blue-200 p-6">
+            <div className="gradient-success rounded-xl border-2 border-white/50 p-6 text-white shadow-xl">
               <div className="flex items-start gap-3">
-                <Sparkles className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+                <Sparkles className="h-5 w-5 text-white shrink-0 mt-0.5 drop-shadow" />
                 <div>
-                  <h4 className="text-sm font-bold text-blue-900 mb-2">Pro Tip</h4>
-                  <p className="text-xs text-blue-800 leading-relaxed">
-                    Upload your resume or paste your LinkedIn profile to quickly build your portfolio with AI
+                  <h4 className="text-sm font-bold mb-2 drop-shadow">Pro Tip 💡</h4>
+                  <p className="text-xs text-white/90 leading-relaxed drop-shadow">
+                    Upload your resume or LinkedIn profile to build an amazing portfolio in minutes!
                   </p>
                 </div>
               </div>

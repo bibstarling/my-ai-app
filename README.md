@@ -1,4 +1,25 @@
+# Applause 👏
+
+**Your Career Deserves Applause!**
+
+Applause is a fun, AI-powered career platform that makes job searching feel like a celebration. Build stunning portfolios, create standout resumes, and find your dream role—all with AI as your cheerleader! 🎉
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Brand Identity
+
+Applause celebrates career achievements and makes job searching exciting. Our vibrant, energetic brand turns the stress of job hunting into moments worth celebrating.
+
+**Brand Colors:**
+- 🟣 **Applause Purple** (`#8b5cf6`) - Primary brand color
+- 💗 **Celebration Pink** (`#ec4899`) - Secondary accent
+- 💚 **Success Green** (`#10b981`) - Positive actions & wins
+- ☀️ **Sunshine Yellow** (`#fbbf24`) - Highlights & attention
+- 🌊 **Ocean Blue** (`#3b82f6`) - Trust & professionalism
+
+**Documentation:**
+- [docs/BRAND_GUIDELINES.md](./docs/BRAND_GUIDELINES.md) - Complete brand guidelines
+- [docs/ACCESSIBILITY_COMPLIANCE.md](./docs/ACCESSIBILITY_COMPLIANCE.md) - Accessibility standards
 
 ## Features
 

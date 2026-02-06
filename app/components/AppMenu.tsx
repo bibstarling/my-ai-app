@@ -110,20 +110,20 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
         {/* Logo/Brand */}
         <div className="p-4 border-b border-gray-200">
           {!isCollapsed ? (
-            <Link href="/assistant" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
-                B
+            <Link href="/assistant" className="flex items-center gap-2 group">
+              <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-white font-bold shadow-lg group-hover:scale-110 transition-transform">
+                👏
               </div>
               <div className="flex flex-col">
-                <span className="font-semibold text-gray-900 text-sm">Control Room</span>
-                <span className="text-xs text-gray-500">Job Tools</span>
+                <span className="font-bold text-gradient-primary text-base">Applause</span>
+                <span className="text-xs text-muted-foreground">Career Platform</span>
               </div>
             </Link>
           ) : (
-            <Tooltip content="Control Room" show={isCollapsed}>
-              <Link href="/assistant" className="flex items-center justify-center">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
-                  B
+            <Tooltip content="Applause" show={isCollapsed}>
+              <Link href="/assistant" className="flex items-center justify-center group">
+                <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-white font-bold shadow-lg group-hover:scale-110 transition-transform">
+                  👏
                 </div>
               </Link>
             </Tooltip>
@@ -138,10 +138,10 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
               <Tooltip key={item.id} content={item.label} show={isCollapsed}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
                     active
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'gradient-primary text-white shadow-lg'
+                      : 'text-gray-700 hover:bg-accent/5 hover:text-applause-purple'
                   } ${isCollapsed ? 'justify-center' : ''}`}
                 >
                   {item.icon}
