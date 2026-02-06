@@ -7,6 +7,9 @@ import {
   useUser,
 } from '@clerk/nextjs';
 import { supabase } from '@/lib/supabase';
+import { HelpButton } from '@/app/components/HelpButton';
+import { PageTour } from '@/app/components/PageTour';
+import { getPageTour } from '@/lib/page-tours';
 import {
   Loader2,
   FileText,
@@ -95,7 +98,10 @@ export default function MyJobsPage() {
   const [previewModal, setPreviewModal] = useState<PreviewModal>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [showPageTour, setShowPageTour] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  
+  const pageTour = getPageTour('my-jobs');
   const autoScrollInterval = useRef<NodeJS.Timeout | null>(null);
   const [showAddJobModal, setShowAddJobModal] = useState(false);
   const [addingJob, setAddingJob] = useState(false);

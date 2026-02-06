@@ -4,6 +4,9 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useUser, SignInButton } from '@clerk/nextjs';
 import { Loader2, MessageSquare, Send, ArrowLeft } from 'lucide-react';
+import { HelpButton } from '@/app/components/HelpButton';
+import { PageTour } from '@/app/components/PageTour';
+import { getPageTour } from '@/lib/page-tours';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -25,7 +28,10 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPageTour, setShowPageTour] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const pageTour = getPageTour('ai-coach');
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -197,6 +203,19 @@ export default function ChatPage() {
           </form>
         </div>
       </main>
+
+      {/* Help Button */}
+      <HelpButton onClick={() => setShowPageTour(true)} />
+
+      {/* Page Tour */}
+      {pageTour && (
+        <PageTour
+          isOpen={showPageTour}
+          onClose={() => setShowPageTour(false)}
+          steps={pageTour.steps}
+          title={pageTour.title}
+        />
+      )}
     </div>
   );
 }

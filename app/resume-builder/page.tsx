@@ -5,12 +5,18 @@ import Link from 'next/link';
 import { Plus, FileText, Calendar, Star, Edit2, Trash2, Copy, Eye, Sparkles, Briefcase, Globe } from 'lucide-react';
 import type { ResumeWithSections } from '@/lib/types/resume';
 import type { JobListing } from '@/app/api/jobs/route';
+import { HelpButton } from '@/app/components/HelpButton';
+import { PageTour } from '@/app/components/PageTour';
+import { getPageTour } from '@/lib/page-tours';
 
 export default function ResumeBuilderPage() {
   const [resumes, setResumes] = useState<ResumeWithSections[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [showPageTour, setShowPageTour] = useState(false);
+  
+  const pageTour = getPageTour('resume-builder');
 
   useEffect(() => {
     fetchResumes();
@@ -243,6 +249,19 @@ export default function ResumeBuilderPage() {
             setShowGenerateModal(false);
             window.location.href = `/resume-builder/${resumeId}`;
           }}
+        />
+      )}
+
+      {/* Help Button */}
+      <HelpButton onClick={() => setShowPageTour(true)} />
+
+      {/* Page Tour */}
+      {pageTour && (
+        <PageTour
+          isOpen={showPageTour}
+          onClose={() => setShowPageTour(false)}
+          steps={pageTour.steps}
+          title={pageTour.title}
         />
       )}
     </div>

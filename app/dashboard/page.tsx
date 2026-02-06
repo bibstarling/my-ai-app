@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import { 
@@ -12,9 +13,15 @@ import {
   CheckCircle,
   TrendingUp
 } from 'lucide-react';
+import { HelpButton } from '@/app/components/HelpButton';
+import { PageTour } from '@/app/components/PageTour';
+import { getPageTour } from '@/lib/page-tours';
 
 export default function DashboardPage() {
   const { user, isLoaded } = useUser();
+  const [showPageTour, setShowPageTour] = useState(false);
+  
+  const pageTour = getPageTour('dashboard');
 
   const quickActions = [
     {
@@ -244,6 +251,19 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Help Button */}
+      <HelpButton onClick={() => setShowPageTour(true)} />
+
+      {/* Page Tour */}
+      {pageTour && (
+        <PageTour
+          isOpen={showPageTour}
+          onClose={() => setShowPageTour(false)}
+          steps={pageTour.steps}
+          title={pageTour.title}
+        />
+      )}
     </div>
   );
 }

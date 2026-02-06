@@ -18,6 +18,9 @@ import {
   Sparkles,
   Check,
 } from 'lucide-react';
+import { HelpButton } from '@/app/components/HelpButton';
+import { PageTour } from '@/app/components/PageTour';
+import { getPageTour } from '@/lib/page-tours';
 
 type JobListing = {
   id: string;
@@ -83,6 +86,9 @@ export default function JobSearchPage() {
   const [country, setCountry] = useState('');
   const [resumeText, setResumeText] = useState('');
   const [tailorModal, setTailorModal] = useState<{ job: JobListing; show: boolean } | null>(null);
+  const [showPageTour, setShowPageTour] = useState(false);
+  
+  const pageTour = getPageTour('job-search');
   const [generateResume, setGenerateResume] = useState(true);
   const [generateCoverLetter, setGenerateCoverLetter] = useState(true);
   const [tailoring, setTailoring] = useState(false);
@@ -695,6 +701,19 @@ export default function JobSearchPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Help Button */}
+      <HelpButton onClick={() => setShowPageTour(true)} />
+
+      {/* Page Tour */}
+      {pageTour && (
+        <PageTour
+          isOpen={showPageTour}
+          onClose={() => setShowPageTour(false)}
+          steps={pageTour.steps}
+          title={pageTour.title}
+        />
       )}
     </div>
   );

@@ -23,6 +23,9 @@ import {
 import { ManualEditor } from '@/app/components/portfolio/ManualEditor';
 import { MarkdownEditor } from '@/app/components/portfolio/MarkdownEditor';
 import { convertDataToMarkdown } from '@/app/components/portfolio/markdown-utils';
+import { HelpButton } from '@/app/components/HelpButton';
+import { PageTour } from '@/app/components/PageTour';
+import { getPageTour } from '@/lib/page-tours';
 
 type Message = {
   role: 'user' | 'assistant' | 'system';
@@ -56,10 +59,13 @@ export default function PortfolioBuilderPage() {
   const [editMode, setEditMode] = useState<'chat' | 'manual' | 'markdown'>('markdown');
   const [markdownContent, setMarkdownContent] = useState('');
   const [isSavingMarkdown, setIsSavingMarkdown] = useState(false);
+  const [showPageTour, setShowPageTour] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  
+  const pageTour = getPageTour('portfolio-builder');
 
   // Initialize portfolio
   useEffect(() => {
@@ -1043,6 +1049,19 @@ export default function PortfolioBuilderPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Help Button */}
+      <HelpButton onClick={() => setShowPageTour(true)} />
+
+      {/* Page Tour */}
+      {pageTour && (
+        <PageTour
+          isOpen={showPageTour}
+          onClose={() => setShowPageTour(false)}
+          steps={pageTour.steps}
+          title={pageTour.title}
+        />
       )}
     </div>
   );

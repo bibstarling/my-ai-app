@@ -5,12 +5,18 @@ import Link from 'next/link';
 import { Plus, FileText, Calendar, Edit2, Trash2, Eye, Sparkles, Briefcase, Download, Loader2, X, Globe } from 'lucide-react';
 import type { CoverLetter } from '@/lib/types/cover-letter';
 import type { JobListing } from '@/app/api/jobs/route';
+import { HelpButton } from '@/app/components/HelpButton';
+import { PageTour } from '@/app/components/PageTour';
+import { getPageTour } from '@/lib/page-tours';
 
 export default function CoverLettersPage() {
   const [coverLetters, setCoverLetters] = useState<CoverLetter[]>([]);
   const [loading, setLoading] = useState(true);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [previewCoverLetterId, setPreviewCoverLetterId] = useState<string | null>(null);
+  const [showPageTour, setShowPageTour] = useState(false);
+  
+  const pageTour = getPageTour('cover-letters');
 
   useEffect(() => {
     fetchCoverLetters();
@@ -196,6 +202,19 @@ export default function CoverLettersPage() {
             setShowGenerateModal(false);
             window.location.href = `/cover-letters/${coverLetterId}`;
           }}
+        />
+      )}
+
+      {/* Help Button */}
+      <HelpButton onClick={() => setShowPageTour(true)} />
+
+      {/* Page Tour */}
+      {pageTour && (
+        <PageTour
+          isOpen={showPageTour}
+          onClose={() => setShowPageTour(false)}
+          steps={pageTour.steps}
+          title={pageTour.title}
         />
       )}
     </div>
