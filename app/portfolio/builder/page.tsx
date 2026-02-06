@@ -45,6 +45,7 @@ export default function PortfolioBuilderPage() {
   const [username, setUsername] = useState('');
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -77,6 +78,7 @@ export default function PortfolioBuilderPage() {
         setPortfolio(currentData.portfolio);
         setMessages(currentData.portfolio.messages || []);
         setUsername(currentData.portfolio.username || '');
+        setIsSuperAdmin(currentData.portfolio.isSuperAdmin || false);
 
         // Add welcome message if no messages
         if ((!currentData.portfolio.messages || currentData.portfolio.messages.length === 0) && initData.isNew) {
@@ -332,7 +334,8 @@ export default function PortfolioBuilderPage() {
   const handlePublish = async () => {
     if (!portfolio) return;
 
-    if (!username) {
+    // Regular users need a username, super admin doesn't
+    if (!isSuperAdmin && !username) {
       alert('Please set a username in settings before publishing');
       router.push('/settings/portfolio');
       return;
@@ -437,15 +440,15 @@ export default function PortfolioBuilderPage() {
               )}
             </button>
 
-            {username && isPublished && (
+            {isPublished && (isSuperAdmin || username) && (
               <a
-                href={`/user/${username}`}
+                href={isSuperAdmin ? '/' : `/user/${username}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
               >
                 <Eye className="h-4 w-4" />
-                View Live
+                View Live {isSuperAdmin && '(Root Page)'}
                 <ExternalLink className="h-3 w-3" />
               </a>
             )}

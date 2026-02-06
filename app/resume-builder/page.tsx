@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Plus, FileText, Calendar, Star, Edit2, Trash2, Copy, Eye, Sparkles, Briefcase, Globe } from 'lucide-react';
 import type { ResumeWithSections } from '@/lib/types/resume';
 import type { JobListing } from '@/app/api/jobs/route';
-import { localeNames, type Locale, locales } from '@/i18n';
 
 export default function ResumeBuilderPage() {
   const [resumes, setResumes] = useState<ResumeWithSections[]>([]);
@@ -32,7 +31,7 @@ export default function ResumeBuilderPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Are you sure you want to delete this resume?')) return;
+    if (!confirm('Are you sure you want to delete this resume? This cannot be undone.')) return;
     
     try {
       await fetch(`/api/resume/${id}`, { method: 'DELETE' });
@@ -106,7 +105,7 @@ export default function ResumeBuilderPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setShowGenerateModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-applause-purple text-white rounded-lg hover:opacity-90 transition-all shadow-lg"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-applause-orange text-white rounded-lg hover:opacity-90 transition-all shadow-lg"
               >
                 <Sparkles className="w-5 h-5" />
                 AI Generate ✨
@@ -135,7 +134,7 @@ export default function ResumeBuilderPage() {
             <div className="flex gap-3 justify-center">
               <button
                 onClick={() => setShowGenerateModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-applause-orange text-white rounded-lg hover:opacity-90 transition-all shadow-lg"
               >
                 <Plus className="w-5 h-5" />
                 Generate from Job
@@ -151,17 +150,18 @@ export default function ResumeBuilderPage() {
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {resumes.map((resume) => (
+            {resumes.map((resume, index) => (
               <div
                 key={resume.id}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+                className="bg-white rounded-xl shadow-md border-2 border-gray-200 p-6 hover:shadow-xl transition-all hover-lift animate-fade-up"
+                style={{ animationDelay: `${index * 100}ms` }}
               >
                 {/* Resume card header */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-blue-600" />
+                    <FileText className="w-5 h-5 text-applause-orange" />
                     {resume.is_primary && (
-                      <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                      <Star className="w-4 h-4 text-sunshine-yellow fill-current animate-pulse-subtle" />
                     )}
                   </div>
                   <span className={`text-xs px-2 py-1 rounded-full ${
@@ -345,7 +345,7 @@ function GenerateFromJobModal({
       <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[85vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <Sparkles className="w-6 h-6 text-purple-600" />
+            <Sparkles className="w-6 h-6 text-accent" />
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Generate Resume from Job</h2>
               <p className="text-sm text-gray-600 mt-1">
@@ -383,7 +383,7 @@ function GenerateFromJobModal({
                       onClick={() => handleJobSelect(job)}
                       className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
                         selectedJobId === job.id
-                          ? 'border-purple-500 bg-purple-50'
+                          ? 'border-applause-orange bg-orange-50'
                           : 'border-gray-200 bg-white hover:border-gray-300'
                       }`}
                     >
@@ -458,7 +458,7 @@ function GenerateFromJobModal({
             <button
               onClick={handleGenerate}
               disabled={!selectedJobId || generating}
-              className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2 bg-applause-orange text-white rounded-lg hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {generating ? 'Generating...' : 'Generate Resume'}
             </button>

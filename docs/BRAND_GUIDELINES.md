@@ -27,11 +27,11 @@ Our primary colors form the core of the Applause brand identity. Use these most 
 - **Usage:** Primary buttons, main CTAs, headers, brand elements
 - **Personality:** Creative, energetic, modern
 
-#### Celebration Pink
-- **Hex:** `#ec4899`
-- **RGB:** `236, 72, 153`
-- **Usage:** Secondary accents, highlights, gradient pairs with purple
-- **Personality:** Fun, bold, attention-grabbing
+#### Indigo
+- **Hex:** `#6366f1`
+- **RGB:** `99, 102, 241`
+- **Usage:** Secondary accents, gradient pairs with purple, interactive elements
+- **Personality:** Professional, reliable, sophisticated
 
 #### Success Green
 - **Hex:** `#10b981`
@@ -43,33 +43,33 @@ Our primary colors form the core of the Applause brand identity. Use these most 
 
 Use secondary colors to add variety and visual interest.
 
-#### Sunshine Yellow
-- **Hex:** `#fbbf24`
-- **RGB:** `251, 191, 36`
-- **Usage:** Attention highlights, warnings, energy bursts
-- **Personality:** Warmth, optimism, energy
-
 #### Ocean Blue
 - **Hex:** `#3b82f6`
 - **RGB:** `59, 130, 246`
-- **Usage:** Professional elements, trust indicators, links
+- **Usage:** Professional elements, trust indicators, links, informational content
 - **Personality:** Trust, stability, professionalism
 
-### Tertiary Colors
+#### Slate
+- **Hex:** `#64748b`
+- **RGB:** `100, 116, 139`
+- **Usage:** Neutral accents, supporting elements, icons
+- **Personality:** Balanced, professional, calm
 
-Tertiary colors add subtle variation and warmth.
+### Accent Colors
 
-#### Coral
-- **Hex:** `#fb7185`
-- **RGB:** `251, 113, 133`
-- **Usage:** Warm accents, subtle highlights, friendly touches
-- **Personality:** Approachable, warm, inviting
+Accent colors provide additional visual interest when needed.
 
 #### Mint
 - **Hex:** `#6ee7b7`
 - **RGB:** `110, 231, 183`
-- **Usage:** Subtle backgrounds, calm highlights, fresh accents
+- **Usage:** Subtle backgrounds, success accents, fresh highlights
 - **Personality:** Fresh, calm, encouraging
+
+#### Sunshine Yellow
+- **Hex:** `#fbbf24`
+- **RGB:** `251, 191, 36`
+- **Usage:** Rare highlights, important notifications (use sparingly)
+- **Personality:** Warmth, optimism, attention
 
 ### Neutral Palette
 
@@ -89,15 +89,17 @@ Tertiary colors add subtle variation and warmth.
 
 **DO:**
 - Use Applause Purple for primary actions and brand moments
-- Pair purple and pink in gradients for high-energy sections
+- Pair purple and indigo in gradients for sophisticated, energetic sections
 - Use Success Green for completed actions and positive feedback
 - Maintain sufficient contrast for readability (WCAG AA minimum)
-- Use warm neutrals as backgrounds to keep the energy friendly
+- Use warm neutrals as backgrounds to keep the interface clean
+- Limit to 2-3 colors per section for visual clarity
 
 **DON'T:**
-- Mix more than 3 bright colors in one section
+- Mix more than 3 colors in one section
 - Use bright colors for large text blocks (readability)
-- Use yellow or pink on white backgrounds without checking contrast
+- Overuse bright accent colors - keep them special
+- Use yellow on white backgrounds without checking contrast
 - Overuse gradients - reserve for special moments
 
 ---

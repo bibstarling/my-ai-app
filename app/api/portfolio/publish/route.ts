@@ -44,14 +44,16 @@ export async function POST(request: Request) {
         );
       }
 
-      // Check if user has a username
+      // Check if user has a username (not required for super admin)
       const { data: user } = await supabase
         .from('users')
-        .select('username')
+        .select('username, is_super_admin')
         .eq('clerk_id', userId)
         .single();
 
-      if (!user?.username) {
+      const isSuperAdmin = user?.is_super_admin || false;
+
+      if (!isSuperAdmin && !user?.username) {
         return NextResponse.json(
           { error: 'You must set a username before publishing your portfolio' },
           { status: 400 }
@@ -76,17 +78,17 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if user is admin and trigger sync to portfolio-data.ts if needed
+    // Check if user is super admin and trigger sync to portfolio-data.ts if needed
     const { data: user } = await supabase
       .from('users')
-      .select('is_admin, email')
+      .select('is_super_admin, email')
       .eq('clerk_id', userId)
       .single();
 
-    const isAdmin = user?.is_admin || user?.email === 'bibstarling@gmail.com';
+    const isSuperAdmin = user?.is_super_admin || false;
 
-    // Auto-sync for admin when publishing
-    if (isAdmin && publish) {
+    // Auto-sync for super admin when publishing - this updates the root (/) page
+    if (isSuperAdmin && publish) {
       try {
         const syncRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/portfolio/sync-main-page`, {
           method: 'POST',
@@ -109,8 +111,8 @@ export async function POST(request: Request) {
       success: true,
       portfolio: updatedPortfolio,
       status: newStatus,
-      isAdmin,
-      syncedToMainPage: isAdmin && publish,
+      isSuperAdmin,
+      syncedToMainPage: isSuperAdmin && publish,
     });
   } catch (error) {
     console.error('POST /api/portfolio/publish error:', error);

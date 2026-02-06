@@ -8,14 +8,14 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Brand Identity
 
-Applause celebrates career achievements and makes job searching exciting. Our vibrant, energetic brand turns the stress of job hunting into moments worth celebrating.
+Applause celebrates career achievements and makes job searching exciting. Our warm, sophisticated brand turns the stress of job hunting into moments worth celebrating.
 
 **Brand Colors:**
-- 🟣 **Applause Purple** (`#8b5cf6`) - Primary brand color
-- 💗 **Celebration Pink** (`#ec4899`) - Secondary accent
-- 💚 **Success Green** (`#10b981`) - Positive actions & wins
-- ☀️ **Sunshine Yellow** (`#fbbf24`) - Highlights & attention
+- 🟤 **Terra Cotta** (`#e07a5f`) - Primary brand color (warm, earthy)
+- ⚫ **Slate Gray** (`#475569`) - Secondary accent (modern, neutral)
+- 💚 **Emerald** (`#10b981`) - Success states & positive actions
 - 🌊 **Ocean Blue** (`#3b82f6`) - Trust & professionalism
+- ⚪ **Light Slate** (`#64748b`) - Supporting neutrals
 
 **Documentation:**
 - [docs/BRAND_GUIDELINES.md](./docs/BRAND_GUIDELINES.md) - Complete brand guidelines

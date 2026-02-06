@@ -59,10 +59,10 @@ export async function GET() {
       .eq('portfolio_id', portfolio.id)
       .order('created_at', { ascending: false });
 
-    // Get username
+    // Get username and super admin status
     const { data: user } = await supabase
       .from('users')
-      .select('username')
+      .select('username, is_super_admin')
       .eq('clerk_id', userId)
       .single();
 
@@ -71,6 +71,7 @@ export async function GET() {
       portfolio: {
         ...portfolio,
         username: user?.username,
+        isSuperAdmin: user?.is_super_admin || false,
         messages: messages || [],
         uploads: uploads || [],
         links: links || [],

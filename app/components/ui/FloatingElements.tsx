@@ -17,7 +17,7 @@ interface FloatingElementsProps {
   density?: 'low' | 'medium' | 'high';
 }
 
-const colors = ['#8b5cf6', '#ec4899', '#10b981', '#fbbf24', '#3b82f6', '#fb7185', '#6ee7b7'];
+const colors = ['#e07a5f', '#d4663f', '#475569', '#64748b', '#3b82f6'];
 
 export default function FloatingElements({ count, density = 'medium' }: FloatingElementsProps) {
   const [elements, setElements] = useState<FloatingElement[]>([]);

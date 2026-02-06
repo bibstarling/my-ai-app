@@ -73,9 +73,9 @@ export default function SetupPage() {
             </div>
 
             {/* Step 2 */}
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200">
+            <div className="bg-accent/5 rounded-xl p-6 border-2 border-accent/20">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-lg">
+                <div className="flex-shrink-0 w-10 h-10 bg-accent text-white rounded-full flex items-center justify-center font-bold text-lg">
                   2
                 </div>
                 <div className="flex-1">

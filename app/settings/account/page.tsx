@@ -182,8 +182,8 @@ export default function AccountPage() {
           <div className="mb-8 grid gap-4 md:grid-cols-3">
             <div className="rounded-lg border border-border bg-white p-6">
               <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-purple-100 p-3">
-                  <Activity className="h-6 w-6 text-purple-600" />
+                <div className="rounded-lg bg-orange-100 p-3">
+                  <Activity className="h-6 w-6 text-accent" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total Requests</p>

@@ -7,7 +7,15 @@ export type AIProvider = 'anthropic' | 'openai' | 'groq' | 'system';
 
 export interface AIMessage {
   role: 'user' | 'assistant' | 'system';
-  content: string;
+  content: string | Array<{
+    type: 'text' | 'image';
+    text?: string;
+    source?: {
+      type: 'base64';
+      media_type: string;
+      data: string;
+    };
+  }>;
 }
 
 export interface AIResponse {

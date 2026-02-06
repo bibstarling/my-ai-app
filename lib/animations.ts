@@ -17,7 +17,7 @@ export function createConfettiBurst(
 ) {
   const {
     count = 30,
-    colors = ['#8b5cf6', '#ec4899', '#10b981', '#fbbf24', '#3b82f6', '#fb7185', '#6ee7b7'],
+    colors = ['#e07a5f', '#d4663f', '#475569', '#10b981', '#3b82f6'],
     spread = 100,
     duration = 2000,
   } = options;

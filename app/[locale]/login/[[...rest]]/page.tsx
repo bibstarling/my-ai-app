@@ -23,31 +23,31 @@ export default function LoginPage() {
       icon: <Sparkles className="h-5 w-5" />,
       title: 'AI Portfolio Builder',
       description: 'Show off your amazing work by chatting with AI. Upload resumes, add projects, and watch your portfolio come to life! ✨',
-      color: 'bg-applause-purple',
+      color: 'bg-accent',
     },
     {
       icon: <FileText className="h-5 w-5" />,
       title: 'Smart Resume Generator',
       description: 'Create resumes that deserve a standing ovation! AI picks your best experiences and tailors them for each job. 🎯',
-      color: 'bg-celebration-pink',
+      color: 'bg-secondary',
     },
     {
       icon: <Bot className="h-5 w-5" />,
       title: 'AI Cover Letters',
       description: 'Write cover letters that make hiring managers smile! AI crafts compelling stories about your achievements. 💌',
-      color: 'bg-success-green',
+      color: 'bg-ocean-blue',
     },
     {
       icon: <Briefcase className="h-5 w-5" />,
       title: 'Job Matching',
       description: 'Find your dream role faster! Get matched with jobs you\'ll love and see exactly how you stack up. 🚀',
-      color: 'bg-ocean-blue',
+      color: 'bg-slate',
     },
     {
       icon: <Zap className="h-5 w-5" />,
       title: 'Career Assistant',
       description: 'Your personal cheerleader for career success! Get coaching, interview prep, and job search guidance. 💪',
-      color: 'bg-sunshine-yellow',
+      color: 'bg-success-green',
     },
   ];
 
@@ -60,17 +60,15 @@ export default function LoginPage() {
   ];
 
   return (
-    <div className="min-h-screen gradient-primary relative overflow-hidden">
-      {/* Floating celebration elements */}
-      <FloatingElements density="medium" />
+    <div className="min-h-screen bg-accent relative overflow-hidden">
+      {/* Floating celebration elements - reduced density */}
+      <FloatingElements density="low" />
       
-      {/* Celebration pattern overlay */}
+      {/* Subtle gradient overlay */}
       <div 
-        className="absolute inset-0 opacity-10 pointer-events-none"
+        className="absolute inset-0 pointer-events-none"
         style={{
-          backgroundImage: 'url(/graphics/celebration-pattern.svg)',
-          backgroundRepeat: 'repeat',
-          backgroundSize: '400px 400px',
+          background: 'linear-gradient(135deg, rgba(224, 122, 95, 0.95) 0%, rgba(212, 102, 63, 0.95) 100%)',
         }}
       />
 
@@ -103,7 +101,7 @@ export default function LoginPage() {
             <div 
               className="bg-white/95 backdrop-blur-md rounded-2xl border-2 border-white/50 p-6 shadow-2xl hover-lift animate-fade-up animate-delay-100"
             >
-              <h3 className="text-sm font-bold uppercase tracking-wider text-applause-purple mb-4 flex items-center gap-2">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-accent mb-4 flex items-center gap-2">
                 <Star className="h-4 w-4 fill-current" />
                 Why People Love Applause
               </h3>
@@ -148,9 +146,9 @@ export default function LoginPage() {
             <div className="bg-white/90 backdrop-blur-md rounded-2xl border-2 border-white/50 p-6 shadow-xl hover-lift animate-fade-up animate-delay-300">
               <div className="flex items-center gap-3 mb-3">
                 <div className="flex -space-x-2">
-                  <div className="w-10 h-10 rounded-full gradient-primary border-2 border-white shadow-lg" />
-                  <div className="w-10 h-10 rounded-full gradient-success border-2 border-white shadow-lg" />
-                  <div className="w-10 h-10 rounded-full gradient-warm border-2 border-white shadow-lg" />
+                  <div className="w-10 h-10 rounded-full bg-accent border-2 border-white shadow-lg" />
+                  <div className="w-10 h-10 rounded-full bg-secondary border-2 border-white shadow-lg" />
+                  <div className="w-10 h-10 rounded-full bg-success border-2 border-white shadow-lg" />
                 </div>
                 <div className="text-sm font-bold text-foreground">
                   Join people already celebrating their career wins! 🎊
@@ -217,11 +215,11 @@ export default function LoginPage() {
                       socialButtonsBlockButton:
                         'border-border hover:bg-muted/50 transition-all hover:scale-105',
                       formFieldInput:
-                        'border-border focus:border-applause-purple focus:ring-applause-purple transition-all',
+                        'border-border focus:border-accent focus:ring-accent transition-all',
                       footerActionLink:
-                        'text-applause-purple hover:text-celebration-pink transition-colors font-semibold',
+                        'text-accent hover:text-secondary transition-colors font-semibold',
                       identityPreviewText: 'text-foreground font-medium',
-                      identityPreviewEditButton: 'text-applause-purple hover:text-celebration-pink',
+                      identityPreviewEditButton: 'text-accent hover:text-secondary',
                     },
                   }}
                   routing="path"

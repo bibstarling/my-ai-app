@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Plus, FileText, Calendar, Edit2, Trash2, Eye, Sparkles, Briefcase, Download, Loader2, X, Globe } from 'lucide-react';
 import type { CoverLetter } from '@/lib/types/cover-letter';
 import type { JobListing } from '@/app/api/jobs/route';
-import { localeNames, type Locale, locales } from '@/i18n';
 
 export default function CoverLettersPage() {
   const [coverLetters, setCoverLetters] = useState<CoverLetter[]>([]);
@@ -32,7 +31,7 @@ export default function CoverLettersPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Are you sure you want to delete this cover letter?')) return;
+    if (!confirm('Are you sure you want to delete this cover letter? This cannot be undone.')) return;
     
     try {
       await fetch(`/api/cover-letter/${id}`, { method: 'DELETE' });
@@ -46,7 +45,7 @@ export default function CoverLettersPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading cover letters...</div>
+        <div className="text-gray-600">Loading your cover letters... ✨</div>
       </div>
     );
   }
@@ -58,17 +57,17 @@ export default function CoverLettersPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Cover Letters</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Cover Letters 💌</h1>
               <p className="mt-2 text-sm text-gray-600">
-                AI-generated cover letters tailored to specific jobs
+                AI-crafted letters that make hiring managers smile!
               </p>
             </div>
             <button
               onClick={() => setShowGenerateModal(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-applause-orange text-white rounded-lg hover:opacity-90 transition-all shadow-lg"
             >
               <Sparkles className="w-5 h-5" />
-              Generate Cover Letter
+              Create New Letter ✨
             </button>
           </div>
         </div>
@@ -79,16 +78,16 @@ export default function CoverLettersPage() {
         {coverLetters.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
             <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No cover letters yet</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Let's write your first cover letter! 💌</h3>
             <p className="text-gray-600 mb-6">
-              Generate your first AI-powered cover letter for a job application
+              AI will help you craft compelling letters that showcase your best work
             </p>
             <button
               onClick={() => setShowGenerateModal(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-applause-orange text-white rounded-lg hover:opacity-90 transition-all shadow-lg"
             >
               <Sparkles className="w-5 h-5" />
-              Generate Cover Letter
+              Create Your First Letter ✨
             </button>
           </div>
         ) : (
@@ -101,7 +100,7 @@ export default function CoverLettersPage() {
                 {/* Card header */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-purple-600" />
+                    <FileText className="w-5 h-5 text-accent" />
                   </div>
                   <span className={`text-xs px-2 py-1 rounded-full ${
                     coverLetter.status === 'final' 
@@ -128,7 +127,7 @@ export default function CoverLettersPage() {
                       {coverLetter.key_points.slice(0, 3).map((point, i) => (
                         <span
                           key={i}
-                          className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded"
+                          className="text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded"
                         >
                           {point}
                         </span>
@@ -147,7 +146,7 @@ export default function CoverLettersPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setPreviewCoverLetterId(coverLetter.id)}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors"
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 bg-applause-orange text-white text-sm rounded-lg hover:opacity-90 transition-colors"
                   >
                     <Eye className="w-4 h-4" />
                     Preview
@@ -310,7 +309,7 @@ function CoverLetterPreviewModal({ coverLetterId, onClose }: { coverLetterId: st
                     {coverLetter.key_points.map((point, i) => (
                       <span
                         key={i}
-                        className="text-xs px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full"
+                        className="text-xs px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full"
                       >
                         {point}
                       </span>
@@ -423,7 +422,7 @@ function GenerateCoverLetterModal({
       <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[85vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <Sparkles className="w-6 h-6 text-purple-600" />
+            <Sparkles className="w-6 h-6 text-accent" />
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Generate Cover Letter</h2>
               <p className="text-sm text-gray-600 mt-1">
@@ -461,7 +460,7 @@ function GenerateCoverLetterModal({
                       onClick={() => handleJobSelect(job)}
                       className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
                         selectedJobId === job.id
-                          ? 'border-purple-500 bg-purple-50'
+                          ? 'border-applause-orange bg-orange-50'
                           : 'border-gray-200 bg-white hover:border-gray-300'
                       }`}
                     >
@@ -536,7 +535,7 @@ function GenerateCoverLetterModal({
             <button
               onClick={handleGenerate}
               disabled={!selectedJobId || generating}
-              className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2 bg-applause-orange text-white rounded-lg hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {generating ? 'Generating...' : 'Generate Cover Letter'}
             </button>

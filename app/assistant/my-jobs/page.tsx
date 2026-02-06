@@ -124,7 +124,7 @@ export default function MyJobsPage() {
   const statuses = useMemo<Array<{ id: TrackedJob['status']; label: string; color: string }>>(
     () => [
       { id: 'saved', label: 'Saved', color: 'bg-blue-500/10 text-blue-600 border-blue-200' },
-      { id: 'applied', label: 'Applied', color: 'bg-purple-500/10 text-purple-600 border-purple-200' },
+      { id: 'applied', label: 'Applied', color: 'bg-accent/10 text-accent border-accent/20' },
       { id: 'interview', label: 'Interview', color: 'bg-yellow-500/10 text-yellow-600 border-yellow-200' },
       { id: 'offer', label: 'Offer', color: 'bg-green-500/10 text-green-600 border-green-200' },
       { id: 'rejected', label: 'Rejected', color: 'bg-red-500/10 text-red-600 border-red-200' },

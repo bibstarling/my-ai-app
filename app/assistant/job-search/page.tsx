@@ -358,8 +358,8 @@ export default function JobSearchPage() {
       await new Promise(resolve => setTimeout(resolve, 500));
       
       const message = matchCalculated
-        ? 'Job saved to My Jobs with tailored content and match score!'
-        : 'Job saved to My Jobs with tailored content! (View in My Jobs to calculate match)';
+        ? '🎉 Awesome! Job saved with your tailored resume and match score!'
+        : '✨ Great! Job saved with tailored content! Check My Jobs for your match score.';
       alert(message);
       setTailorModal(null);
       setGenerateResume(true);
@@ -393,14 +393,14 @@ export default function JobSearchPage() {
               </div>
             </div>
             <h1 className="mb-2 text-2xl font-bold text-foreground">
-              Job Search
+              Find Your Dream Role! 🚀
             </h1>
             <p className="mb-8 text-muted-foreground">
-              Sign in to search for jobs matching your skills and preferences.
+              Sign in to discover jobs you'll love and track your applications
             </p>
             <SignInButton mode="modal">
-              <button className="w-full rounded-lg bg-accent px-6 py-3 font-semibold text-accent-foreground hover:opacity-90 transition-opacity">
-                Sign in to continue
+              <button className="w-full rounded-lg gradient-primary px-6 py-3 font-bold text-white hover:opacity-90 transition-opacity shadow-lg">
+                Sign In & Start Searching ✨
               </button>
             </SignInButton>
           </div>
@@ -415,9 +415,9 @@ export default function JobSearchPage() {
         <div className="mx-auto max-w-7xl px-6 py-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground">Job Search</h1>
+            <h1 className="text-3xl font-bold text-foreground">Find Jobs 🎯</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Find roles matching your skills and resume
+              Discover roles you'll love and get matched instantly!
             </p>
           </div>
 
@@ -425,14 +425,14 @@ export default function JobSearchPage() {
           <div className="mb-6 rounded-xl border border-border bg-card p-6">
             <div className="mb-4">
               <label htmlFor="job-query" className="text-xs font-medium text-muted">
-                Search by keyword
+                What kind of role excites you?
               </label>
               <input
                 id="job-query"
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="e.g. Product Manager, AI, EdTech"
+                placeholder="e.g. Product Manager, AI Engineer, Marketing Lead"
                 className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               />
             </div>

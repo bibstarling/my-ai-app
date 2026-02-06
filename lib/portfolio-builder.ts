@@ -172,25 +172,59 @@ export async function processChatMessage(
   const systemPrompt = buildPortfolioSystemPrompt(context);
   
   // Build user message with attachments
-  let fullMessage = userMessage || '';
+  let messageContent: string | any[];
   
   if (attachments && attachments.length > 0) {
     const textAttachments = attachments.filter(a => a.contentType === 'text');
     const imageAttachments = attachments.filter(a => a.contentType === 'image');
     
-    if (textAttachments.length > 0) {
-      fullMessage += '\n\n=== ATTACHED CONTENT ===\n';
-      for (const att of textAttachments) {
-        fullMessage += `\n--- ${att.name} (${att.type}) ---\n${att.content}\n`;
-      }
-    }
-    
+    // If there are images, use multimodal format
     if (imageAttachments.length > 0) {
-      fullMessage += '\n\n=== ATTACHED IMAGES ===\n';
-      for (const att of imageAttachments) {
-        fullMessage += `${att.name}: [Image data will be sent separately]\n`;
+      const contentParts: any[] = [];
+      
+      // Add text first
+      let textContent = userMessage || '';
+      if (textAttachments.length > 0) {
+        textContent += '\n\n=== ATTACHED CONTENT ===\n';
+        for (const att of textAttachments) {
+          textContent += `\n--- ${att.name} (${att.type}) ---\n${att.content}\n`;
+        }
       }
+      
+      if (textContent) {
+        contentParts.push({ type: 'text', text: textContent });
+      }
+      
+      // Add images
+      for (const att of imageAttachments) {
+        // Remove data URL prefix if present
+        const base64Data = att.content.replace(/^data:image\/\w+;base64,/, '');
+        const mediaType = att.content.match(/data:(image\/\w+);base64,/)?.[1] || 'image/jpeg';
+        
+        contentParts.push({
+          type: 'image',
+          source: {
+            type: 'base64',
+            media_type: mediaType,
+            data: base64Data,
+          },
+        });
+      }
+      
+      messageContent = contentParts;
+    } else {
+      // Text only
+      let fullMessage = userMessage || '';
+      if (textAttachments.length > 0) {
+        fullMessage += '\n\n=== ATTACHED CONTENT ===\n';
+        for (const att of textAttachments) {
+          fullMessage += `\n--- ${att.name} (${att.type}) ---\n${att.content}\n`;
+        }
+      }
+      messageContent = fullMessage;
     }
+  } else {
+    messageContent = userMessage;
   }
   
   // Prepare messages for AI
@@ -203,7 +237,7 @@ export async function processChatMessage(
     // Add current user message
     {
       role: 'user' as const,
-      content: fullMessage,
+      content: messageContent,
     },
   ];
 
@@ -244,11 +278,15 @@ export async function processChatMessage(
   // Save messages to database
   const supabase = getSupabaseServiceRole();
   
+  const userContentForDb = typeof messageContent === 'string' 
+    ? messageContent 
+    : `${userMessage || 'Shared content'} [+${attachments?.length || 0} attachment(s)]`;
+  
   await supabase.from('portfolio_chat_messages').insert([
     {
       portfolio_id: portfolioId,
       role: 'user',
-      content: userMessage,
+      content: userContentForDb,
     },
     {
       portfolio_id: portfolioId,
@@ -257,6 +295,7 @@ export async function processChatMessage(
       metadata: {
         suggestions: parsedResponse.suggestions,
         hasUpdate: parsedResponse.updatedPortfolioData !== context.portfolioData,
+        attachmentCount: attachments?.length || 0,
       },
     },
   ]);

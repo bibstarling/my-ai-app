@@ -97,14 +97,14 @@ export default function ChatPage() {
               </div>
             </div>
             <h1 className="mb-2 text-2xl font-bold text-foreground">
-              AI Assistant
+              Your Career Coach 💪
             </h1>
             <p className="mb-8 text-muted-foreground">
-              Sign in to chat with your AI assistant for help with cover letters, interview prep, and more.
+              Sign in to chat with your AI cheerleader for career advice, interview prep, and more!
             </p>
             <SignInButton mode="modal">
-              <button className="w-full rounded-lg bg-accent px-6 py-3 font-semibold text-accent-foreground hover:opacity-90 transition-opacity">
-                Sign in to continue
+              <button className="w-full rounded-lg gradient-primary px-6 py-3 font-bold text-white hover:opacity-90 transition-all shadow-lg button-bounce">
+                Let's Chat! ✨
               </button>
             </SignInButton>
           </div>
@@ -126,9 +126,9 @@ export default function ChatPage() {
               <ArrowLeft className="h-5 w-5 text-foreground" />
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">AI Assistant</h1>
+              <h1 className="text-2xl font-bold text-foreground">Career Coach 💪</h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Powered by Claude
+                Your AI cheerleader for career success!
               </p>
             </div>
           </div>
@@ -137,14 +137,14 @@ export default function ChatPage() {
           <div className="flex-1 overflow-y-auto mb-6 rounded-xl border border-border bg-card p-6">
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center">
-                <div className="rounded-full bg-accent/10 p-6 mb-4">
+                <div className="rounded-full bg-accent/10 p-6 mb-4 animate-bounce-in">
                   <MessageSquare className="h-12 w-12 text-accent" />
                 </div>
                 <h2 className="text-xl font-semibold text-foreground mb-2">
-                  Start a conversation
+                  Let's talk about your career! 💬
                 </h2>
                 <p className="text-muted-foreground max-w-md">
-                  Ask me anything about job searching, cover letters, interview prep, or career advice.
+                  Ask me anything! Job search tips, interview prep, cover letter help—I'm here to cheer you on! 🎉
                 </p>
               </div>
             ) : (
@@ -155,7 +155,7 @@ export default function ChatPage() {
                     className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-[80%] rounded-lg px-4 py-3 ${
+                      className={`max-w-[80%] rounded-lg px-4 py-3 shadow-md transition-all hover-lift ${
                         message.role === 'user'
                           ? 'bg-accent text-accent-foreground'
                           : 'bg-muted text-foreground'

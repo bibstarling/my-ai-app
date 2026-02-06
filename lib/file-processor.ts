@@ -1,4 +1,3 @@
-import { PDFDocument } from 'pdf-lib';
 import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({
@@ -6,20 +5,48 @@ const anthropic = new Anthropic({
 });
 
 /**
- * Extract text from a PDF file
+ * Extract text from a PDF file using Claude Vision API
+ * Since pdf-parse has ESM compatibility issues, we use Claude to extract text from PDF
  */
 export async function extractTextFromPDF(fileBuffer: Buffer): Promise<string> {
   try {
-    const pdfDoc = await PDFDocument.load(fileBuffer);
-    const pages = pdfDoc.getPages();
+    // Convert PDF to base64 and use Claude's PDF reading capability
+    const base64Data = fileBuffer.toString('base64');
     
-    // Note: pdf-lib doesn't directly extract text, but we can use it to validate the PDF
-    // For actual text extraction, we'll use Claude's vision API or another library
-    // For now, return a placeholder that indicates PDF processing
-    return `PDF document with ${pages.length} pages. Use Claude Vision API for full text extraction.`;
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 4096,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'document',
+              source: {
+                type: 'base64',
+                media_type: 'application/pdf',
+                data: base64Data,
+              },
+            },
+            {
+              type: 'text',
+              text: 'Please extract all text content from this PDF document. Return only the extracted text, without any additional formatting or commentary.',
+            },
+          ],
+        },
+      ],
+    });
+
+    const text = message.content[0].type === 'text' ? message.content[0].text : '';
+    
+    if (!text || text.trim().length === 0) {
+      throw new Error('No text found in PDF. The PDF might be empty or contain only images.');
+    }
+    
+    return text.trim();
   } catch (error) {
     console.error('Error extracting text from PDF:', error);
-    throw new Error('Failed to process PDF file');
+    throw new Error('Failed to extract text from PDF. Please ensure it contains selectable text or readable content.');
   }
 }
 

@@ -22,28 +22,28 @@ export default function DashboardPage() {
       title: 'Build Portfolio ✨',
       description: 'Show off your amazing work with AI help!',
       href: '/portfolio/builder',
-      color: 'bg-applause-purple',
+      color: 'bg-accent',
     },
     {
       icon: <FileText className="h-6 w-6" />,
       title: 'Generate Resume 🎯',
       description: 'Create resumes that deserve applause',
       href: '/resume-builder',
-      color: 'bg-celebration-pink',
+      color: 'bg-secondary',
     },
     {
       icon: <Bot className="h-6 w-6" />,
       title: 'AI Assistant 💪',
       description: 'Your personal career cheerleader',
       href: '/assistant',
-      color: 'bg-success-green',
+      color: 'bg-ocean-blue',
     },
     {
       icon: <Briefcase className="h-6 w-6" />,
       title: 'Find Jobs 🚀',
       description: 'Discover roles that make you excited',
       href: '/assistant/job-search',
-      color: 'bg-ocean-blue',
+      color: 'bg-slate',
     },
   ];
 
@@ -102,7 +102,7 @@ export default function DashboardPage() {
             {/* Quick Actions */}
             <section>
               <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-applause-purple" />
+                <Sparkles className="h-5 w-5 text-accent" />
                 Quick Actions
               </h2>
               <div className="grid md:grid-cols-2 gap-4">
@@ -110,21 +110,21 @@ export default function DashboardPage() {
                   <Link
                     key={index}
                     href={action.href}
-                    className="group bg-white rounded-xl border-2 border-border p-6 hover:border-applause-purple hover:shadow-xl transition-all hover-lift"
+                    className="group bg-white rounded-xl border-2 border-border p-6 hover:border-applause-orange hover:shadow-xl transition-all hover-lift"
                   >
                     <div className="flex items-start gap-4">
                       <div className={`p-3 ${action.color} rounded-xl text-white shadow-lg group-hover:scale-110 transition-transform`}>
                         {action.icon}
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-bold text-foreground group-hover:text-applause-purple transition-colors mb-1">
+                        <h3 className="font-bold text-foreground group-hover:text-accent transition-colors mb-1">
                           {action.title}
                         </h3>
                         <p className="text-sm text-muted leading-relaxed">
                           {action.description}
                         </p>
                       </div>
-                      <ArrowRight className="h-5 w-5 text-muted group-hover:text-applause-purple group-hover:translate-x-1 transition-all" />
+                      <ArrowRight className="h-5 w-5 text-muted group-hover:text-accent group-hover:translate-x-1 transition-all" />
                     </div>
                   </Link>
                 ))}
@@ -132,7 +132,7 @@ export default function DashboardPage() {
             </section>
 
             {/* Getting Started */}
-            <section className="gradient-primary rounded-2xl border-2 border-white/50 p-6 shadow-xl text-white">
+            <section className="bg-accent rounded-2xl border-2 border-accent/20 p-6 shadow-xl text-white">
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl border border-white/30">
                   <TrendingUp className="h-6 w-6 text-white" />
@@ -173,7 +173,7 @@ export default function DashboardPage() {
           <div className="space-y-6">
             {/* Profile Status */}
             <div className="bg-white rounded-xl border-2 border-border p-6 hover-lift">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-applause-purple mb-4 flex items-center gap-2">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-accent mb-4 flex items-center gap-2">
                 <TrendingUp className="h-4 w-4" />
                 Profile Status
               </h3>
@@ -207,7 +207,7 @@ export default function DashboardPage() {
 
             {/* Recent Activity */}
             <div className="bg-white rounded-xl border-2 border-border p-6 hover-lift">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-applause-purple mb-4 flex items-center gap-2">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-accent mb-4 flex items-center gap-2">
                 <Sparkles className="h-4 w-4" />
                 Recent Activity
               </h3>
@@ -215,7 +215,7 @@ export default function DashboardPage() {
                 {recentActivity.length > 0 ? (
                   recentActivity.map((activity, index) => (
                     <div key={index} className="flex gap-3">
-                      <div className="w-2 h-2 rounded-full bg-applause-purple mt-2" />
+                      <div className="w-2 h-2 rounded-full bg-accent mt-2" />
                       <div className="flex-1">
                         <p className="text-sm font-medium text-foreground">{activity.title}</p>
                         <p className="text-xs text-muted mt-0.5">{activity.description}</p>

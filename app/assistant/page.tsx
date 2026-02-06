@@ -150,14 +150,14 @@ function DashboardContent() {
               </div>
             </div>
             <h1 className="mb-2 text-2xl font-bold text-foreground">
-              Job Search Control Room
+              Your Career Hub 🚀
             </h1>
             <p className="mb-8 text-muted-foreground">
-              Sign in to access your personal job search assistant, track applications, and manage your career tools.
+              Sign in to track applications, find dream jobs, and celebrate every win!
             </p>
             <SignInButton mode="modal">
-              <button className="w-full rounded-lg bg-accent px-6 py-3 font-semibold text-accent-foreground hover:opacity-90 transition-opacity">
-                Sign in to continue
+              <button className="w-full rounded-lg gradient-primary px-6 py-3 font-bold text-white hover:opacity-90 transition-all shadow-lg button-bounce">
+                Let's Get Started! ✨
               </button>
             </SignInButton>
           </div>
@@ -172,9 +172,9 @@ function DashboardContent() {
         <div className="mx-auto max-w-7xl px-6 py-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+            <h1 className="text-3xl font-bold text-foreground">Your Dashboard 📊</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Your job search overview
+              Track your progress and celebrate your wins!
             </p>
           </div>
 
@@ -186,37 +186,37 @@ function DashboardContent() {
             <>
               {/* Stats Grid */}
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-                <div className="rounded-xl border border-border bg-card p-6">
+                <div className="rounded-xl border-2 border-border bg-card p-6 hover-lift animate-fade-up transition-all">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Total Jobs</p>
+                      <p className="text-sm font-medium text-muted-foreground">Total Jobs 🎯</p>
                       <p className="text-3xl font-bold text-foreground mt-2">{stats.total}</p>
                     </div>
-                    <div className="rounded-full bg-blue-500/10 p-3">
-                      <Briefcase className="h-6 w-6 text-blue-600" />
+                    <div className="rounded-full bg-ocean-blue/10 p-3">
+                      <Briefcase className="h-6 w-6 text-ocean-blue" />
                     </div>
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-border bg-card p-6">
+                <div className="rounded-xl border-2 border-border bg-card p-6 hover-lift animate-fade-up animate-delay-100 transition-all">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Applied</p>
+                      <p className="text-sm font-medium text-muted-foreground">Applied ✨</p>
                       <p className="text-3xl font-bold text-foreground mt-2">{stats.applied}</p>
                     </div>
-                    <div className="rounded-full bg-purple-500/10 p-3">
-                      <CheckCircle className="h-6 w-6 text-purple-600" />
+                    <div className="rounded-full bg-applause-orange/10 p-3">
+                      <CheckCircle className="h-6 w-6 text-applause-orange" />
                     </div>
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-border bg-card p-6">
+                <div className="rounded-xl border-2 border-border bg-card p-6 hover-lift animate-fade-up animate-delay-200 transition-all">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Interviews</p>
+                      <p className="text-sm font-medium text-muted-foreground">Interviews 🎤</p>
                       <p className="text-3xl font-bold text-foreground mt-2">{stats.interview}</p>
                     </div>
-                    <div className="rounded-full bg-yellow-500/10 p-3">
+                    <div className="rounded-full bg-sunshine-yellow/10 p-3">
                       <Clock className="h-6 w-6 text-yellow-600" />
                     </div>
                   </div>
@@ -258,8 +258,8 @@ function DashboardContent() {
                   className="group rounded-xl border border-border bg-card p-6 hover:border-accent/50 hover:shadow-md transition-all"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <div className="rounded-full bg-purple-500/10 p-3">
-                      <FileText className="h-6 w-6 text-purple-600" />
+                    <div className="rounded-full bg-amber/10 p-3">
+                      <FileText className="h-6 w-6 text-accent" />
                     </div>
                     <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-accent transition-colors" />
                   </div>
@@ -325,7 +325,7 @@ function DashboardContent() {
                           <span className={`text-xs px-3 py-1 rounded-full font-medium ${
                             job.status === 'offer' ? 'bg-green-100 text-green-800' :
                             job.status === 'interview' ? 'bg-yellow-100 text-yellow-800' :
-                            job.status === 'applied' ? 'bg-purple-100 text-purple-800' :
+                            job.status === 'applied' ? 'bg-orange-100 text-orange-800' :
                             job.status === 'saved' ? 'bg-blue-100 text-blue-800' :
                             'bg-gray-100 text-gray-800'
                           }`}>

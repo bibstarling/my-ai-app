@@ -19,18 +19,18 @@ export async function POST() {
 
     const supabase = getSupabaseServiceRole();
 
-    // Check if user is admin
+    // Check if user is super admin
     const { data: user } = await supabase
       .from('users')
-      .select('is_admin, email')
+      .select('is_super_admin')
       .eq('clerk_id', userId)
       .single();
 
-    const isAdmin = user?.is_admin || user?.email === 'bibstarling@gmail.com';
+    const isSuperAdmin = user?.is_super_admin || false;
 
-    if (!isAdmin) {
+    if (!isSuperAdmin) {
       return NextResponse.json(
-        { error: 'Only admin users can sync to main page' },
+        { error: 'Only super admin users can sync to main page' },
         { status: 403 }
       );
     }
