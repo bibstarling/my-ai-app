@@ -20,8 +20,7 @@ import {
   Edit3,
   Settings,
 } from 'lucide-react';
-import { ManualEditor } from '@/app/components/portfolio/ManualEditor';
-import { MarkdownEditor } from '@/app/components/portfolio/MarkdownEditor';
+import { WYSIWYGEditor } from '@/app/components/portfolio/WYSIWYGEditor';
 import { convertDataToMarkdown } from '@/app/components/portfolio/markdown-utils';
 import { HelpButton } from '@/app/components/HelpButton';
 import { PageTour } from '@/app/components/PageTour';
@@ -56,7 +55,7 @@ export default function PortfolioBuilderPage() {
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-  const [editMode, setEditMode] = useState<'chat' | 'manual' | 'markdown'>('markdown');
+  // Removed edit mode - now using WYSIWYG editor only
   const [markdownContent, setMarkdownContent] = useState('');
   const [isSavingMarkdown, setIsSavingMarkdown] = useState(false);
   const [showPageTour, setShowPageTour] = useState(false);
@@ -516,45 +515,8 @@ export default function PortfolioBuilderPage() {
             <div>
               <h1 className="text-2xl font-bold text-foreground">My Portfolio ✨</h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Show off your amazing work with AI
+                Edit your portfolio with a beautiful editor
               </p>
-            </div>
-
-            {/* Mode Toggle */}
-            <div className="flex items-center gap-1 rounded-lg border border-border bg-background p-1">
-              <button
-                onClick={() => setEditMode('chat')}
-                className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                  editMode === 'chat'
-                    ? 'bg-accent text-white'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <MessageSquare className="h-4 w-4" />
-                AI Chat
-              </button>
-              <button
-                onClick={() => setEditMode('markdown')}
-                className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                  editMode === 'markdown'
-                    ? 'bg-accent text-white'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <FileText className="h-4 w-4" />
-                Markdown
-              </button>
-              <button
-                onClick={() => setEditMode('manual')}
-                className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                  editMode === 'manual'
-                    ? 'bg-accent text-white'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Edit3 className="h-4 w-4" />
-                Forms
-              </button>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -602,12 +564,16 @@ export default function PortfolioBuilderPage() {
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
-        {editMode === 'manual' ? (
-          /* Manual Editor Mode */
-          <div className="flex w-full flex-col lg:w-1/2">
-            <ManualEditor portfolioData={portfolioData} onSave={handleManualSave} />
-          </div>
-        ) : editMode === 'markdown' ? (
+        <WYSIWYGEditor
+          markdown={markdownContent}
+          onChange={setMarkdownContent}
+          onSave={handleMarkdownSave}
+          isSaving={isSavingMarkdown}
+        />
+      </div>
+
+      {/* Keep link modal for reference but it won't be used */}
+      {false && showLinkModal && (
           /* Markdown Mode: Chat on left, Markdown editor on right */
           <>
           {/* Left Panel - Chat */}
@@ -687,7 +653,7 @@ export default function PortfolioBuilderPage() {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
-                        handleSendMessage();
+                        handleSubmit(e as any);
                       }
                     }}
                     placeholder="Ask AI to update your portfolio..."
