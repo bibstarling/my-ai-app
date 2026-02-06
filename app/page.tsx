@@ -1,775 +1,398 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { ArrowUpRight, Linkedin, Mail, X } from 'lucide-react';
-import { portfolioData, type PortfolioProject } from '@/lib/portfolio-data';
-import { useEmbedMode } from '@/app/ClientAuthWrapper';
-import { WerkRoomButton } from '@/app/components/WerkRoomButton';
+import { useAuth } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { 
+  Sparkles, 
+  FileText, 
+  Search, 
+  MessageSquare, 
+  CheckCircle,
+  ArrowRight,
+  Briefcase,
+  TrendingUp,
+  Users
+} from 'lucide-react';
+import { useEffect } from 'react';
 
-function getCategoryForProject(project: PortfolioProject): string[] {
-  const categories: string[] = ['all'];
-  const tagString = project.tags.join(' ').toLowerCase();
-  
-  if (tagString.includes('ai') || tagString.includes('semantic') || tagString.includes('vector') || tagString.includes('chatgpt')) {
-    categories.push('ai');
-  }
-  if (tagString.includes('community') || tagString.includes('engagement') || tagString.includes('feed')) {
-    categories.push('community');
-  }
-  if (tagString.includes('platform') || tagString.includes('integration') || tagString.includes('cms') || tagString.includes('marketplace')) {
-    categories.push('platform');
-  }
-  if (tagString.includes('edtech') || tagString.includes('education') || tagString.includes('learning')) {
-    categories.push('edtech');
-  }
-  if (tagString.includes('discovery') || tagString.includes('research') || tagString.includes('qualitative')) {
-    categories.push('discovery');
-  }
-  
-  return categories;
-}
+export default function LandingPage() {
+  const { isSignedIn, isLoaded } = useAuth();
+  const router = useRouter();
 
-function ProjectGrid({
-  projects,
-  onProjectClick,
-}: {
-  projects: PortfolioProject[];
-  onProjectClick: (project: PortfolioProject) => void;
-}) {
-  const [selectedCategory, setSelectedCategory] = useState('all');
-
-  const CATEGORIES = [
-    { id: 'all', label: 'All Projects' },
-    { id: 'ai', label: 'AI & Discovery' },
-    { id: 'community', label: 'Community & Engagement' },
-    { id: 'platform', label: 'Platform & Integration' },
-    { id: 'edtech', label: 'EdTech' },
-    { id: 'discovery', label: 'Research & Discovery' },
-  ];
-
-  const filteredProjects = projects.filter((project) => {
-    if (selectedCategory === 'all') return true;
-    return getCategoryForProject(project).includes(selectedCategory);
-  });
-
-  return (
-    <div>
-      {/* Category Tabs */}
-      <div className="mb-8 flex flex-wrap gap-2">
-        {CATEGORIES.map((category) => (
-          <button
-            key={category.id}
-            onClick={() => setSelectedCategory(category.id)}
-            className={`rounded-full px-4 py-2 text-xs font-medium uppercase tracking-wider transition-all ${
-              selectedCategory === category.id
-                ? 'bg-accent text-white shadow-sm'
-                : 'bg-muted/20 text-muted hover:bg-muted/30 hover:text-foreground'
-            }`}
-          >
-            {category.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Masonry Grid */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {filteredProjects.map((project) => (
-          <div
-            key={project.id}
-            role="button"
-            tabIndex={0}
-            onClick={() => onProjectClick(project)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                onProjectClick(project);
-              }
-            }}
-            className="group relative rounded-lg border border-border bg-white p-6 transition-all hover:border-accent hover:shadow-lg cursor-pointer"
-          >
-            <p className="text-xs font-medium text-muted uppercase tracking-wider">
-              {project.company}
-            </p>
-            <h4 className="mt-2 font-medium text-foreground group-hover:text-accent transition-colors leading-snug">
-              {project.title}
-            </h4>
-            <p className="mt-3 text-sm text-muted leading-relaxed line-clamp-3">
-              {project.cardTeaser}
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {project.tags.slice(0, 3).map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent"
-                >
-                  {tag}
-                </span>
-              ))}
-              {project.tags.length > 3 && (
-                <span className="rounded-full bg-muted/20 px-3 py-1 text-xs font-medium text-muted">
-                  +{project.tags.length - 3}
-                </span>
-              )}
-            </div>
-            <div className="mt-4 pt-4 border-t border-border">
-              <p className="text-xs font-medium text-accent line-clamp-2">
-                {project.outcome}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {filteredProjects.length === 0 && (
-        <div className="py-12 text-center text-muted">
-          <p>{'No projects found in this category.'}</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ProjectModal({
-  project,
-  onClose,
-}: {
-  project: PortfolioProject;
-  onClose: () => void;
-}) {
+  // Redirect authenticated users to dashboard
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleEscape);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = '';
-    };
-  }, [onClose]);
+    if (isLoaded && isSignedIn) {
+      router.push('/dashboard');
+    }
+  }, [isLoaded, isSignedIn, router]);
+
+  // Show loading state while checking auth
+  if (!isLoaded) {
+    return <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="animate-pulse text-muted">Loading...</div>
+    </div>;
+  }
+
+  // Don't render landing page for signed-in users (they're being redirected)
+  if (isSignedIn) {
+    return null;
+  }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 backdrop-blur-sm p-4 pt-12 pb-24"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="project-modal-title"
-    >
-      <div
-        className="relative w-full max-w-3xl rounded-xl border border-border bg-white shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header with gradient accent */}
-        <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-transparent" />
-          <div className="relative flex items-start justify-between gap-4 p-8 pb-6">
-            <div className="flex-1">
-              <p className="text-xs font-semibold text-accent uppercase tracking-widest">
-                {project.company}
-              </p>
-              <h2 id="project-modal-title" className="mt-2 text-2xl font-bold text-foreground leading-snug">
-                {project.title}
-              </h2>
-              <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-accent/10 px-4 py-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-accent" />
-                <p className="text-sm font-medium text-accent">
-                  {project.outcome}
-                </p>
-              </div>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
+              <Sparkles className="h-5 w-5 text-white" />
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="shrink-0 rounded-full p-2 text-muted hover:bg-accent/10 hover:text-accent transition-all"
-              aria-label={'Close'}
+            <span className="text-xl font-bold text-foreground">Applause</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <Link 
+              href="/login" 
+              className="text-sm font-medium text-muted hover:text-foreground transition-colors"
             >
-              <X className="h-5 w-5" />
-            </button>
+              Sign In
+            </Link>
+            <Link 
+              href="/login" 
+              className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent/90 transition-all"
+            >
+              Get Started
+            </Link>
           </div>
-        </div>
-
-        {/* Tags Section */}
-        <div className="px-8 pb-6 border-b border-border">
-          <div className="flex flex-wrap gap-2">
-            {project.tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-card px-3 py-1.5 text-xs font-medium text-muted border border-border"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="max-h-[calc(100vh-20rem)] overflow-y-auto px-8 py-6">
-          <div className="space-y-8">
-            {project.details.map((section, i) => (
-              <div key={i} className="group">
-                {section.heading && (
-                  <div className="mb-4 flex items-center gap-3">
-                    <div className="h-px flex-1 bg-gradient-to-r from-accent/20 to-transparent" />
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-accent">
-                      {section.heading}
-                    </h3>
-                    <div className="h-px flex-1 bg-gradient-to-l from-accent/20 to-transparent" />
-                  </div>
-                )}
-                {section.paragraphs?.map((p, j) => (
-                  <p key={j} className="text-sm text-foreground leading-relaxed mb-4 last:mb-0">
-                    {p}
-                  </p>
-                ))}
-                {section.list && (
-                  <ul className="space-y-3 mt-4">
-                    {section.list.map((item, j) => (
-                      <li key={j} className="flex items-start gap-3 text-sm text-foreground">
-                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                        <span className="leading-relaxed">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function HomePage() {
-  const [activeSection, setActiveSection] = useState('about');
-  const [modalProject, setModalProject] = useState<PortfolioProject | null>(null);
-  const isEmbed = useEmbedMode();
-
-  const navItems = [
-    { id: 'about', label: 'About' },
-    { id: 'experience', label: 'Experience' },
-    { id: 'work', label: 'Work' },
-    { id: 'approach', label: 'How I Work' },
-    { id: 'skills', label: 'Skills' },
-    { id: 'articles', label: 'Articles & Talks' },
-    { id: 'contact', label: 'Contact' },
-  ];
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
-        });
-      },
-      { rootMargin: '-50% 0px -50% 0px' }
-    );
-
-    navItems.forEach(({ id }) => {
-      const element = document.getElementById(id);
-      if (element) observer.observe(element);
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-white lg:flex">
-      {/* Werk Room Button - Top Right - Only shown when logged in */}
-      {!isEmbed && <WerkRoomButton />}
-      
-      {/* Embed Mode Indicator - Only visible in v0 preview */}
-      {isEmbed && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-blue-500 text-white text-xs py-1 px-4 text-center">
-          Preview Mode - Auth disabled for iframe embedding
-        </div>
-      )}
-      
-      {/* Left Sidebar - Sticky on Desktop */}
-      <header className="lg:fixed lg:top-0 lg:left-0 lg:flex lg:h-screen lg:w-[30%] lg:flex-col lg:justify-between lg:py-12 lg:px-12 px-6 py-16">
-        <div>
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-foreground lg:text-5xl tracking-tight">
-                {portfolioData.fullName}
-              </h1>
-              <h2 className="mt-2 text-xl font-medium text-foreground/90 lg:text-2xl">
-                {portfolioData.title}
-              </h2>
-              <p className="mt-3 max-w-xs text-muted leading-relaxed">
-                {portfolioData.tagline}
-              </p>
-            </div>
-            
-          </div>
-
-          {/* Navigation - Desktop Only */}
-          <nav className="mt-12 hidden lg:block lg:mb-12">
-            <ul className="flex flex-col gap-3">
-              {navItems.map(({ id, label }) => (
-                <li key={id}>
-                  <a
-                    href={`#${id}`}
-                    className={`group flex items-center gap-4 py-1 transition-all duration-300 ${
-                      activeSection === id ? 'text-foreground' : 'text-muted hover:text-foreground'
-                    }`}
-                  >
-                    <span
-                      className={`h-px transition-all duration-300 ${
-                        activeSection === id
-                          ? 'w-16 bg-accent'
-                          : 'w-8 bg-muted group-hover:w-16 group-hover:bg-foreground'
-                      }`}
-                    />
-                    <span className="text-xs font-semibold uppercase tracking-widest">
-                      {label}
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
-
-        {/* Social Links */}
-        <div className="mt-8 flex items-center gap-6 lg:mt-0">
-          <a
-            href={portfolioData.linkedinUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="LinkedIn"
-            className="text-muted hover:text-accent transition-colors"
-          >
-            <Linkedin className="h-5 w-5" />
-          </a>
-          <a
-            href={`mailto:${portfolioData.email}`}
-            aria-label="Email"
-            className="text-muted hover:text-accent transition-colors"
-          >
-            <Mail className="h-5 w-5" />
-          </a>
         </div>
       </header>
 
-      {/* Right Column - Scrollable Content */}
-      <main className="lg:ml-[30%] lg:w-[70%] px-6 py-16 lg:py-24 lg:pr-24 lg:pl-12">
-        {/* About Section */}
-        <section id="about" className="mb-24 scroll-mt-24 lg:mb-36">
-          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            {'About'}
-          </h3>
-          <div className="space-y-4">
-            <p className="text-muted leading-relaxed">
-              {'Product leader focused on building AI-powered products that drive measurable outcomes. Currently shaping AI strategy at Skillshare, with a track record of shipped products across EdTech and community platforms.'}
-            </p>
-            <p className="text-muted leading-relaxed">
-              {'I thrive in ambiguity—taking on multiple complex initiatives, moving fast with limited resources, and finding creative solutions when priorities shift. Recognized for resilience, agility, and cross-functional impact.'}
-            </p>
-          </div>
-
-          {/* Key Contributions */}
-          <div className="mt-12 rounded-lg border border-border bg-white p-6 lg:p-8">
-            <div className="mb-6">
-              <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
-                {'Key Contributions and Impact'}
-              </h4>
+      {/* Hero Section */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-white via-accent/5 to-white py-20 lg:py-32">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-4 py-2 text-sm font-medium text-accent mb-6">
+              <Sparkles className="h-4 w-4" />
+              <span>Your Career Deserves Applause</span>
             </div>
-            <ul className="space-y-4">
-              {portfolioData.achievements.map((achievement, idx) => (
-                <li key={idx} className="flex items-start gap-3 text-sm">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                  <p className="leading-relaxed text-foreground">
-                    <span className="font-semibold">{achievement.split(':')[0]}:</span>
-                    {achievement.split(':').slice(1).join(':')}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Awards */}
-          {portfolioData.awards && portfolioData.awards.length > 0 && (
-            <div className="mt-12">
-              <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent">
-                {'Awards'}
-              </h4>
-              <div className="space-y-6">
-                {portfolioData.awards.map((award, idx) => (
-                <div key={idx} className="border-l-2 border-accent pl-4">
-                  <div className="flex items-baseline justify-between mb-1">
-                    <h5 className="font-medium text-foreground">{award.title}</h5>
-                    <span className="text-xs text-muted ml-4">{award.quarter}</span>
-                  </div>
-                  <p className="text-sm text-muted leading-relaxed mb-2">{award.description}</p>
-                  <ul className="flex flex-wrap gap-2">
-                    {award.keyTraits.map((trait, traitIdx) => (
-                      <li
-                        key={traitIdx}
-                        className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent"
-                      >
-                        {trait}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-              </div>
-            </div>
-          )}
-        </section>
-
-        {/* Experience Section */}
-        <section id="experience" className="mb-24 scroll-mt-24 lg:mb-36">
-          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            {'Experience'}
-          </h3>
-          <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
-            {'Experience'}
-          </h4>
-          <div className="space-y-12">
-            {portfolioData.experiences.map((exp, idx) => (
-              <div
-                key={idx}
-                className="group relative grid gap-4 pb-1 transition-all"
+            <h1 className="text-4xl lg:text-6xl font-bold text-foreground mb-6 tracking-tight">
+              Job Search Made <span className="text-gradient-primary">Effortless</span>
+            </h1>
+            <p className="text-lg lg:text-xl text-muted leading-relaxed mb-8">
+              AI-powered platform that helps you build stunning portfolios, create standout resumes, 
+              and land your dream job—all with intelligent assistance every step of the way.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link 
+                href="/login"
+                className="w-full sm:w-auto rounded-lg bg-accent px-8 py-4 text-base font-semibold text-white hover:bg-accent/90 transition-all shadow-lg hover:shadow-xl inline-flex items-center justify-center gap-2"
               >
-                <div className="absolute -inset-x-4 -inset-y-4 z-0 hidden rounded-md transition-all group-hover:bg-card/50 group-hover:shadow-[inset_0_1px_0_0_rgba(148,163,184,0.1)] lg:block" />
-                <div className="z-10">
-                  <p className="text-xs font-medium text-muted uppercase tracking-wider">{exp.period}</p>
-                  <h4 className="mt-1 font-medium text-foreground group-hover:text-accent transition-colors">
-                    {exp.title}
-                  </h4>
-                  {exp.subtitle && (
-                    <p className="text-sm text-muted italic">{exp.subtitle}</p>
-                  )}
-                  <p className="text-sm text-muted">{exp.company} • {exp.location}</p>
-                  <p className="mt-2 text-sm text-muted leading-relaxed">{exp.description}</p>
-                  {exp.highlights && exp.highlights.length > 0 && (
-                    <div className="mt-2 space-y-1">
-                      {exp.highlights.map((highlight, hIdx) => (
-                        <p key={hIdx} className="text-sm text-accent font-medium">{highlight}</p>
-                      ))}
-                    </div>
-                  )}
-                  <ul className="mt-4 flex flex-wrap gap-2">
-                    {exp.skills.map((skill) => (
-                      <li
-                        key={skill}
-                        className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent"
-                      >
-                        {skill}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                Start Building Free
+                <ArrowRight className="h-5 w-5" />
+              </Link>
+              <Link 
+                href="#features"
+                className="w-full sm:w-auto rounded-lg border-2 border-border px-8 py-4 text-base font-semibold text-foreground hover:border-accent hover:text-accent transition-all inline-flex items-center justify-center gap-2"
+              >
+                See How It Works
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Social Proof */}
+      <section className="py-12 bg-white border-y border-border">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div>
+              <div className="text-3xl font-bold text-accent mb-2">AI-Powered</div>
+              <div className="text-sm text-muted">Smart Resume Generation</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-accent mb-2">Job Matching</div>
+              <div className="text-sm text-muted">Find Perfect Opportunities</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-accent mb-2">Fast & Easy</div>
+              <div className="text-sm text-muted">Build in Minutes</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="py-20 lg:py-32">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-5xl font-bold text-foreground mb-4">
+              Everything You Need to Land Your Dream Job
+            </h2>
+            <p className="text-lg text-muted max-w-2xl mx-auto">
+              Powerful tools powered by AI to streamline your entire job search process
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Feature 1 */}
+            <div className="group rounded-xl border border-border bg-white p-8 transition-all hover:border-accent hover:shadow-lg">
+              <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
+                <Sparkles className="h-6 w-6 text-accent" />
               </div>
-            ))}
+              <h3 className="text-xl font-semibold text-foreground mb-3">AI Portfolio Builder</h3>
+              <p className="text-muted leading-relaxed mb-4">
+                Chat with AI to build your professional portfolio. Upload files, share links, and watch your 
+                portfolio come to life in real-time.
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2 text-sm text-foreground">
+                  <CheckCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                  <span>Natural conversation-based building</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-foreground">
+                  <CheckCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                  <span>Custom URLs for your portfolio</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-foreground">
+                  <CheckCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                  <span>Live preview as you build</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="group rounded-xl border border-border bg-white p-8 transition-all hover:border-accent hover:shadow-lg">
+              <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
+                <FileText className="h-6 w-6 text-accent" />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-3">Smart Resume Builder</h3>
+              <p className="text-muted leading-relaxed mb-4">
+                Generate job-specific resumes and cover letters in seconds. AI selects your most relevant 
+                experience and optimizes for each position.
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2 text-sm text-foreground">
+                  <CheckCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                  <span>AI-powered content selection</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-foreground">
+                  <CheckCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                  <span>Job matching & gap analysis</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-foreground">
+                  <CheckCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                  <span>ATS-friendly PDF export</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="group rounded-xl border border-border bg-white p-8 transition-all hover:border-accent hover:shadow-lg">
+              <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
+                <Search className="h-6 w-6 text-accent" />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-3">Job Search & Matching</h3>
+              <p className="text-muted leading-relaxed mb-4">
+                Discover opportunities from multiple sources with intelligent matching based on your skills 
+                and preferences.
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2 text-sm text-foreground">
+                  <CheckCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                  <span>Multi-source job aggregation</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-foreground">
+                  <CheckCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                  <span>Skills-based matching</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-foreground">
+                  <CheckCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                  <span>Remote-first opportunities</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Feature 4 */}
+            <div className="group rounded-xl border border-border bg-white p-8 transition-all hover:border-accent hover:shadow-lg">
+              <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
+                <MessageSquare className="h-6 w-6 text-accent" />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-3">AI Career Coach</h3>
+              <p className="text-muted leading-relaxed mb-4">
+                Get personalized advice on career strategy, interview prep, and job applications from your 
+                AI assistant.
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2 text-sm text-foreground">
+                  <CheckCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                  <span>Interview preparation</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-foreground">
+                  <CheckCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                  <span>Career advice & strategy</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-foreground">
+                  <CheckCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                  <span>Cover letter assistance</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Feature 5 */}
+            <div className="group rounded-xl border border-border bg-white p-8 transition-all hover:border-accent hover:shadow-lg">
+              <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
+                <Briefcase className="h-6 w-6 text-accent" />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-3">Application Tracking</h3>
+              <p className="text-muted leading-relaxed mb-4">
+                Keep track of all your applications in one place. Never lose sight of opportunities or 
+                follow-ups again.
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2 text-sm text-foreground">
+                  <CheckCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                  <span>Kanban-style organization</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-foreground">
+                  <CheckCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                  <span>Application status tracking</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-foreground">
+                  <CheckCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                  <span>Notes & reminders</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Feature 6 */}
+            <div className="group rounded-xl border border-border bg-white p-8 transition-all hover:border-accent hover:shadow-lg">
+              <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
+                <TrendingUp className="h-6 w-6 text-accent" />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-3">Email Notifications</h3>
+              <p className="text-muted leading-relaxed mb-4">
+                Stay informed with beautiful email notifications for document generation, application updates, 
+                and more.
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2 text-sm text-foreground">
+                  <CheckCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                  <span>Document ready alerts</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-foreground">
+                  <CheckCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                  <span>Application confirmations</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-foreground">
+                  <CheckCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                  <span>Customizable preferences</span>
+                </li>
+              </ul>
+            </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Work Section */}
-        <section id="work" className="mb-24 scroll-mt-24 lg:mb-36">
-          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            {'Work'}
-          </h3>
-          <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
-            {'Work'}
-          </h4>
-          <ProjectGrid projects={portfolioData.projects} onProjectClick={setModalProject} />
-          {modalProject && (
-            <ProjectModal project={modalProject} onClose={() => setModalProject(null)} />
-          )}
-        </section>
-
-        {/* How I Work Section */}
-        <section id="approach" className="mb-24 scroll-mt-24 lg:mb-36">
-          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            {'How I Work'}
-          </h3>
-          <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
-            {'How I Work'}
-          </h4>
-          
-          <div className="space-y-6">
-            <p className="text-muted leading-relaxed">
-              {'I\'m a high-agency builder who takes on complex, ambiguous projects and ships fast. When priorities shift mid-flight, I adapt quickly and keep multiple initiatives moving forward. I don\'t wait for perfect conditions—I find creative ways to ship with the resources I have.'}
-            </p>
-            <p className="text-muted leading-relaxed">
-              {'My approach: Run discovery that actually informs decisions. Work closely with engineering to figure out what\'s possible. Build the right-sized solution, not the perfect one. Ship fast, learn fast, iterate.'}
+      {/* How It Works */}
+      <section className="py-20 lg:py-32 bg-gradient-to-br from-accent/5 to-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-5xl font-bold text-foreground mb-4">
+              Simple Process, Powerful Results
+            </h2>
+            <p className="text-lg text-muted max-w-2xl mx-auto">
+              Get from job search to job offer in four easy steps
             </p>
           </div>
 
-          {/* PM Positioning */}
-          <div className="mt-12 rounded-lg border border-border bg-white p-6 lg:p-8">
-            <div className="mb-6">
-              <h4 className="text-xs font-bold uppercase tracking-widest text-accent mb-2">
-                {'What I Bring to the Table'}
-              </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-accent">1</span>
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Build Your Profile</h3>
               <p className="text-sm text-muted">
-                {'Rated "Exceeding High Expectations" for managing behemoth projects through organizational change.'}
+                Chat with AI to create your portfolio and resume in minutes
               </p>
             </div>
-            <ul className="space-y-3">
-              {portfolioData.superpowers.map((superpower, idx) => (
-                <li key={idx} className="flex items-start gap-3 text-sm">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                  <p className="leading-relaxed text-foreground">{superpower}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
 
-          {/* What I'm Good At */}
-          <div className="mt-8 grid gap-6 md:grid-cols-2">
-            <div className="rounded-lg border border-border bg-white p-6">
-              <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-accent">
-                {'I Excel At'}
-              </h4>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3 text-sm">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                  <p className="leading-relaxed text-foreground">
-                    <span className="font-medium">{'0-to-1 products:'}</span> {'Build from nothing, ship fast, prove value quickly'}
-                  </p>
-                </li>
-                <li className="flex items-start gap-3 text-sm">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                  <p className="leading-relaxed text-foreground">
-                    <span className="font-medium">{'Ambiguous problems:'}</span> {'Thrive when the path isn\'t clear, frame problems, find creative solutions'}
-                  </p>
-                </li>
-                <li className="flex items-start gap-3 text-sm">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                  <p className="leading-relaxed text-foreground">
-                    <span className="font-medium">{'Scrappy execution:'}</span> {'Ship with limited resources through creative problem-solving'}
-                  </p>
-                </li>
-                <li className="flex items-start gap-3 text-sm">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                  <p className="leading-relaxed text-foreground">
-                    <span className="font-medium">{'Multiple initiatives:'}</span> {'Juggle behemoth projects simultaneously without creating bottlenecks'}
-                  </p>
-                </li>
-              </ul>
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-accent">2</span>
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Find Opportunities</h3>
+              <p className="text-sm text-muted">
+                Discover jobs that match your skills and preferences
+              </p>
             </div>
 
-            <div className="rounded-lg border border-border bg-white p-6">
-              <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-accent">
-                {'What I Value'}
-              </h4>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3 text-sm">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                  <p className="leading-relaxed text-foreground">
-                    <span className="font-medium">{'Bias to action:'}</span> {'Ship and learn beats planning to perfection'}
-                  </p>
-                </li>
-                <li className="flex items-start gap-3 text-sm">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                  <p className="leading-relaxed text-foreground">
-                    <span className="font-medium">{'User reality:'}</span> {'Discovery that connects to actual behavior, not just opinions'}
-                  </p>
-                </li>
-                <li className="flex items-start gap-3 text-sm">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                  <p className="leading-relaxed text-foreground">
-                    <span className="font-medium">{'Measurable outcomes:'}</span> {'Real metrics over vanity numbers'}
-                  </p>
-                </li>
-                <li className="flex items-start gap-3 text-sm">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                  <p className="leading-relaxed text-foreground">
-                    <span className="font-medium">{'Cross-functional impact:'}</span> {'Unblock teams beyond my core role, act as a force multiplier'}
-                  </p>
-                </li>
-              </ul>
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-accent">3</span>
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Apply with AI</h3>
+              <p className="text-sm text-muted">
+                Generate tailored resumes and cover letters for each application
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-accent">4</span>
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Track & Win</h3>
+              <p className="text-sm text-muted">
+                Manage applications and prepare for interviews with AI coaching
+              </p>
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* Ideal Environments */}
-          <div className="mt-8 rounded-lg bg-gradient-to-br from-accent/5 via-transparent to-transparent border border-border p-6 lg:p-8">
-            <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-accent">
-              {'Where I Thrive'}
-            </h4>
-            <p className="text-sm text-muted leading-relaxed mb-4">
-              {'I\'m most valuable in environments that need fast execution through ambiguity:'}
+      {/* CTA Section */}
+      <section className="py-20 lg:py-32">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h2 className="text-3xl lg:text-5xl font-bold text-foreground mb-6">
+            Ready to Accelerate Your Career?
+          </h2>
+          <p className="text-lg text-muted mb-8 leading-relaxed">
+            Join professionals who are landing their dream jobs faster with AI-powered tools. 
+            Start building your future today—it's free to get started.
+          </p>
+          <Link 
+            href="/login"
+            className="inline-flex items-center gap-2 rounded-lg bg-accent px-8 py-4 text-lg font-semibold text-white hover:bg-accent/90 transition-all shadow-lg hover:shadow-xl"
+          >
+            Get Started Free
+            <ArrowRight className="h-5 w-5" />
+          </Link>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border bg-white py-12">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
+                <Sparkles className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-lg font-bold text-foreground">Applause</span>
+            </div>
+            <p className="text-sm text-muted text-center">
+              © 2026 Applause. Your Career Deserves Applause.
             </p>
-            <ul className="space-y-2">
-              <li className="flex items-start gap-3 text-sm">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                <p className="leading-relaxed text-foreground">
-                  <span className="font-medium">{'Early-stage startups'}</span> {'that need to prove value quickly with limited resources'}
-                </p>
-              </li>
-              <li className="flex items-start gap-3 text-sm">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                <p className="leading-relaxed text-foreground">
-                  <span className="font-medium">{'0-to-1 teams at scale-ups'}</span> {'launching new product lines or experimental initiatives'}
-                </p>
-              </li>
-              <li className="flex items-start gap-3 text-sm">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                <p className="leading-relaxed text-foreground">
-                  <span className="font-medium">{'AI-first companies'}</span> {'building products where the path isn\'t obvious and iteration is key'}
-                </p>
-              </li>
-              <li className="flex items-start gap-3 text-sm">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                <p className="leading-relaxed text-foreground">
-                  <span className="font-medium">{'Growth-stage companies'}</span> {'navigating rapid scaling and multiple pivots'}
-                </p>
-              </li>
-            </ul>
-          </div>
-        </section>
-
-        {/* Skills Section */}
-        <section id="skills" className="mb-24 scroll-mt-24 lg:mb-36">
-          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            {'Skills'}
-          </h3>
-          <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
-            {'Skills'}
-          </h4>
-          
-          {/* Skills Grid */}
-          <div className="grid gap-6 md:grid-cols-2">
-            {Object.entries(portfolioData.skills).map(([category, skillList]) => (
-              <div key={category} className="rounded-lg border border-border bg-white p-6">
-                <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-accent">
-                  {category}
-                </h4>
-                <ul className="flex flex-wrap gap-2">
-                  {skillList.map((skill) => (
-                    <li
-                      key={skill}
-                      className="rounded-full bg-card px-3 py-1.5 text-xs font-medium text-foreground border border-border"
-                    >
-                      {skill}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-
-          {/* Certifications & Education Grid */}
-          <div className="mt-8 grid gap-6 md:grid-cols-2">
-            {/* Certifications */}
-            <div className="rounded-lg border border-border bg-white p-6">
-              <div className="mb-4">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
-                  {'Certifications'}
-                </h4>
-              </div>
-              <ul className="space-y-3">
-                {portfolioData.certifications.map((cert, idx) => (
-                  <li key={idx} className="flex items-start gap-3 text-sm">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                    <div>
-                      <p className="font-medium text-foreground">{cert.name}</p>
-                      <p className="text-xs text-muted">{cert.issuer}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Education */}
-            <div className="rounded-lg border border-border bg-white p-6">
-              <div className="mb-4">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
-                  {'Education'}
-                </h4>
-              </div>
-              <ul className="space-y-3">
-                {portfolioData.education.map((edu, idx) => (
-                  <li key={idx} className="flex items-start gap-3 text-sm">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                    <div>
-                      <p className="font-medium text-foreground">{edu.degree}</p>
-                      <p className="text-xs text-muted">{edu.institution} • {edu.year}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+            <div className="flex items-center gap-6">
+              <Link href="/login" className="text-sm text-muted hover:text-accent transition-colors">
+                Sign In
+              </Link>
+              <Link href="/help" className="text-sm text-muted hover:text-accent transition-colors">
+                Help
+              </Link>
             </div>
           </div>
-        </section>
-
-        {/* Articles & Talks Section */}
-        <section id="articles" className="mb-24 scroll-mt-24 lg:mb-36">
-          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            {'Articles & Talks'}
-          </h3>
-          <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
-            {'Articles & Talks'}
-          </h4>
-          <div className="space-y-4">
-            {portfolioData.articlesAndTalks.map((item, idx) => (
-              <a
-                key={idx}
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group block rounded-lg border border-border bg-white p-6 transition-all hover:border-accent hover:shadow-lg"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="mb-2 flex items-center gap-2">
-                      <span className="rounded-full bg-accent/10 px-2 py-1 text-xs font-medium text-accent">
-                        {item.type}
-                      </span>
-                      <span className="text-xs text-muted">{item.date}</span>
-                    </div>
-                    <h4 className="font-medium text-foreground group-hover:text-accent transition-colors leading-snug">
-                      {item.title}
-                    </h4>
-                    <p className="mt-1 text-sm text-muted">{item.organization}</p>
-                  </div>
-                  <ArrowUpRight className="h-5 w-5 shrink-0 text-muted group-hover:text-accent transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                </div>
-              </a>
-            ))}
-          </div>
-        </section>
-
-        {/* Contact Section */}
-        <section id="contact" className="scroll-mt-24">
-          <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            {'Contact'}
-          </h3>
-          <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
-            {'Contact'}
-          </h4>
-          <div className="max-w-lg">
-            <p className="text-muted leading-relaxed mb-6">
-              {'Open to discussing product leadership roles, AI product strategy, and interesting challenges in EdTech and community platforms.'}
-            </p>
-            <div className="flex flex-col gap-4 sm:flex-row sm:gap-6">
-              <a
-                href={`mailto:${portfolioData.email}`}
-                className="inline-flex items-center gap-2 text-accent hover:text-foreground transition-colors font-medium"
-              >
-                <Mail className="h-4 w-4" />
-                {'Email Me'}
-              </a>
-              <a
-                href={portfolioData.linkedinUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-accent hover:text-foreground transition-colors font-medium"
-              >
-                <Linkedin className="h-4 w-4" />
-                {'Connect on LinkedIn'}
-              </a>
-            </div>
-          </div>
-        </section>
-      </main>
+        </div>
+      </footer>
     </div>
   );
 }
