@@ -16,7 +16,7 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    const { isPublic, username, seoDescription } = body;
+    const { isPublic, username, seoDescription, includePortfolioLink } = body;
 
     const supabase = getSupabaseServiceRole();
 
@@ -55,6 +55,7 @@ export async function PATCH(request: Request) {
     const updates: any = {};
     if (isPublic !== undefined) updates.is_public = isPublic;
     if (seoDescription !== undefined) updates.seo_description = seoDescription;
+    if (includePortfolioLink !== undefined) updates.include_portfolio_link = includePortfolioLink;
 
     if (Object.keys(updates).length > 0) {
       const { error: updateError } = await supabase

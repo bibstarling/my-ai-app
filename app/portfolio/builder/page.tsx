@@ -697,6 +697,23 @@ export default function PortfolioBuilderPage() {
                     )}
                   </div>
 
+                  {/* Data Summary */}
+                  <div className="rounded-lg bg-accent/5 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-accent mb-2">
+                      Portfolio Content
+                    </p>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                      <div>✓ {portfolioData.experiences?.length || 0} Experiences</div>
+                      <div>✓ {portfolioData.projects?.length || 0} Projects</div>
+                      <div>✓ {portfolioData.superpowers?.length || 0} Superpowers</div>
+                      <div>✓ {portfolioData.awards?.length || 0} Awards</div>
+                      <div>✓ {Object.keys(portfolioData.skills || {}).length} Skill Categories</div>
+                      <div>✓ {portfolioData.education?.length || 0} Education</div>
+                      <div>✓ {portfolioData.certifications?.length || 0} Certifications</div>
+                      <div>✓ {portfolioData.articlesAndTalks?.length || portfolioData.articles?.length || 0} Articles</div>
+                    </div>
+                  </div>
+
                   {portfolioData.about && (
                     <div>
                       <h2 className="mb-2 text-lg font-semibold text-foreground">About</h2>
@@ -708,7 +725,7 @@ export default function PortfolioBuilderPage() {
                     <div>
                       <h2 className="mb-3 text-lg font-semibold text-foreground">Experience</h2>
                       <div className="space-y-4">
-                        {portfolioData.experiences.map((exp: any, i: number) => (
+                        {portfolioData.experiences.slice(0, 3).map((exp: any, i: number) => (
                           <div key={i}>
                             <p className="font-medium text-foreground">{exp.title}</p>
                             <p className="text-sm text-muted-foreground">
@@ -716,6 +733,9 @@ export default function PortfolioBuilderPage() {
                             </p>
                           </div>
                         ))}
+                        {portfolioData.experiences.length > 3 && (
+                          <p className="text-xs text-muted">+{portfolioData.experiences.length - 3} more</p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -727,12 +747,15 @@ export default function PortfolioBuilderPage() {
                         {portfolioData.projects.slice(0, 4).map((project: any) => (
                           <div key={project.id} className="rounded-lg border border-border p-4">
                             <p className="font-medium text-foreground">{project.title}</p>
-                            <p className="mt-1 text-sm text-muted-foreground">
+                            <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
                               {project.cardTeaser}
                             </p>
                           </div>
                         ))}
                       </div>
+                      {portfolioData.projects.length > 4 && (
+                        <p className="text-xs text-muted mt-2">+{portfolioData.projects.length - 4} more projects</p>
+                      )}
                     </div>
                   )}
                 </div>

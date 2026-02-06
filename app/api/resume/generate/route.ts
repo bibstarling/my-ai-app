@@ -52,8 +52,29 @@ export async function POST(req: Request) {
       );
     }
 
-    // Use AI to select most relevant content
-    const selection = await selectRelevantContent(jobTitle, jobDescription, jobCompany, userId);
+    // Get user's portfolio data
+    const { data: userPortfolio } = await supabase
+      .from('user_portfolios')
+      .select('portfolio_data, include_portfolio_link')
+      .eq('clerk_id', userId)
+      .eq('status', 'published')
+      .maybeSingle();
+
+    const { data: userInfo } = await supabase
+      .from('users')
+      .select('username')
+      .eq('clerk_id', userId)
+      .maybeSingle();
+
+    // Fallback to hardcoded portfolio data if user hasn't created one
+    const portfolioInfo = userPortfolio?.portfolio_data || portfolioData;
+    const includePortfolioLink = userPortfolio?.include_portfolio_link ?? false;
+    const portfolioUrl = includePortfolioLink && userInfo?.username
+      ? `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/user/${userInfo.username}`
+      : portfolioInfo.websiteUrl || null;
+
+    // Use AI to select most relevant content from user's portfolio
+    const selection = await selectRelevantContent(jobTitle, jobDescription, jobCompany, userId, portfolioInfo);
 
     // Create resume
     const resumeTitle = body.resume_title || `${jobTitle} Resume`;
@@ -64,11 +85,11 @@ export async function POST(req: Request) {
         title: resumeTitle,
         is_primary: false,
         status: 'draft',
-        full_name: portfolioData.fullName,
-        email: portfolioData.email,
-        location: portfolioData.location,
-        linkedin_url: portfolioData.linkedinUrl,
-        portfolio_url: portfolioData.websiteUrl,
+        full_name: portfolioInfo.fullName || portfolioData.fullName,
+        email: portfolioInfo.email || portfolioData.email,
+        location: portfolioInfo.location || portfolioData.location,
+        linkedin_url: portfolioInfo.linkedinUrl || portfolioData.linkedinUrl,
+        portfolio_url: portfolioUrl,
       })
       .select()
       .single();
@@ -94,7 +115,7 @@ export async function POST(req: Request) {
 
     // 2. Selected Experiences
     for (const expIndex of selection.experienceIndices) {
-      const exp = portfolioData.experiences[expIndex];
+      const exp = portfolioInfo.experiences?.[expIndex];
       if (exp) {
         // Extract bullet points from description
         const bullets = exp.description.split('. ').filter(Boolean).map(b => b.trim());
@@ -118,7 +139,7 @@ export async function POST(req: Request) {
 
     // 3. Selected Projects
     for (const projectIndex of selection.projectIndices) {
-      const project = portfolioData.projects[projectIndex];
+      const project = portfolioInfo.projects?.[projectIndex];
       if (project) {
         sections.push({
           resume_id: resume.id,
@@ -255,8 +276,13 @@ async function selectRelevantContent(
   jobTitle: string,
   jobDescription: string,
   jobCompany: string,
-  userId: string
+  userId: string,
+  portfolioInfo: any
 ): Promise<ContentSelection> {
+
+    const awardsText = portfolioInfo.awards?.map((a: any, i: number) => 
+      `${i+1}. ${a.title} ${a.quarter}: ${a.description}`
+    ).join('\n') || '';
 
     const prompt = `You are an expert resume writer. Analyze the job posting and select the most relevant content from this candidate's portfolio.
 
@@ -266,16 +292,10 @@ Company: ${jobCompany}
 Description: ${jobDescription.slice(0, 2000)}
 
 CANDIDATE PROFILE:
-${portfolioData.tagline}
-Performance Level: Exceeding High Expectations
+${portfolioInfo.tagline || ''}
+${portfolioInfo.about || ''}
 
-🏆 AWARDS & RECOGNITION:
-1. Agility Award Q1 2025: Recognized for resilience and resourcefulness—managing behemoth projects (Creator Hub + CMS) through organizational change, delivering creative solutions with limited resources
-2. Curiosity Award Q2 2024: Recognized for AI pioneering—bringing practical innovation to drive efficiency
-
-PM TRAITS (naturally reflect these in summary):
-- Resilient through change: Adapted quickly after organizational shifts, maintained momentum on behemoth projects
-- Takes on behemoths: Manages massive initiatives with ambiguity (Creator Hub + CMS simultaneously)
+${awardsText ? `🏆 AWARDS & RECOGNITION:\n${awardsText}\n` : ''}
 - Proactively anticipates: Plans ahead, moves fast when priorities shift
 - Strategic thinker: Ready to champion product vision and influence roadmap
 - AI pioneer: Ships practical AI products (ChatGPT App, semantic search), not just strategy
@@ -284,22 +304,22 @@ PM TRAITS (naturally reflect these in summary):
 
 CANDIDATE PORTFOLIO:
 
-EXPERIENCES (select by index 0-${portfolioData.experiences.length - 1}):
-${portfolioData.experiences.map((exp, i) => `
+EXPERIENCES (select by index 0-${(portfolioInfo.experiences?.length || 0) - 1}):
+${(portfolioInfo.experiences || []).map((exp: any, i: number) => `
 ${i}. ${exp.title} at ${exp.company} (${exp.period})
    ${exp.description}
-   Skills: ${exp.skills.join(', ')}
+   Skills: ${exp.skills?.join(', ') || ''}
 `).join('\n')}
 
-PROJECTS (select by index 0-${portfolioData.projects.length - 1}):
-${portfolioData.projects.map((proj, i) => `
+PROJECTS (select by index 0-${(portfolioInfo.projects?.length || 0) - 1}):
+${(portfolioInfo.projects || []).map((proj: any, i: number) => `
 ${i}. ${proj.title}
    ${proj.cardTeaser}
-   Tags: ${proj.tags.join(', ')}
+   Tags: ${proj.tags?.join(', ') || ''}
 `).join('\n')}
 
 AVAILABLE SKILLS:
-${Object.entries(portfolioData.skills).map(([cat, items]) => `${cat}: ${items.join(', ')}`).join('\n')}
+${Object.entries(portfolioInfo.skills || {}).map(([cat, items]) => `${cat}: ${Array.isArray(items) ? items.join(', ') : ''}`).join('\n')}
 
 YOUR TASK:
 Select the most relevant experiences, projects, and skills for this specific job. Prioritize recent and highly relevant items. A strong resume should have 2-4 experiences, 2-3 projects, and focused skills.

@@ -29,6 +29,7 @@ export default function PortfolioSettingsPage() {
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   
   const [seoDescription, setSeoDescription] = useState('');
+  const [includePortfolioLink, setIncludePortfolioLink] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
@@ -46,6 +47,7 @@ export default function PortfolioSettingsPage() {
         setPortfolio(data.portfolio);
         setUsername(data.portfolio.username || '');
         setSeoDescription(data.portfolio.seo_description || '');
+        setIncludePortfolioLink(data.portfolio.include_portfolio_link ?? true);
       }
     } catch (error) {
       console.error('Failed to load portfolio:', error);
@@ -178,6 +180,33 @@ export default function PortfolioSettingsPage() {
       }
     } catch (error) {
       alert('Failed to update description');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleTogglePortfolioLink = async () => {
+    if (!portfolio) return;
+
+    setSaving(true);
+
+    try {
+      const res = await fetch('/api/portfolio/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ includePortfolioLink: !includePortfolioLink }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setPortfolio(data.portfolio);
+        setIncludePortfolioLink(data.portfolio.include_portfolio_link);
+      } else {
+        alert(`Failed: ${data.error}`);
+      }
+    } catch (error) {
+      alert('Failed to update setting');
     } finally {
       setSaving(false);
     }
@@ -345,6 +374,49 @@ export default function PortfolioSettingsPage() {
               >
                 {isPublic ? 'Make Private' : 'Make Public'}
               </button>
+            </div>
+          </div>
+
+          {/* Include Portfolio Link in Documents */}
+          <div className="rounded-lg border border-border bg-white p-6">
+            <h2 className="mb-4 text-lg font-semibold text-foreground">
+              Document Generation
+            </h2>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-foreground">
+                  Include Portfolio Link in Resumes & Cover Letters
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {includePortfolioLink
+                    ? 'Your portfolio link will be added to generated documents'
+                    : 'Generated documents will not include your portfolio link'}
+                </p>
+                {username && includePortfolioLink && (
+                  <p className="mt-2 text-xs font-mono text-accent">
+                    Link: {window.location.origin}/user/{username}
+                  </p>
+                )}
+              </div>
+
+              <button
+                onClick={handleTogglePortfolioLink}
+                disabled={saving}
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                  includePortfolioLink
+                    ? 'bg-accent text-accent-foreground hover:opacity-90'
+                    : 'border border-border text-foreground hover:bg-muted'
+                }`}
+              >
+                {includePortfolioLink ? 'Enabled' : 'Disabled'}
+              </button>
+            </div>
+
+            <div className="mt-4 rounded-lg bg-blue-50 border border-blue-200 p-4">
+              <p className="text-sm text-blue-900">
+                <strong>Note:</strong> Your portfolio data (experiences, skills, projects) will be used as the source for all document generation, providing consistent and up-to-date information.
+              </p>
             </div>
           </div>
 
