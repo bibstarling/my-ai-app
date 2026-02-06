@@ -27,11 +27,14 @@ export function generateStaticParams() {
 
 export default async function LocaleLayout({
   children,
-  params: { locale },
+  params,
 }: Readonly<{
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }>) {
+  // Await params in Next.js 16+
+  const { locale } = await params;
+  
   // Ensure that the incoming `locale` is valid
   if (!locales.includes(locale as any)) {
     notFound();
