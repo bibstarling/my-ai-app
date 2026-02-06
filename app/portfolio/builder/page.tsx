@@ -516,7 +516,9 @@ export default function PortfolioBuilderPage() {
             <ManualEditor portfolioData={portfolioData} onSave={handleManualSave} />
           </div>
         ) : (
-          /* Chat Mode - Left Panel */
+          /* Chat Mode */
+          <>
+          {/* Left Panel - Chat */}
           <div
             ref={chatContainerRef}
             className="flex w-full flex-col border-r border-border bg-background lg:w-1/2"
@@ -744,6 +746,7 @@ export default function PortfolioBuilderPage() {
             </div>
           </div>
         </div>
+        </>
         )}
       </div>
 
