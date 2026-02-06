@@ -68,6 +68,13 @@ export async function GET() {
 
     const isSuperAdmin = user?.is_super_admin || false;
 
+    console.log('📊 Portfolio API - User Info:', {
+      clerk_id: userId,
+      email: user?.email,
+      is_super_admin: isSuperAdmin,
+      username: user?.username
+    });
+
     // For super admin, load portfolio data from main page (portfolio-data.ts)
     let portfolioDataToUse = portfolio.portfolio_data;
     
@@ -76,10 +83,14 @@ export async function GET() {
       try {
         const { portfolioData } = await import('@/lib/portfolio-data');
         portfolioDataToUse = portfolioData;
+        console.log('✅ Super admin: Loaded main page portfolio data');
+        console.log('📝 Portfolio data fields:', Object.keys(portfolioData));
       } catch (error) {
-        console.error('Failed to load main portfolio data:', error);
+        console.error('❌ Failed to load main portfolio data:', error);
         // Fall back to database data if import fails
       }
+    } else {
+      console.log('👤 Regular user: Using database portfolio data');
     }
 
     return NextResponse.json({
