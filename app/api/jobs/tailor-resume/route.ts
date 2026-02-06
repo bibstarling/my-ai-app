@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import Anthropic from '@anthropic-ai/sdk';
+import { generateAICompletion } from '@/lib/ai-provider';
 import { createClient } from '@supabase/supabase-js';
 import { portfolioData } from '@/lib/portfolio-data';
 
@@ -8,10 +8,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-});
 
 export async function POST(request: Request) {
   try {
@@ -129,19 +125,16 @@ Return ONLY valid JSON in this exact format:
   ]
 }`;
 
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4000,
-      messages: [{ role: 'user', content: prompt }],
-    });
-
-    const textContent = message.content.find((c) => c.type === 'text');
-    if (!textContent || textContent.type !== 'text') {
-      throw new Error('No text response from AI');
-    }
+    const response = await generateAICompletion(
+      userId,
+      'job_tailor_resume',
+      'You are an expert resume writer.',
+      [{ role: 'user', content: prompt }],
+      4000
+    );
 
     // Parse AI response
-    const jsonMatch = textContent.text.match(/\{[\s\S]*\}/);
+    const jsonMatch = response.content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       throw new Error('Invalid JSON response from AI');
     }

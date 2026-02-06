@@ -1,14 +1,11 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import Anthropic from '@anthropic-ai/sdk';
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+import { generateAICompletion } from '@/lib/ai-provider';
 
 /**
  * POST /api/portfolio/parse-markdown
  * Parse markdown content into structured portfolio data using LLM
+ * Uses user's API key if configured, otherwise system API with limits
  */
 export async function POST(request: Request) {
   try {
@@ -28,15 +25,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // Use Claude to parse the markdown into structured data
-    const message = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 4096,
-      temperature: 0.3,
-      messages: [
+    // Use AI to parse the markdown into structured data
+    const response = await generateAICompletion(
+      userId,
+      'portfolio_parse',
+      'You are a portfolio data parser. Parse markdown content into structured JSON format.',
+      [
         {
           role: 'user',
-          content: `You are a portfolio data parser. Parse the provided markdown content into a structured JSON format for a professional portfolio.
+          content: `Parse the provided markdown content into a structured JSON format for a professional portfolio.
 
 IMPORTANT: Return ONLY valid JSON, no markdown code blocks, no explanations, no extra text. Just the raw JSON object.
 
@@ -141,17 +138,13 @@ Here is the markdown to parse:
 ${markdown}`,
         },
       ],
-    });
-
-    const content = message.content[0];
-    if (!content || content.type !== 'text') {
-      throw new Error('No text response from AI');
-    }
+      4096
+    );
 
     let portfolioData;
     try {
-      // Remove any markdown code blocks if Claude added them
-      let jsonText = content.text.trim();
+      // Remove any markdown code blocks if AI added them
+      let jsonText = response.content.trim();
       if (jsonText.startsWith('```json')) {
         jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?$/g, '').trim();
       } else if (jsonText.startsWith('```')) {
@@ -160,7 +153,7 @@ ${markdown}`,
       
       portfolioData = JSON.parse(jsonText);
     } catch (parseError) {
-      console.error('Failed to parse AI response:', content.text);
+      console.error('Failed to parse AI response:', response.content);
       throw new Error('Invalid JSON response from AI');
     }
 

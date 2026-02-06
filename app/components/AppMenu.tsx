@@ -25,6 +25,7 @@ import { useAuthSafe } from '@/app/hooks/useAuthSafe';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
 import { SettingsModal } from './SettingsModal';
 import { OnboardingTour } from './OnboardingTour';
+import { startInteractiveTour } from './InteractiveOnboarding';
 import { useRouter } from 'next/navigation';
 
 type MenuItem = {
@@ -76,7 +77,7 @@ const getMenuItems = (isAdmin: boolean): MenuItem[] => {
     { id: 'my-jobs', label: 'My Applications', icon: <Kanban className="w-5 h-5" />, href: '/assistant/my-jobs' },
     
     // Career Tools
-    { id: 'portfolio-builder', label: 'Portfolio', icon: <Briefcase className="w-5 h-5" />, href: '/portfolio/builder' },
+    { id: 'portfolio-builder', label: 'Profile', icon: <Briefcase className="w-5 h-5" />, href: '/portfolio/builder' },
     { id: 'resume', label: 'Resumes', icon: <FileText className="w-5 h-5" />, href: '/resume-builder' },
     { id: 'cover-letter', label: 'Cover Letters', icon: <Mail className="w-5 h-5" />, href: '/cover-letters' },
     
@@ -104,7 +105,6 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
   const { isAdmin } = useIsAdmin();
   const menuItems = getMenuItems(isAdmin);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
   const isActive = (href: string) => {
     if (href === '/') {
@@ -125,7 +125,7 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
           {!isCollapsed ? (
             <Link href="/assistant" className="flex items-center gap-2 group">
               <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-white font-bold shadow-lg group-hover:scale-110 transition-transform">
-                👏
+                <Sparkles className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
                 <span className="font-bold text-gradient-primary text-base">Applause</span>
@@ -136,7 +136,7 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
             <Tooltip content="Applause" show={isCollapsed}>
               <Link href="/assistant" className="flex items-center justify-center group">
                 <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-white font-bold shadow-lg group-hover:scale-110 transition-transform">
-                  👏
+                  <Sparkles className="w-5 h-5" />
                 </div>
               </Link>
             </Tooltip>
@@ -191,7 +191,7 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
                     <UserButton.Action
                       label="Take a Tour"
                       labelIcon={<Sparkles className="h-4 w-4" />}
-                      onClick={() => setIsOnboardingOpen(true)}
+                      onClick={() => startInteractiveTour()}
                     />
                     <UserButton.Action
                       label="Help Center"
@@ -261,9 +261,6 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
       
       {/* Settings Modal */}
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
-      
-      {/* Onboarding Tour */}
-      <OnboardingTour isOpen={isOnboardingOpen} onClose={() => setIsOnboardingOpen(false)} />
     </aside>
   );
 }

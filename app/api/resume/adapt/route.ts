@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { getSupabaseServiceRole } from '@/lib/supabase-server';
+import { generateAICompletion } from '@/lib/ai-provider';
 import type { AdaptResumeRequest, AdaptResumeResponse, ResumeSection, ResumeAdaptation } from '@/lib/types/resume';
 
 /**
@@ -75,7 +76,7 @@ export async function POST(req: Request) {
     }
 
     // Call AI to adapt the resume
-    const aiResult = await adaptResumeWithAI(resume, sections || [], job);
+    const aiResult = await adaptResumeWithAI(resume, sections || [], job, userId);
 
     // Save adaptation
     const { data: adaptation, error: adaptError } = await supabase
@@ -128,13 +129,9 @@ type AIAdaptationResult = {
 async function adaptResumeWithAI(
   resume: Record<string, unknown>,
   sections: ResumeSection[],
-  job: Record<string, unknown>
+  job: Record<string, unknown>,
+  userId: string
 ): Promise<AIAdaptationResult> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  
-  if (!apiKey) {
-    throw new Error('ANTHROPIC_API_KEY not configured');
-  }
 
   const prompt = `You are an expert resume writer and career coach. Analyze the following job posting and resume, then provide an adapted version optimized for this specific job.
 
@@ -186,37 +183,15 @@ IMPORTANT INSTRUCTIONS:
 9. Return ONLY valid JSON, no additional text`;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 4096,
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-      }),
-    });
+    const aiResponse = await generateAICompletion(
+      userId,
+      'resume_adapt',
+      'You are an expert resume writer and career coach.',
+      [{ role: 'user', content: prompt }],
+      4096
+    );
 
-    const data = await response.json();
-
-    if (data.error) {
-      console.error('Claude API Error:', data.error);
-      throw new Error(data.error.message || 'AI API request failed');
-    }
-
-    if (!data.content || !data.content[0]) {
-      throw new Error('Unexpected response from AI API');
-    }
-
-    const resultText = data.content[0].text;
+    const resultText = aiResponse.content;
     
     // Parse JSON from the response (handle markdown code blocks if present)
     let jsonText = resultText.trim();

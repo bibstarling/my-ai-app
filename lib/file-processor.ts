@@ -1,43 +1,35 @@
-import Anthropic from '@anthropic-ai/sdk';
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+import { generateAICompletionMultimodal, generateAICompletion } from './ai-provider';
 
 /**
  * Extract text from a PDF file using Claude Vision API
  * Since pdf-parse has ESM compatibility issues, we use Claude to extract text from PDF
  */
-export async function extractTextFromPDF(fileBuffer: Buffer): Promise<string> {
+export async function extractTextFromPDF(fileBuffer: Buffer, userId: string): Promise<string> {
   try {
     // Convert PDF to base64 and use Claude's PDF reading capability
     const base64Data = fileBuffer.toString('base64');
     
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4096,
-      messages: [
+    const response = await generateAICompletionMultimodal(
+      userId,
+      'pdf_extraction',
+      [
         {
-          role: 'user',
-          content: [
-            {
-              type: 'document',
-              source: {
-                type: 'base64',
-                media_type: 'application/pdf',
-                data: base64Data,
-              },
-            },
-            {
-              type: 'text',
-              text: 'Please extract all text content from this PDF document. Return only the extracted text, without any additional formatting or commentary.',
-            },
-          ],
+          type: 'document',
+          source: {
+            type: 'base64',
+            media_type: 'application/pdf',
+            data: base64Data,
+          },
+        },
+        {
+          type: 'text',
+          text: 'Please extract all text content from this PDF document. Return only the extracted text, without any additional formatting or commentary.',
         },
       ],
-    });
+      4096
+    );
 
-    const text = message.content[0].type === 'text' ? message.content[0].text : '';
+    const text = response.content;
     
     if (!text || text.trim().length === 0) {
       throw new Error('No text found in PDF. The PDF might be empty or contain only images.');
@@ -55,30 +47,29 @@ export async function extractTextFromPDF(fileBuffer: Buffer): Promise<string> {
  */
 export async function analyzeImage(
   imageData: string,
-  mimeType: string
+  mimeType: string,
+  userId: string
 ): Promise<{ extractedText: string; analysis: any }> {
   try {
     // Remove data URL prefix if present
-    const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
+    const base64Match = imageData.match(/^data:([^;]+);base64,(.+)$/);
+    const base64Data = base64Match?.[2] || imageData;
     
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 2048,
-      messages: [
+    const response = await generateAICompletionMultimodal(
+      userId,
+      'image_analysis',
+      [
         {
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: {
-                type: 'base64',
-                media_type: mimeType as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
-                data: base64Data,
-              },
-            },
-            {
-              type: 'text',
-              text: `Please analyze this image for a professional portfolio. Extract:
+          type: 'image',
+          source: {
+            type: 'base64',
+            media_type: mimeType as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
+            data: base64Data,
+          },
+        },
+        {
+          type: 'text',
+          text: `Please analyze this image for a professional portfolio. Extract:
 1. Any visible text
 2. What the image shows (is it a project screenshot, certificate, diagram, etc.?)
 3. Any relevant details that would be useful for a portfolio (technologies visible, accomplishments, etc.)
@@ -91,15 +82,12 @@ Respond in JSON format:
   "relevantDetails": ["detail1", "detail2"],
   "suggestedUse": "how this could be used in portfolio"
 }`
-            }
-          ]
         }
-      ]
-    });
+      ],
+      2048
+    );
 
-    const responseText = message.content[0].type === 'text' 
-      ? message.content[0].text 
-      : '';
+    const responseText = response.content;
 
     // Try to parse JSON response
     let analysis;
@@ -131,18 +119,20 @@ Respond in JSON format:
  * Analyze a PDF using Claude
  */
 export async function analyzePDF(
-  extractedText: string
+  extractedText: string,
+  userId: string
 ): Promise<{ analysis: any }> {
   try {
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 2048,
-      messages: [
+    const response = await generateAICompletion(
+      userId,
+      'pdf_analysis',
+      'You are analyzing PDF content for a professional portfolio.',
+      [
         {
           role: 'user',
           content: `I'm building a professional portfolio. Please analyze this PDF content and extract relevant information:
 
-${extractedText.substring(0, 10000)} // Limit to avoid token limits
+${extractedText.substring(0, 10000)}
 
 Please respond in JSON format:
 {
@@ -157,12 +147,11 @@ Please respond in JSON format:
   "suggestedUse": "how this could be used in portfolio"
 }`
         }
-      ]
-    });
+      ],
+      2048
+    );
 
-    const responseText = message.content[0].type === 'text' 
-      ? message.content[0].text 
-      : '';
+    const responseText = response.content;
 
     // Try to parse JSON response
     let analysis;

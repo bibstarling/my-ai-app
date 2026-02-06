@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import { 
@@ -11,63 +11,178 @@ import {
   Settings, 
   ArrowRight,
   CheckCircle,
-  TrendingUp
+  TrendingUp,
+  Target,
+  Send,
+  Calendar,
+  Award,
+  Clock,
+  Users,
 } from 'lucide-react';
 import { HelpButton } from '@/app/components/HelpButton';
 import { PageTour } from '@/app/components/PageTour';
 import { getPageTour } from '@/lib/page-tours';
+import { supabase } from '@/lib/supabase';
+
+type TrackedJob = {
+  id: string;
+  title: string;
+  company: string;
+  status: string;
+  applied_date: string | null;
+  interview_date: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type JobStats = {
+  total: number;
+  saved: number;
+  applied: number;
+  interview: number;
+  offer: number;
+  rejected: number;
+};
 
 export default function DashboardPage() {
   const { user, isLoaded } = useUser();
   const [showPageTour, setShowPageTour] = useState(false);
+  const [jobs, setJobs] = useState<TrackedJob[]>([]);
+  const [jobStats, setJobStats] = useState<JobStats>({
+    total: 0,
+    saved: 0,
+    applied: 0,
+    interview: 0,
+    offer: 0,
+    rejected: 0,
+  });
+  const [loadingJobs, setLoadingJobs] = useState(true);
   
   const pageTour = getPageTour('dashboard');
+
+  useEffect(() => {
+    if (user) {
+      fetchJobs();
+    }
+  }, [user]);
+
+  const fetchJobs = async () => {
+    if (!user) return;
+    
+    setLoadingJobs(true);
+    try {
+      const { data, error } = await supabase
+        .from('tracked_jobs')
+        .select('id, title, company, status, applied_date, interview_date, created_at, updated_at')
+        .eq('clerk_id', user.id)
+        .order('updated_at', { ascending: false });
+
+      if (error) throw error;
+
+      if (data) {
+        setJobs(data);
+        
+        // Calculate stats
+        const stats: JobStats = {
+          total: data.length,
+          saved: data.filter(j => j.status === 'saved').length,
+          applied: data.filter(j => j.status === 'applied').length,
+          interview: data.filter(j => j.status === 'interview').length,
+          offer: data.filter(j => j.status === 'offer').length,
+          rejected: data.filter(j => j.status === 'rejected').length,
+        };
+        setJobStats(stats);
+      }
+    } catch (error) {
+      console.error('Error fetching jobs:', error);
+    } finally {
+      setLoadingJobs(false);
+    }
+  };
 
   const quickActions = [
     {
       icon: <Sparkles className="h-6 w-6" />,
-      title: 'Build Portfolio ✨',
-      description: 'Show off your amazing work with AI help!',
+      title: 'Build Portfolio',
+      description: 'Showcase your work with AI assistance',
       href: '/portfolio/builder',
       color: 'bg-accent',
     },
     {
       icon: <FileText className="h-6 w-6" />,
-      title: 'Generate Resume 🎯',
-      description: 'Create resumes that deserve applause',
+      title: 'Generate Resume',
+      description: 'Create professional resumes instantly',
       href: '/resume-builder',
       color: 'bg-secondary',
     },
     {
       icon: <Bot className="h-6 w-6" />,
-      title: 'AI Assistant 💪',
-      description: 'Your personal career cheerleader',
+      title: 'AI Career Coach',
+      description: 'Get personalized career guidance',
       href: '/assistant',
       color: 'bg-ocean-blue',
     },
     {
       icon: <Briefcase className="h-6 w-6" />,
-      title: 'Find Jobs 🚀',
-      description: 'Discover roles that make you excited',
+      title: 'Find Jobs',
+      description: 'Discover your next opportunity',
       href: '/assistant/job-search',
       color: 'bg-slate',
     },
   ];
 
-  const recentActivity = [
-    {
-      type: 'resume',
-      title: 'Resume updated',
-      description: 'Your resume was last updated 2 days ago',
-      time: '2 days ago',
-    },
-    {
-      type: 'job',
-      title: 'New job matches',
-      description: '5 new jobs match your profile',
-      time: '3 days ago',
-    },
-  ];
+  // Format recent activity from jobs
+  const recentActivity = jobs.slice(0, 5).map(job => {
+    const timeAgo = getTimeAgo(new Date(job.updated_at));
+    
+    if (job.status === 'interview' && job.interview_date) {
+      return {
+        type: 'interview',
+        title: `Interview: ${job.company}`,
+        description: job.title,
+        time: timeAgo,
+      };
+    } else if (job.status === 'applied' && job.applied_date) {
+      return {
+        type: 'applied',
+        title: `Applied to ${job.company}`,
+        description: job.title,
+        time: timeAgo,
+      };
+    } else if (job.status === 'offer') {
+      return {
+        type: 'offer',
+        title: `Offer from ${job.company}`,
+        description: job.title,
+        time: timeAgo,
+      };
+    } else {
+      return {
+        type: 'saved',
+        title: `Saved: ${job.company}`,
+        description: job.title,
+        time: timeAgo,
+      };
+    }
+  });
+
+  function getTimeAgo(date: Date): string {
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInMinutes = Math.floor(diffInMs / 60000);
+    const diffInHours = Math.floor(diffInMs / 3600000);
+    const diffInDays = Math.floor(diffInMs / 86400000);
+
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
+    } else if (diffInHours < 24) {
+      return `${diffInHours} hour${diffInHours !== 1 ? 's' : ''} ago`;
+    } else if (diffInDays < 30) {
+      return `${diffInDays} day${diffInDays !== 1 ? 's' : ''} ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  }
 
   if (!isLoaded) {
     return (
@@ -85,10 +200,10 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-                Welcome back{user?.firstName ? `, ${user.firstName}` : ''}! 🎉
+                Welcome back{user?.firstName ? `, ${user.firstName}` : ''}!
               </h1>
               <p className="text-muted mt-2">
-                Ready to celebrate more career wins? Let's make it happen! 🚀
+                Track your progress and achieve your career goals
               </p>
             </div>
             <Link
@@ -103,6 +218,49 @@ export default function DashboardPage() {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Job Statistics */}
+        {!loadingJobs && jobStats.total > 0 && (
+          <section className="mb-8">
+            <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+              <Target className="h-5 w-5 text-accent" />
+              Job Search Progress
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-white rounded-xl border-2 border-border p-4 hover-lift">
+                <div className="flex items-center justify-between mb-2">
+                  <Briefcase className="h-8 w-8 text-blue-600" />
+                </div>
+                <p className="text-2xl font-bold text-foreground">{jobStats.total}</p>
+                <p className="text-sm text-muted">Total Tracked</p>
+              </div>
+              
+              <div className="bg-white rounded-xl border-2 border-border p-4 hover-lift">
+                <div className="flex items-center justify-between mb-2">
+                  <Send className="h-8 w-8 text-accent" />
+                </div>
+                <p className="text-2xl font-bold text-foreground">{jobStats.applied}</p>
+                <p className="text-sm text-muted">Applications</p>
+              </div>
+              
+              <div className="bg-white rounded-xl border-2 border-border p-4 hover-lift">
+                <div className="flex items-center justify-between mb-2">
+                  <Calendar className="h-8 w-8 text-yellow-600" />
+                </div>
+                <p className="text-2xl font-bold text-foreground">{jobStats.interview}</p>
+                <p className="text-sm text-muted">Interviews</p>
+              </div>
+              
+              <div className="bg-white rounded-xl border-2 border-border p-4 hover-lift">
+                <div className="flex items-center justify-between mb-2">
+                  <Award className="h-8 w-8 text-success" />
+                </div>
+                <p className="text-2xl font-bold text-foreground">{jobStats.offer}</p>
+                <p className="text-sm text-muted">Offers</p>
+              </div>
+            </div>
+          </section>
+        )}
+
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
@@ -146,30 +304,58 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-lg font-bold mb-2 text-foreground">
-                    Get Started in 3 Steps 🎯
+                    Your Career Journey
                   </h3>
                   <ul className="space-y-3">
                     <li className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                      <CheckCircle className={`h-5 w-5 shrink-0 mt-0.5 ${jobStats.total > 0 ? 'text-success' : 'text-muted'}`} />
                       <div>
-                        <p className="text-sm font-bold text-foreground">Build Your Portfolio</p>
-                        <p className="text-xs text-muted">Let AI help you shine! ✨</p>
+                        <p className={`text-sm font-medium text-foreground ${jobStats.total > 0 ? 'font-bold' : ''}`}>
+                          Build Your Portfolio
+                        </p>
+                        <p className="text-xs text-muted">Showcase your best work professionally</p>
                       </div>
                     </li>
                     <li className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-muted shrink-0 mt-0.5" />
+                      <CheckCircle className={`h-5 w-5 shrink-0 mt-0.5 ${jobStats.saved > 0 ? 'text-success' : 'text-muted'}`} />
                       <div>
-                        <p className="text-sm font-medium text-foreground">Generate Resumes</p>
-                        <p className="text-xs text-muted">Create standout applications 🎯</p>
+                        <p className={`text-sm font-medium text-foreground ${jobStats.saved > 0 ? 'font-bold' : ''}`}>
+                          Find & Save Jobs
+                        </p>
+                        <p className="text-xs text-muted">
+                          {jobStats.saved > 0 ? `${jobStats.saved} jobs saved` : 'Discover opportunities that match your skills'}
+                        </p>
                       </div>
                     </li>
                     <li className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-muted shrink-0 mt-0.5" />
+                      <CheckCircle className={`h-5 w-5 shrink-0 mt-0.5 ${jobStats.applied > 0 ? 'text-success' : 'text-muted'}`} />
                       <div>
-                        <p className="text-sm font-medium text-foreground">Apply to Jobs</p>
-                        <p className="text-xs text-muted">Find your dream role! 🚀</p>
+                        <p className={`text-sm font-medium text-foreground ${jobStats.applied > 0 ? 'font-bold' : ''}`}>
+                          Apply to Jobs
+                        </p>
+                        <p className="text-xs text-muted">
+                          {jobStats.applied > 0 ? `${jobStats.applied} applications sent` : 'Create tailored applications and submit'}
+                        </p>
                       </div>
                     </li>
+                    {jobStats.interview > 0 && (
+                      <li className="flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-bold text-foreground">Interview Stage</p>
+                          <p className="text-xs text-muted">{jobStats.interview} interview{jobStats.interview !== 1 ? 's' : ''} scheduled</p>
+                        </div>
+                      </li>
+                    )}
+                    {jobStats.offer > 0 && (
+                      <li className="flex items-start gap-3">
+                        <Award className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-bold text-success">Offers Received!</p>
+                          <p className="text-xs text-muted">{jobStats.offer} job offer{jobStats.offer !== 1 ? 's' : ''}</p>
+                        </div>
+                      </li>
+                    )}
                   </ul>
                 </div>
               </div>
@@ -181,59 +367,148 @@ export default function DashboardPage() {
             {/* Profile Status */}
             <div className="bg-white rounded-xl border-2 border-border p-6 hover-lift">
               <h3 className="text-sm font-bold uppercase tracking-wider text-accent mb-4 flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Profile Status
+                <Users className="h-4 w-4" />
+                Profile Strength
               </h3>
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-foreground">Portfolio</span>
-                    <span className="text-xs text-muted">0%</span>
+                    <span className="text-sm text-foreground">Job Tracking</span>
+                    <span className="text-xs font-medium text-muted">
+                      {jobStats.total > 0 ? '✓ Active' : 'Not Started'}
+                    </span>
                   </div>
                   <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
-                    <div className="h-full gradient-primary w-0" />
+                    <div 
+                      className="h-full gradient-primary transition-all duration-500" 
+                      style={{ width: `${Math.min(jobStats.total * 10, 100)}%` }}
+                    />
                   </div>
+                  <p className="text-xs text-muted mt-1">
+                    {jobStats.total === 0 
+                      ? 'Start tracking jobs to boost your profile' 
+                      : `${jobStats.total} job${jobStats.total !== 1 ? 's' : ''} tracked`}
+                  </p>
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-foreground">Resume</span>
-                    <span className="text-xs text-muted">0%</span>
+                    <span className="text-sm text-foreground">Applications</span>
+                    <span className="text-xs font-medium text-muted">
+                      {jobStats.applied > 0 ? `${jobStats.applied} sent` : 'None yet'}
+                    </span>
                   </div>
                   <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
-                    <div className="h-full gradient-primary w-0" />
+                    <div 
+                      className="h-full gradient-success transition-all duration-500" 
+                      style={{ width: `${Math.min(jobStats.applied * 20, 100)}%` }}
+                    />
                   </div>
+                  <p className="text-xs text-muted mt-1">
+                    {jobStats.applied === 0 
+                      ? 'Apply to jobs to track your progress' 
+                      : 'Keep applying to increase your chances!'}
+                  </p>
                 </div>
+                {jobStats.interview > 0 && (
+                  <div className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-200">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Calendar className="h-4 w-4 text-yellow-600" />
+                      <span className="text-sm font-bold text-foreground">Active Interviews</span>
+                    </div>
+                    <p className="text-xs text-muted">
+                      {jobStats.interview} interview{jobStats.interview !== 1 ? 's' : ''} in progress
+                    </p>
+                  </div>
+                )}
+                {jobStats.offer > 0 && (
+                  <div className="p-3 bg-success/10 rounded-lg border border-success/20">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Award className="h-4 w-4 text-success" />
+                      <span className="text-sm font-bold text-success">Offers Received!</span>
+                    </div>
+                    <p className="text-xs text-muted">
+                      {jobStats.offer} job offer{jobStats.offer !== 1 ? 's' : ''} waiting for your response
+                    </p>
+                  </div>
+                )}
               </div>
               <Link
-                href="/portfolio/builder"
+                href={jobStats.total === 0 ? '/assistant/job-search' : '/assistant/my-jobs'}
                 className="mt-6 block w-full text-center px-4 py-3 gradient-primary text-white rounded-lg hover:opacity-90 transition-all text-sm font-bold shadow-lg hover:shadow-xl"
               >
-                Complete Your Profile 🎉
+                {jobStats.total === 0 ? 'Start Job Search' : 'Manage Applications'}
               </Link>
             </div>
 
             {/* Recent Activity */}
             <div className="bg-white rounded-xl border-2 border-border p-6 hover-lift">
               <h3 className="text-sm font-bold uppercase tracking-wider text-accent mb-4 flex items-center gap-2">
-                <Sparkles className="h-4 w-4" />
+                <Clock className="h-4 w-4" />
                 Recent Activity
               </h3>
               <div className="space-y-4">
-                {recentActivity.length > 0 ? (
-                  recentActivity.map((activity, index) => (
-                    <div key={index} className="flex gap-3">
-                      <div className="w-2 h-2 rounded-full bg-accent mt-2" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-foreground">{activity.title}</p>
-                        <p className="text-xs text-muted mt-0.5">{activity.description}</p>
-                        <p className="text-xs text-muted mt-1">{activity.time}</p>
+                {loadingJobs ? (
+                  <div className="flex justify-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
+                  </div>
+                ) : recentActivity.length > 0 ? (
+                  recentActivity.map((activity, index) => {
+                    const getIcon = () => {
+                      switch (activity.type) {
+                        case 'interview':
+                          return <Calendar className="h-4 w-4 text-yellow-600" />;
+                        case 'applied':
+                          return <Send className="h-4 w-4 text-accent" />;
+                        case 'offer':
+                          return <Award className="h-4 w-4 text-success" />;
+                        default:
+                          return <Briefcase className="h-4 w-4 text-blue-600" />;
+                      }
+                    };
+
+                    const getColor = () => {
+                      switch (activity.type) {
+                        case 'interview': return 'bg-yellow-500/10';
+                        case 'applied': return 'bg-accent/10';
+                        case 'offer': return 'bg-success/10';
+                        default: return 'bg-blue-500/10';
+                      }
+                    };
+
+                    return (
+                      <div key={index} className="flex gap-3">
+                        <div className={`p-2 ${getColor()} rounded-lg h-fit`}>
+                          {getIcon()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{activity.title}</p>
+                          <p className="text-xs text-muted mt-0.5 truncate">{activity.description}</p>
+                          <p className="text-xs text-muted mt-1">{activity.time}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
-                  <p className="text-sm text-muted">No recent activity yet</p>
+                  <div className="text-center py-6">
+                    <Briefcase className="h-8 w-8 text-muted mx-auto mb-2" />
+                    <p className="text-sm text-muted">No job activity yet</p>
+                    <Link
+                      href="/assistant/job-search"
+                      className="text-xs text-accent hover:underline mt-1 inline-block"
+                    >
+                      Start searching for jobs
+                    </Link>
+                  </div>
                 )}
               </div>
+              {recentActivity.length > 0 && (
+                <Link
+                  href="/assistant/my-jobs"
+                  className="mt-4 block w-full text-center px-4 py-2 border border-gray-200 text-accent rounded-lg hover:bg-accent/5 transition-all text-sm font-medium"
+                >
+                  View All Jobs
+                </Link>
+              )}
             </div>
 
             {/* Tips Card */}

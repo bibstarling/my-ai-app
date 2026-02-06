@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import Anthropic from '@anthropic-ai/sdk';
+import { generateAICompletion } from '@/lib/ai-provider';
 import { createClient } from '@supabase/supabase-js';
 import { portfolioData, getPMPositioning } from '@/lib/portfolio-data';
 
@@ -8,10 +8,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-});
 
 export async function POST(request: Request) {
   try {
@@ -106,18 +102,15 @@ CRITICAL: Write in first person as if you ARE the candidate. Use their authentic
 
 Return the complete cover letter text (no JSON, just the letter).`;
 
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 2000,
-      messages: [{ role: 'user', content: prompt }],
-    });
+    const response = await generateAICompletion(
+      userId,
+      'job_tailor_cover_letter',
+      'You are an expert cover letter writer.',
+      [{ role: 'user', content: prompt }],
+      2000
+    );
 
-    const textContent = message.content.find((c) => c.type === 'text');
-    if (!textContent || textContent.type !== 'text') {
-      throw new Error('No text response from AI');
-    }
-
-    const coverLetterText = textContent.text.trim();
+    const coverLetterText = response.content.trim();
     
     // Split cover letter into paragraphs
     const paragraphs = coverLetterText.split('\n\n').filter(p => p.trim());

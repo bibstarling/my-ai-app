@@ -13,8 +13,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Check,
+  Play,
+  BookOpen,
+  Kanban,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { startInteractiveTour } from './InteractiveOnboarding';
 
 type OnboardingStep = {
   id: string;
@@ -35,28 +39,46 @@ const steps: OnboardingStep[] = [
     description: 'Your AI-powered career platform that makes job searching feel like a celebration. Let\'s take a quick tour of what you can do!',
     icon: <Sparkles className="w-12 h-12 text-[#e07a5f]" />,
     features: [
-      'Build stunning portfolios with AI',
+      'Search jobs from multiple sources',
+      'Build your professional profile with AI',
       'Create tailored resumes in seconds',
       'Generate compelling cover letters',
-      'Find and track job opportunities',
+      'Track applications in one place',
       'Get career coaching from AI',
     ],
   },
   {
-    id: 'portfolio',
-    title: '🎨 Build Your Portfolio',
-    description: 'Chat with AI to create your professional portfolio website. Upload files, paste URLs, or just tell AI about your work!',
+    id: 'find-jobs',
+    title: '🔍 Find Your Dream Job',
+    description: 'Start here! Search jobs from multiple sources, get match scores based on your profile, and save interesting opportunities.',
+    icon: <Search className="w-12 h-12 text-[#3b82f6]" />,
+    action: {
+      label: 'Start Job Search',
+      href: '/assistant/job-search',
+    },
+    features: [
+      'Multi-source job aggregation',
+      'Skills-based match scoring',
+      'Remote job filtering',
+      'Save and track applications',
+      'One-click apply workflow',
+    ],
+  },
+  {
+    id: 'profile',
+    title: '👤 Build Your Profile',
+    description: 'Your single source of truth! Chat with AI, upload your resume, or paste URLs to build your professional profile.',
     icon: <Briefcase className="w-12 h-12 text-[#e07a5f]" />,
     action: {
-      label: 'Start Building Portfolio',
+      label: 'Build Your Profile',
       href: '/portfolio/builder',
     },
     features: [
       'Natural conversation with AI',
-      'Upload resumes & certificates',
+      'Upload resumes & documents',
       'Scrape LinkedIn & GitHub',
-      'Live preview as you build',
-      'Custom URL for your portfolio',
+      'Multiple editing modes',
+      'Powers all your applications',
     ],
   },
   {
@@ -94,20 +116,20 @@ const steps: OnboardingStep[] = [
     ],
   },
   {
-    id: 'jobs',
-    title: '🔍 Find Your Dream Job',
-    description: 'Search jobs from multiple sources, get match scores, and track your applications all in one place.',
-    icon: <Search className="w-12 h-12 text-[#3b82f6]" />,
+    id: 'my-jobs',
+    title: '📋 Track Applications',
+    description: 'Keep all your applications organized! Track status, deadlines, and access your resumes and cover letters.',
+    icon: <Kanban className="w-12 h-12 text-[#10b981]" />,
     action: {
-      label: 'Start Job Search',
-      href: '/assistant/job-search',
+      label: 'View My Applications',
+      href: '/assistant/my-jobs',
     },
     features: [
-      'Multi-source aggregation',
-      'Skills-based matching',
-      'Match scoring & analysis',
-      'Application tracking',
-      'Remote job filtering',
+      'Kanban-style tracking',
+      'Status updates (Saved, Applied, Interviewing)',
+      'Access application documents',
+      'Add notes and deadlines',
+      'Drag and drop interface',
     ],
   },
   {
@@ -138,6 +160,7 @@ type OnboardingTourProps = {
 export function OnboardingTour({ isOpen, onClose, autoStart = false }: OnboardingTourProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isClosing, setIsClosing] = useState(false);
+  const [showChoice, setShowChoice] = useState(true);
   const router = useRouter();
 
   const step = steps[currentStep];
@@ -148,8 +171,19 @@ export function OnboardingTour({ isOpen, onClose, autoStart = false }: Onboardin
   useEffect(() => {
     if (isOpen && autoStart) {
       setCurrentStep(0);
+      setShowChoice(true);
     }
   }, [isOpen, autoStart]);
+
+  const handleStartInteractive = () => {
+    handleClose();
+    startInteractiveTour();
+  };
+
+  const handleQuickOverview = () => {
+    setShowChoice(false);
+    setCurrentStep(0);
+  };
 
   const handleNext = () => {
     if (isLastStep) {
@@ -219,8 +253,110 @@ export function OnboardingTour({ isOpen, onClose, autoStart = false }: Onboardin
               leaveTo="opacity-0 scale-95"
             >
               <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all">
-                {/* Header */}
-                <div className="relative bg-gradient-to-r from-[#e07a5f] to-[#3b82f6] p-6">
+                {showChoice ? (
+                  /* Choice Screen */
+                  <>
+                    <div className="relative bg-gradient-to-r from-[#e07a5f] to-[#3b82f6] p-8">
+                      <button
+                        onClick={handleSkip}
+                        className="absolute right-4 top-4 text-white/80 hover:text-white transition-colors"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+
+                      <div className="flex items-center justify-center mb-4">
+                        <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center shadow-lg text-5xl">
+                          👏
+                        </div>
+                      </div>
+
+                      <Dialog.Title className="text-4xl font-bold text-white text-center mb-3">
+                        Welcome to Applause!
+                      </Dialog.Title>
+
+                      <p className="text-white/95 text-center text-lg leading-relaxed">
+                        Your AI-powered career platform. How would you like to get started?
+                      </p>
+                    </div>
+
+                    <div className="p-8">
+                      <div className="grid gap-4 mb-6">
+                        {/* Interactive Tour Option */}
+                        <button
+                          onClick={handleStartInteractive}
+                          className="group relative overflow-hidden rounded-xl border-2 border-[#e07a5f] bg-gradient-to-br from-[#e07a5f]/10 to-[#3b82f6]/10 p-6 text-left transition-all hover:shadow-xl hover:scale-[1.02]"
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-[#e07a5f] to-[#3b82f6] rounded-xl flex items-center justify-center text-white">
+                              <Play className="w-6 h-6" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+                                Interactive Tour
+                                <span className="text-xs font-semibold px-2 py-1 bg-[#10b981] text-white rounded-full">
+                                  Recommended
+                                </span>
+                              </h3>
+                              <p className="text-gray-600 leading-relaxed mb-3">
+                                Walk through the app step-by-step. I'll guide you page-by-page and highlight exactly where to click.
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                <span className="text-xs px-2 py-1 bg-white border border-gray-200 rounded-full text-gray-700">
+                                  ⏱️ ~3 minutes
+                                </span>
+                                <span className="text-xs px-2 py-1 bg-white border border-gray-200 rounded-full text-gray-700">
+                                  🎯 Hands-on
+                                </span>
+                                <span className="text-xs px-2 py-1 bg-white border border-gray-200 rounded-full text-gray-700">
+                                  📍 16 steps
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+
+                        {/* Quick Overview Option */}
+                        <button
+                          onClick={handleQuickOverview}
+                          className="group relative overflow-hidden rounded-xl border-2 border-gray-200 bg-white p-6 text-left transition-all hover:border-gray-300 hover:shadow-lg hover:scale-[1.02]"
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className="flex-shrink-0 w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-gray-700">
+                              <BookOpen className="w-6 h-6" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                                Quick Overview
+                              </h3>
+                              <p className="text-gray-600 leading-relaxed mb-3">
+                                Read a brief summary of key features. Perfect if you prefer to explore on your own.
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-700">
+                                  ⚡ ~1 minute
+                                </span>
+                                <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-700">
+                                  📖 Self-paced
+                                </span>
+                                <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-700">
+                                  📝 6 steps
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+                      </div>
+
+                      <p className="text-center text-sm text-gray-500">
+                        You can restart either tour anytime from the user menu
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  /* Regular Tour Content */
+                  <>
+                    {/* Header */}
+                    <div className="relative bg-gradient-to-r from-[#e07a5f] to-[#3b82f6] p-6">
                   <button
                     onClick={handleSkip}
                     className="absolute right-4 top-4 text-white/80 hover:text-white transition-colors"
@@ -341,6 +477,8 @@ export function OnboardingTour({ isOpen, onClose, autoStart = false }: Onboardin
                     </div>
                   )}
                 </div>
+                  </>
+                )}
               </Dialog.Panel>
             </Transition.Child>
           </div>

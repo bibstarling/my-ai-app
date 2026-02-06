@@ -24,6 +24,9 @@ export async function POST(request: Request) {
       );
     }
 
+    // Extract markdown from portfolioData if present
+    const markdown = portfolioData.markdown || null;
+
     const supabase = getSupabaseServiceRole();
 
     // Check if user is super admin
@@ -50,12 +53,19 @@ export async function POST(request: Request) {
     }
 
     // Update portfolio data in database
+    const updateData: any = { 
+      portfolio_data: portfolioData,
+      updated_at: new Date().toISOString(),
+    };
+    
+    // Add markdown if present
+    if (markdown !== null) {
+      updateData.markdown = markdown;
+    }
+    
     const { error: updateError } = await supabase
       .from('user_portfolios')
-      .update({ 
-        portfolio_data: portfolioData,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', portfolio.id);
 
     if (updateError) {

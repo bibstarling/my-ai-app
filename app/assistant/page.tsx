@@ -18,6 +18,8 @@ import {
   AlertCircle,
   ArrowRight,
   Sparkles,
+  LayoutDashboard,
+  LogIn,
 } from 'lucide-react';
 
 type TrackedJob = {
@@ -149,15 +151,17 @@ function DashboardContent() {
                 <Sparkles className="h-8 w-8 text-accent" />
               </div>
             </div>
-            <h1 className="mb-2 text-2xl font-bold text-foreground">
-              Your Career Hub 🚀
+            <h1 className="mb-2 text-2xl font-bold text-foreground flex items-center gap-2 justify-center">
+              <LayoutDashboard className="w-7 h-7 text-accent" />
+              Your Career Dashboard
             </h1>
             <p className="mb-8 text-muted-foreground">
-              Sign in to track applications, find dream jobs, and celebrate every win!
+              Sign in to track applications, find opportunities, and manage your career tools
             </p>
             <SignInButton mode="modal">
-              <button className="w-full rounded-lg gradient-primary px-6 py-3 font-bold text-white hover:opacity-90 transition-all shadow-lg button-bounce">
-                Let's Get Started! ✨
+              <button className="w-full rounded-lg gradient-primary px-6 py-3 font-bold text-white hover:opacity-90 transition-all shadow-lg button-bounce flex items-center justify-center gap-2">
+                <LogIn className="w-5 h-5" />
+                Get Started
               </button>
             </SignInButton>
           </div>
@@ -172,9 +176,12 @@ function DashboardContent() {
         <div className="mx-auto max-w-7xl px-6 py-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground">Your Dashboard 📊</h1>
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+              <LayoutDashboard className="w-8 h-8 text-accent" />
+              Your Dashboard
+            </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Track your progress and celebrate your wins!
+              Track your progress and manage your career tools
             </p>
           </div>
 
@@ -189,7 +196,7 @@ function DashboardContent() {
                 <div className="rounded-xl border-2 border-border bg-card p-6 hover-lift animate-fade-up transition-all">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Total Jobs 🎯</p>
+                      <p className="text-sm font-medium text-muted-foreground">Total Jobs</p>
                       <p className="text-3xl font-bold text-foreground mt-2">{stats.total}</p>
                     </div>
                     <div className="rounded-full bg-ocean-blue/10 p-3">
@@ -201,7 +208,7 @@ function DashboardContent() {
                 <div className="rounded-xl border-2 border-border bg-card p-6 hover-lift animate-fade-up animate-delay-100 transition-all">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Applied ✨</p>
+                      <p className="text-sm font-medium text-muted-foreground">Applied</p>
                       <p className="text-3xl font-bold text-foreground mt-2">{stats.applied}</p>
                     </div>
                     <div className="rounded-full bg-applause-orange/10 p-3">
@@ -213,7 +220,7 @@ function DashboardContent() {
                 <div className="rounded-xl border-2 border-border bg-card p-6 hover-lift animate-fade-up animate-delay-200 transition-all">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Interviews 🎤</p>
+                      <p className="text-sm font-medium text-muted-foreground">Interviews</p>
                       <p className="text-3xl font-bold text-foreground mt-2">{stats.interview}</p>
                     </div>
                     <div className="rounded-full bg-sunshine-yellow/10 p-3">

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import Anthropic from '@anthropic-ai/sdk';
+import { generateAICompletion } from '@/lib/ai-provider';
 import { createClient } from '@supabase/supabase-js';
 import { portfolioData } from '@/lib/portfolio-data';
 
@@ -8,10 +8,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-});
 
 type RouteContext = {
   params: Promise<{ jobId: string; questionId: string }>;
@@ -98,18 +94,15 @@ Guidelines:
 
 Return ONLY the answer text, no additional commentary or formatting.`;
 
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      messages: [{ role: 'user', content: prompt }],
-    });
+    const response = await generateAICompletion(
+      userId,
+      'job_answer_question',
+      'You are helping craft job application answers.',
+      [{ role: 'user', content: prompt }],
+      1000
+    );
 
-    const textContent = message.content.find((c) => c.type === 'text');
-    if (!textContent || textContent.type !== 'text') {
-      throw new Error('No text response from AI');
-    }
-
-    const generatedAnswer = textContent.text.trim();
+    const generatedAnswer = response.content.trim();
 
     // Update the question with the generated answer
     const { data: updatedQuestion, error: updateError } = await supabase

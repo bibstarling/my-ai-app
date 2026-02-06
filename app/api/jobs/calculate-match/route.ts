@@ -1,16 +1,12 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import Anthropic from '@anthropic-ai/sdk';
+import { generateAICompletion } from '@/lib/ai-provider';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-});
 
 export async function POST(request: Request) {
   try {
@@ -235,28 +231,24 @@ IMPORTANT:
 - Focus on what ATS scans for, not subjective fit
 - Return ONLY the JSON, no other text`;
 
-    console.log('[Match Calculation] Calling Claude API...');
+    console.log('[Match Calculation] Calling AI API...');
     console.log('[Match Calculation] Resume content length:', resumeContent.length);
     console.log('[Match Calculation] Cover letter content length:', coverLetterContent.length);
     
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 2000,
-      messages: [{ role: 'user', content: prompt }],
-    });
+    const response = await generateAICompletion(
+      userId,
+      'job_match_calculation',
+      'You are an expert recruiter analyzing job matches.',
+      [{ role: 'user', content: prompt }],
+      2000
+    );
 
     console.log('[Match Calculation] AI response received');
 
-    const textContent = message.content.find((c) => c.type === 'text');
-    if (!textContent || textContent.type !== 'text') {
-      console.error('[Match Calculation] No text response from AI');
-      throw new Error('No text response from AI');
-    }
-
     // Parse AI response
-    const jsonMatch = textContent.text.match(/\{[\s\S]*\}/);
+    const jsonMatch = response.content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.error('[Match Calculation] Invalid JSON response:', textContent.text);
+      console.error('[Match Calculation] Invalid JSON response:', response.content);
       throw new Error('Invalid JSON response from AI');
     }
 

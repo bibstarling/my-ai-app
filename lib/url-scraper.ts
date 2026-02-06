@@ -1,9 +1,5 @@
 import puppeteer, { Browser, Page } from 'puppeteer';
-import Anthropic from '@anthropic-ai/sdk';
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+import { generateAICompletion } from './ai-provider';
 
 interface ScrapedData {
   title: string;
@@ -146,13 +142,15 @@ export async function scrapeUrl(url: string): Promise<ScrapedData> {
  */
 export async function analyzeScrapedContent(
   url: string,
-  scrapedData: ScrapedData
+  scrapedData: ScrapedData,
+  userId: string
 ): Promise<any> {
   try {
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 2048,
-      messages: [
+    const response = await generateAICompletion(
+      userId,
+      'url_analysis',
+      'You are analyzing web content for a professional portfolio.',
+      [
         {
           role: 'user',
           content: `I'm building a professional portfolio. Please analyze this scraped web page and extract relevant information:
@@ -178,12 +176,11 @@ Please respond in JSON format:
   "summary": "brief summary of the content"
 }`
         }
-      ]
-    });
+      ],
+      2048
+    );
 
-    const responseText = message.content[0].type === 'text' 
-      ? message.content[0].text 
-      : '';
+    const responseText = response.content;
 
     // Try to parse JSON response
     let analysis;

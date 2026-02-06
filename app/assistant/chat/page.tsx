@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useUser, SignInButton } from '@clerk/nextjs';
-import { Loader2, MessageSquare, Send, ArrowLeft } from 'lucide-react';
+import { Loader2, MessageSquare, Send, ArrowLeft, Bot } from 'lucide-react';
 import { HelpButton } from '@/app/components/HelpButton';
 import { PageTour } from '@/app/components/PageTour';
 import { getPageTour } from '@/lib/page-tours';
@@ -102,15 +102,17 @@ export default function ChatPage() {
                 <MessageSquare className="h-8 w-8 text-accent" />
               </div>
             </div>
-            <h1 className="mb-2 text-2xl font-bold text-foreground">
-              Your Career Coach 💪
+            <h1 className="mb-2 text-2xl font-bold text-foreground flex items-center gap-2 justify-center">
+              <Bot className="w-7 h-7 text-accent" />
+              Your AI Career Coach
             </h1>
             <p className="mb-8 text-muted-foreground">
-              Sign in to chat with your AI cheerleader for career advice, interview prep, and more!
+              Sign in to get personalized career guidance and interview preparation
             </p>
             <SignInButton mode="modal">
-              <button className="w-full rounded-lg gradient-primary px-6 py-3 font-bold text-white hover:opacity-90 transition-all shadow-lg button-bounce">
-                Let's Chat! ✨
+              <button className="w-full rounded-lg gradient-primary px-6 py-3 font-bold text-white hover:opacity-90 transition-all shadow-lg button-bounce flex items-center justify-center gap-2">
+                <MessageSquare className="w-5 h-5" />
+                Start Conversation
               </button>
             </SignInButton>
           </div>
@@ -131,12 +133,21 @@ export default function ChatPage() {
             >
               <ArrowLeft className="h-5 w-5 text-foreground" />
             </Link>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Career Coach 💪</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Your AI cheerleader for career success!
-              </p>
+            <div className="flex items-center gap-3 flex-1">
+              <Bot className="w-8 h-8 text-accent" />
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">AI Career Coach</h1>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Personalized guidance based on your professional profile
+                </p>
+              </div>
             </div>
+            <Link
+              href="/portfolio/builder"
+              className="text-sm text-accent hover:underline flex items-center gap-1"
+            >
+              Update profile
+            </Link>
           </div>
 
           {/* Messages */}
@@ -147,11 +158,14 @@ export default function ChatPage() {
                   <MessageSquare className="h-12 w-12 text-accent" />
                 </div>
                 <h2 className="text-xl font-semibold text-foreground mb-2">
-                  Let's talk about your career! 💬
+                  How can I help you today?
                 </h2>
-                <p className="text-muted-foreground max-w-md">
-                  Ask me anything! Job search tips, interview prep, cover letter help—I'm here to cheer you on! 🎉
+                <p className="text-muted-foreground max-w-md mb-4">
+                  Ask me about job search strategies, interview preparation, cover letters, or career advice
                 </p>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800 max-w-md">
+                  💡 I have access to your professional profile and can provide personalized guidance based on your experience, skills, and career goals.
+                </div>
               </div>
             ) : (
               <div className="space-y-6">

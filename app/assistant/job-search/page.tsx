@@ -399,14 +399,14 @@ export default function JobSearchPage() {
               </div>
             </div>
             <h1 className="mb-2 text-2xl font-bold text-foreground">
-              Find Your Dream Role! 🚀
+              Find Your Next Opportunity
             </h1>
             <p className="mb-8 text-muted-foreground">
               Sign in to discover jobs you'll love and track your applications
             </p>
             <SignInButton mode="modal">
               <button className="w-full rounded-lg gradient-primary px-6 py-3 font-bold text-white hover:opacity-90 transition-opacity shadow-lg">
-                Sign In & Start Searching ✨
+                Sign In to Search Jobs
               </button>
             </SignInButton>
           </div>
@@ -421,7 +421,10 @@ export default function JobSearchPage() {
         <div className="mx-auto max-w-7xl px-6 py-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground">Find Jobs 🎯</h1>
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+              <Search className="w-8 h-8 text-accent" />
+              Find Jobs
+            </h1>
             <p className="text-sm text-muted-foreground mt-1">
               Discover roles you'll love and get matched instantly!
             </p>

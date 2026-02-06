@@ -3,8 +3,8 @@
 import { useState, createContext, useContext } from 'react';
 import { usePathname } from 'next/navigation';
 import { AppMenu } from './AppMenu';
-import { Footer } from './Footer';
 import { OnboardingTour } from './OnboardingTour';
+import { InteractiveOnboarding } from './InteractiveOnboarding';
 import { useOnboarding } from '../hooks/useOnboarding';
 
 const MenuContext = createContext({ isCollapsed: false, setIsCollapsed: (value: boolean) => {} });
@@ -33,10 +33,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             {children}
           </main>
         </div>
-        <Footer />
         
         {/* Global onboarding tour - auto-launches for new users */}
         <OnboardingTour isOpen={isOnboardingOpen} onClose={closeOnboarding} autoStart />
+        
+        {/* Interactive step-by-step tour with page navigation */}
+        <InteractiveOnboarding />
       </div>
     </MenuContext.Provider>
   );

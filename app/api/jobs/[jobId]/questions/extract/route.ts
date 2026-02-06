@@ -1,16 +1,12 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import Anthropic from '@anthropic-ai/sdk';
+import { generateAICompletion } from '@/lib/ai-provider';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-});
 
 type RouteContext = {
   params: Promise<{ jobId: string }>;
@@ -113,19 +109,16 @@ Rules:
 - Return ONLY the JSON array, no other text
 - Exclude basic information fields (name, email, phone, resume upload, etc.)`;
 
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 2000,
-      messages: [{ role: 'user', content: prompt }],
-    });
-
-    const textContent = message.content.find((c) => c.type === 'text');
-    if (!textContent || textContent.type !== 'text') {
-      throw new Error('No text response from AI');
-    }
+    const response = await generateAICompletion(
+      userId,
+      'job_extract_questions',
+      'You are a job application form analyzer.',
+      [{ role: 'user', content: prompt }],
+      2000
+    );
 
     // Parse AI response
-    const jsonMatch = textContent.text.match(/\[[\s\S]*\]/);
+    const jsonMatch = response.content.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
       return NextResponse.json({
         success: true,

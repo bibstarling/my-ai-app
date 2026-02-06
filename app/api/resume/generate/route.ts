@@ -52,29 +52,40 @@ export async function POST(req: Request) {
       );
     }
 
-    // Get user's portfolio data
+    // Get user's portfolio data and markdown
     const { data: userPortfolio } = await supabase
       .from('user_portfolios')
-      .select('portfolio_data, include_portfolio_link')
+      .select('portfolio_data, markdown, include_portfolio_link')
       .eq('clerk_id', userId)
-      .eq('status', 'published')
       .maybeSingle();
 
     const { data: userInfo } = await supabase
       .from('users')
-      .select('username')
+      .select('username, is_super_admin')
       .eq('clerk_id', userId)
       .maybeSingle();
 
-    // Fallback to hardcoded portfolio data if user hasn't created one
-    const portfolioInfo = userPortfolio?.portfolio_data || portfolioData;
+    const isSuperAdmin = userInfo?.is_super_admin || false;
+
+    // Determine which data to use
+    let portfolioInfo = userPortfolio?.portfolio_data || portfolioData;
+    let portfolioMarkdown = userPortfolio?.markdown || '';
+
+    // Super admin should use the main page data
+    if (isSuperAdmin) {
+      portfolioInfo = portfolioData;
+      portfolioMarkdown = convertPortfolioDataToMarkdown(portfolioData);
+    }
+
     const includePortfolioLink = userPortfolio?.include_portfolio_link ?? false;
-    const portfolioUrl = includePortfolioLink && userInfo?.username
-      ? `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/user/${userInfo.username}`
+    const portfolioUrl = includePortfolioLink
+      ? userInfo?.is_super_admin
+        ? 'www.biancastarling.com'
+        : portfolioInfo.websiteUrl || null
       : portfolioInfo.websiteUrl || null;
 
     // Use AI to select most relevant content from user's portfolio
-    const selection = await selectRelevantContent(jobTitle, jobDescription, jobCompany, userId, portfolioInfo);
+    const selection = await selectRelevantContent(jobTitle, jobDescription, jobCompany, userId, portfolioInfo, portfolioMarkdown);
 
     // Create resume
     const resumeTitle = body.resume_title || `${jobTitle} Resume`;
@@ -272,12 +283,65 @@ type ContentSelection = {
   reasoning: string;
 };
 
+// Helper function to convert structured portfolio data to markdown format
+function convertPortfolioDataToMarkdown(portfolioData: any): string {
+  let markdown = `# ${portfolioData.fullName}\n\n`;
+  markdown += `## ${portfolioData.title}\n\n`;
+  markdown += `${portfolioData.tagline}\n\n`;
+  
+  if (portfolioData.about) {
+    markdown += `## About Me\n\n${portfolioData.about}\n\n`;
+  }
+
+  if (portfolioData.experiences && portfolioData.experiences.length > 0) {
+    markdown += `## Experience\n\n`;
+    portfolioData.experiences.forEach((exp: any) => {
+      markdown += `### ${exp.title} at ${exp.company}\n`;
+      markdown += `*${exp.period}* | ${exp.location}\n\n`;
+      markdown += `${exp.description}\n\n`;
+      if (exp.highlights && exp.highlights.length > 0) {
+        exp.highlights.forEach((highlight: string) => {
+          markdown += `- ${highlight}\n`;
+        });
+        markdown += `\n`;
+      }
+    });
+  }
+
+  if (portfolioData.projects && portfolioData.projects.length > 0) {
+    markdown += `## Projects\n\n`;
+    portfolioData.projects.forEach((project: any) => {
+      markdown += `### ${project.title}\n\n`;
+      markdown += `${project.cardTeaser}\n\n`;
+      markdown += `**Outcome:** ${project.outcome}\n\n`;
+    });
+  }
+
+  if (portfolioData.skills) {
+    markdown += `## Skills\n\n`;
+    Object.entries(portfolioData.skills).forEach(([category, items]: [string, any]) => {
+      markdown += `**${category.charAt(0).toUpperCase() + category.slice(1)}:** ${items.join(', ')}\n\n`;
+    });
+  }
+
+  if (portfolioData.awards && portfolioData.awards.length > 0) {
+    markdown += `## Awards & Recognition\n\n`;
+    portfolioData.awards.forEach((award: any) => {
+      markdown += `- **${award.title}** (${award.quarter}): ${award.description}\n`;
+    });
+    markdown += `\n`;
+  }
+
+  return markdown;
+}
+
 async function selectRelevantContent(
   jobTitle: string,
   jobDescription: string,
   jobCompany: string,
   userId: string,
-  portfolioInfo: any
+  portfolioInfo: any,
+  portfolioMarkdown: string
 ): Promise<ContentSelection> {
 
     const awardsText = portfolioInfo.awards?.map((a: any, i: number) => 
@@ -291,18 +355,12 @@ Title: ${jobTitle}
 Company: ${jobCompany}
 Description: ${jobDescription.slice(0, 2000)}
 
-CANDIDATE PROFILE:
-${portfolioInfo.tagline || ''}
-${portfolioInfo.about || ''}
+CANDIDATE PROFESSIONAL PROFILE (Markdown):
+${portfolioMarkdown}
 
 ${awardsText ? `🏆 AWARDS & RECOGNITION:\n${awardsText}\n` : ''}
-- Proactively anticipates: Plans ahead, moves fast when priorities shift
-- Strategic thinker: Ready to champion product vision and influence roadmap
-- AI pioneer: Ships practical AI products (ChatGPT App, semantic search), not just strategy
-- Cross-functional force: Supports teams beyond core role with data and quick experiments
-- Creative solver: Finds right-sized solutions with limited resources
 
-CANDIDATE PORTFOLIO:
+CANDIDATE PORTFOLIO (Structured Data for Selection):
 
 EXPERIENCES (select by index 0-${(portfolioInfo.experiences?.length || 0) - 1}):
 ${(portfolioInfo.experiences || []).map((exp: any, i: number) => `

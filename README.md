@@ -84,14 +84,23 @@ See [docs/JOB_INGESTION.md](./docs/JOB_INGESTION.md) for job ingestion details.
 - Cover letter assistance
 
 ### 🎓 Interactive Onboarding & Page Tours
-Two types of guided tours help users discover features:
+Three types of guided tours help users discover features:
 
-**Global Onboarding:**
-- **Auto-Launch**: Automatically shows on first login
-- **6-Step Tour**: Portfolio, Resume, Cover Letter, Jobs, AI Coach
-- **Relaunchable**: Access "Take a Tour" from user menu anytime
-- **Progress Tracking**: Visual progress bar and step indicators
-- **Quick Actions**: Navigate directly to any feature from the tour
+**Interactive Onboarding (NEW!):**
+- **Hands-On Tour**: Walk through the app step-by-step with real page navigation
+- **Element Highlighting**: Spotlight effect highlights exactly where to click
+- **17 Guided Steps**: Job Search → Profile → Resumes → Cover Letters → AI Coach
+- **Natural Workflow**: Follows the actual user journey from finding jobs to applying
+- **Smart Navigation**: Automatically moves between pages during tour
+- **Progress Tracking**: Visual progress bar and persistent state
+- **Tooltip Guidance**: Clear instructions positioned near highlighted elements
+
+**Quick Overview:**
+- **Fast Summary**: 7-step modal overview of key features
+- **Self-Paced**: Read at your own speed without page navigation
+- **Natural Flow**: Job Search → Profile → Resumes → Cover Letters → Tracking → AI Coach
+- **Quick Actions**: Jump directly to any feature
+- **Perfect for**: Users who prefer to explore independently
 
 **Page-Specific Tours:**
 - **Help Button (?)**: Fixed button on every major page with tooltip
@@ -99,6 +108,13 @@ Two types of guided tours help users discover features:
 - **7 Page Tours**: Portfolio, Resume, Cover Letter, Jobs, My Apps, AI Coach, Dashboard
 - **Step-by-Step**: Detailed tips and best practices for each feature
 - **Always Accessible**: Launch anytime you need guidance
+
+**Features:**
+- 🎯 Choice system: Pick interactive or overview tour
+- 📍 Auto-launch on first login with 1-second delay
+- 🔄 Relaunchable from user menu anytime
+- 💾 Progress persistence across page navigation
+- ✨ Beautiful spotlight effects and animations
 
 **Documentation:**
 - [docs/ONBOARDING_SYSTEM.md](./docs/ONBOARDING_SYSTEM.md) - Complete tour system documentation

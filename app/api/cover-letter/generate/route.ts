@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { getSupabaseServiceRole } from '@/lib/supabase-server';
+import { generateAICompletion } from '@/lib/ai-provider';
 import type { GenerateCoverLetterRequest, GenerateCoverLetterResponse } from '@/lib/types/cover-letter';
 import { sendDocumentReadyEmail } from '@/lib/email';
 
@@ -20,7 +21,7 @@ export async function POST(req: Request) {
     // Get user's portfolio markdown (source of truth)
     const { data: userPortfolio, error: portfolioError } = await supabase
       .from('user_portfolios')
-      .select('portfolio_data, markdown_content')
+      .select('portfolio_data, markdown')
       .eq('clerk_id', userId)
       .single();
 
@@ -31,7 +32,25 @@ export async function POST(req: Request) {
       );
     }
 
-    const portfolioMarkdown = userPortfolio.markdown_content || '';
+    // For regular users, use their markdown. For super admin, get from main page
+    const { data: userInfo } = await supabase
+      .from('users')
+      .select('is_super_admin')
+      .eq('clerk_id', userId)
+      .single();
+
+    let portfolioMarkdown = userPortfolio.markdown || '';
+
+    // Super admin should use the main page data
+    if (userInfo?.is_super_admin) {
+      // Import main portfolio data and convert to markdown-like format
+      try {
+        const { portfolioData } = await import('@/lib/portfolio-data');
+        portfolioMarkdown = convertPortfolioDataToMarkdown(portfolioData);
+      } catch (error) {
+        console.error('Failed to load main portfolio data for super admin:', error);
+      }
+    }
     if (!portfolioMarkdown || portfolioMarkdown.length < 50) {
       return NextResponse.json(
         { error: 'Portfolio markdown is empty. Please add content to your portfolio first.' },
@@ -74,6 +93,7 @@ export async function POST(req: Request) {
       recipientName: body.recipient_name,
       recipientTitle: body.recipient_title,
       portfolioMarkdown,
+      userId,
     });
 
     // Save cover letter
@@ -146,6 +166,58 @@ type CoverLetterGeneration = {
   reasoning: string;
 };
 
+// Helper function to convert structured portfolio data to markdown format
+function convertPortfolioDataToMarkdown(portfolioData: any): string {
+  let markdown = `# ${portfolioData.fullName}\n\n`;
+  markdown += `## ${portfolioData.title}\n\n`;
+  markdown += `${portfolioData.tagline}\n\n`;
+  
+  if (portfolioData.about) {
+    markdown += `## About Me\n\n${portfolioData.about}\n\n`;
+  }
+
+  if (portfolioData.experiences && portfolioData.experiences.length > 0) {
+    markdown += `## Experience\n\n`;
+    portfolioData.experiences.forEach((exp: any) => {
+      markdown += `### ${exp.title} at ${exp.company}\n`;
+      markdown += `*${exp.period}* | ${exp.location}\n\n`;
+      markdown += `${exp.description}\n\n`;
+      if (exp.highlights && exp.highlights.length > 0) {
+        exp.highlights.forEach((highlight: string) => {
+          markdown += `- ${highlight}\n`;
+        });
+        markdown += `\n`;
+      }
+    });
+  }
+
+  if (portfolioData.projects && portfolioData.projects.length > 0) {
+    markdown += `## Projects\n\n`;
+    portfolioData.projects.forEach((project: any) => {
+      markdown += `### ${project.title}\n\n`;
+      markdown += `${project.cardTeaser}\n\n`;
+      markdown += `**Outcome:** ${project.outcome}\n\n`;
+    });
+  }
+
+  if (portfolioData.skills) {
+    markdown += `## Skills\n\n`;
+    Object.entries(portfolioData.skills).forEach(([category, items]: [string, any]) => {
+      markdown += `**${category.charAt(0).toUpperCase() + category.slice(1)}:** ${items.join(', ')}\n\n`;
+    });
+  }
+
+  if (portfolioData.awards && portfolioData.awards.length > 0) {
+    markdown += `## Awards & Recognition\n\n`;
+    portfolioData.awards.forEach((award: any) => {
+      markdown += `- **${award.title}** (${award.quarter}): ${award.description}\n`;
+    });
+    markdown += `\n`;
+  }
+
+  return markdown;
+}
+
 async function generateCoverLetter(params: {
   jobTitle: string;
   jobCompany: string;
@@ -154,12 +226,8 @@ async function generateCoverLetter(params: {
   recipientName?: string;
   recipientTitle?: string;
   portfolioMarkdown: string;
+  userId: string;
 }): Promise<CoverLetterGeneration> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  
-  if (!apiKey) {
-    throw new Error('ANTHROPIC_API_KEY not configured');
-  }
 
   const recipientAddress = params.recipientName 
     ? `Dear ${params.recipientName},`
@@ -240,36 +308,15 @@ Return ONLY valid JSON in this exact format:
 }`;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 3072,
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-      }),
-    });
+    const aiResponse = await generateAICompletion(
+      params.userId,
+      'cover_letter_generate',
+      'You are an expert career coach writing compelling cover letters.',
+      [{ role: 'user', content: prompt }],
+      3072
+    );
 
-    const data = await response.json();
-
-    if (data.error) {
-      throw new Error(data.error.message || 'AI API error');
-    }
-
-    if (!data.content || !data.content[0]) {
-      throw new Error('Unexpected AI response format');
-    }
-
-    let resultText = data.content[0].text.trim();
+    let resultText = aiResponse.content.trim();
     
     // Clean up markdown code blocks if present
     if (resultText.startsWith('```json')) {

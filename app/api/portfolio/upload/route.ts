@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     } else if (fileType === 'pdf') {
       // Extract text from PDF
       try {
-        content = await extractTextFromPDF(buffer);
+        content = await extractTextFromPDF(buffer, userId);
         if (!content || content.trim().length === 0) {
           return NextResponse.json(
             { error: 'Could not extract text from PDF. The PDF might be image-based or empty.' },

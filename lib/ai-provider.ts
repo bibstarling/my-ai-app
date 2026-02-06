@@ -337,6 +337,109 @@ export async function generateAICompletion(
 }
 
 /**
+ * Multimodal AI completion (supports text + images)
+ * Only works with Anthropic models currently
+ */
+export async function generateAICompletionMultimodal(
+  userId: string,
+  feature: string,
+  content: string | any[], // Can be text string or array of text/image blocks
+  maxTokens: number = 4096
+): Promise<AIResponse> {
+  // Try to get user's API configuration
+  const userConfig = await getUserAPIConfig(userId);
+  
+  let provider: AIProvider;
+  let apiKey: string;
+  let model: string;
+
+  if (userConfig && userConfig.apiKey) {
+    // Use user's configured API
+    provider = userConfig.provider;
+    apiKey = userConfig.apiKey;
+    model = userConfig.model;
+    
+    // Multimodal only supported by Anthropic currently
+    if (provider !== 'anthropic') {
+      throw new Error('Multimodal content (images) is only supported with Anthropic models. Please configure an Anthropic API key or use text-only content.');
+    }
+  } else {
+    // Fallback to system API (Anthropic)
+    provider = 'system';
+    apiKey = process.env.ANTHROPIC_API_KEY || '';
+    model = 'claude-sonnet-4-20250514';
+    
+    if (!apiKey) {
+      throw new Error('No API key available. Please configure your own API key in settings.');
+    }
+
+    // Check usage limits
+    const supabase = getSupabaseServiceRole();
+    const { data: recentUsage } = await supabase
+      .from('api_usage_logs')
+      .select('total_tokens')
+      .eq('clerk_id', userId)
+      .eq('provider', 'system')
+      .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+    
+    const totalTokens = recentUsage?.reduce((sum, log) => sum + log.total_tokens, 0) || 0;
+    const TOKEN_LIMIT = 1000000; // 1M tokens per month on system API
+    
+    if (totalTokens > TOKEN_LIMIT) {
+      throw new Error(
+        'You have exceeded the free usage limit. Please add your own API key in Settings > API Configuration to continue using AI features.'
+      );
+    }
+  }
+
+  // Call Anthropic with multimodal content
+  try {
+    const anthropic = new Anthropic({ apiKey });
+
+    const response = await anthropic.messages.create({
+      model,
+      max_tokens: maxTokens,
+      messages: [
+        {
+          role: 'user',
+          content,
+        },
+      ],
+    });
+
+    const textContent = response.content[0].type === 'text' ? response.content[0].text : '';
+
+    const aiResponse: AIResponse = {
+      content: textContent,
+      usage: {
+        promptTokens: response.usage.input_tokens,
+        completionTokens: response.usage.output_tokens,
+        totalTokens: response.usage.input_tokens + response.usage.output_tokens,
+      },
+      model: response.model,
+      provider: provider === 'system' ? 'system' : 'anthropic',
+    };
+
+    // Log usage
+    await logAPIUsage(userId, provider, aiResponse.model, feature, aiResponse.usage);
+
+    return aiResponse;
+  } catch (error: any) {
+    console.error('AI API error:', error);
+    
+    if (error.status === 401) {
+      throw new Error('Invalid API key. Please check your API configuration in settings.');
+    } else if (error.status === 429) {
+      throw new Error('Rate limit exceeded. Please try again later or upgrade your API plan.');
+    } else if (error.status === 404) {
+      throw new Error(`Model not found: ${model}. Please check your API configuration.`);
+    } else {
+      throw new Error(`AI request failed: ${error.message}`);
+    }
+  }
+}
+
+/**
  * Get available models for a provider
  */
 export function getAvailableModels(provider: AIProvider): string[] {

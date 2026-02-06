@@ -1,14 +1,11 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import Anthropic from '@anthropic-ai/sdk';
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+import { generateAICompletionMultimodal } from '@/lib/ai-provider';
 
 /**
  * POST /api/portfolio/chat
  * AI assistant that processes materials and updates markdown
+ * Uses user's API key if configured, otherwise falls back to system API with limits
  */
 export async function POST(request: Request) {
   try {
@@ -28,65 +25,103 @@ export async function POST(request: Request) {
       );
     }
 
-    // Build context for AI
+    // Build context for AI - support multimodal content
     let userPrompt = message || '';
+    
+    // Prepare message content (text + images if any)
+    const messageContent: any[] = [];
     
     if (attachments && attachments.length > 0) {
       userPrompt += '\n\nI have attached the following files:\n';
+      
       attachments.forEach((att: any) => {
         userPrompt += `\n- ${att.name} (${att.type})\n`;
+        
         if (att.contentType === 'text') {
           userPrompt += `Content:\n${att.content}\n`;
+        } else if (att.contentType === 'image') {
+          // Add image to multimodal content
+          const base64Match = att.content.match(/^data:([^;]+);base64,(.+)$/);
+          if (base64Match) {
+            messageContent.push({
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: base64Match[1],
+                data: base64Match[2],
+              },
+            });
+          }
         }
       });
     }
 
     userPrompt += `\n\nCurrent portfolio markdown:\n\`\`\`markdown\n${currentMarkdown}\n\`\`\``;
 
-    // Call Claude to process and update markdown
-    const response = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 4096,
-      messages: [
-        {
-          role: 'user',
-          content: `You are a portfolio assistant helping someone build their professional portfolio.
+    // Build the prompt
+    const promptText = `You are a professional portfolio assistant helping someone build their career portfolio in markdown format.
 
-Your job:
-1. Analyze any materials provided (resume, documents, links, etc.)
-2. Extract relevant professional information
-3. Update the portfolio markdown with this information
+**Your job:**
+1. Analyze any materials provided (resume, documents, screenshots, etc.)
+2. Extract relevant professional information (experience, projects, skills, achievements, education)
+3. Update the portfolio markdown by ADDING or ENHANCING sections
 4. Provide a friendly response explaining what you did
 
-Guidelines:
-- Keep the markdown format consistent
-- Add new content in appropriate sections
-- Don't remove existing content unless explicitly asked
-- Use professional, compelling language
-- Include metrics and achievements when available
+**Guidelines:**
+- ALWAYS return updated markdown when the user provides materials or asks to add content
+- Maintain proper markdown structure with clear heading hierarchy (# for title, ## for sections, ### for subsections)
+- Add content to existing sections or create new sections as needed
+- Keep existing content unless explicitly asked to remove it
+- Use professional, compelling language with concrete metrics when available
+- Format lists properly with bullet points (-)
+- Extract and organize ALL relevant information from provided materials
 
-Current request:
+**Sections to include/update:**
+- ## About Me (professional summary)
+- ## Experience (job history with bullets for achievements)
+- ## Projects (project descriptions with outcomes)
+- ## Skills (categorized technical and soft skills)
+- ## Education (degrees, certifications)
+- ## Awards & Recognition (achievements, honors)
+
+**Current request:**
 ${userPrompt}
+
+**IMPORTANT:** If the user provided files or information, you MUST extract content from them and update the markdown. Don't just acknowledge - actually add the content!
 
 Respond in this JSON format:
 {
-  "message": "Your friendly response to the user explaining what you did",
-  "updatedMarkdown": "The updated markdown with new content added (ONLY include if you made changes)",
-  "changes": ["list of changes you made"]
-}`,
-        },
-      ],
-    });
+  "message": "Your friendly response to the user explaining what content you extracted and added",
+  "updatedMarkdown": "The COMPLETE updated markdown with new content added (return this whenever you add/update content)",
+  "changes": ["specific list of what you added/changed, e.g., 'Added 3 work experiences', 'Added 5 key skills', 'Updated About section']"
+}`;
 
-    const content = response.content[0];
-    if (!content || content.type !== 'text') {
-      throw new Error('No text response from AI');
+    // Prepare content for API call - support multimodal (text + images)
+    let finalContent;
+    if (messageContent.length > 0) {
+      // We have images - use multimodal format
+      messageContent.unshift({
+        type: 'text',
+        text: promptText,
+      });
+      finalContent = messageContent;
+    } else {
+      // Text only
+      finalContent = promptText;
     }
+
+    // Use centralized AI provider (respects user's API key or uses system with limits)
+    const response = await generateAICompletionMultimodal(
+      userId,
+      'portfolio_chat',
+      finalContent,
+      4096
+    );
 
     let aiResponse;
     try {
       // Remove markdown code blocks if Claude added them
-      let jsonText = content.text.trim();
+      let jsonText = response.content.trim();
       if (jsonText.startsWith('```json')) {
         jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?$/g, '').trim();
       } else if (jsonText.startsWith('```')) {
@@ -95,10 +130,10 @@ Respond in this JSON format:
       
       aiResponse = JSON.parse(jsonText);
     } catch (parseError) {
-      console.error('Failed to parse AI response:', content.text);
+      console.error('Failed to parse AI response:', response.content);
       // Fallback: return AI's text as message
       aiResponse = {
-        message: content.text,
+        message: response.content,
         updatedMarkdown: null,
       };
     }

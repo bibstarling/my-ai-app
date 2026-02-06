@@ -32,7 +32,9 @@
     "pg": "^8.18.0",
     "puppeteer": "^24.37.1",
     "react": "19.2.3",
+    "react-contenteditable": "^3.3.7",
     "react-dom": "19.2.3",
+    "react-markdown": "^10.1.0",
     "resend": "^6.9.1"
   },
   "devDependencies": {
