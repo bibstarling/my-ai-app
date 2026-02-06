@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { currentUser } from '@clerk/nextjs/server';
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import Groq from 'groq-sdk';
@@ -9,13 +9,11 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
-    const authResult = await auth();
-    console.log('[API Config TEST] Auth result:', { userId: authResult?.userId, hasAuth: !!authResult });
+    const user = await currentUser();
+    console.log('[API Config TEST] User:', { userId: user?.id, hasUser: !!user });
     
-    const { userId } = authResult;
-    
-    if (!userId) {
-      console.error('[API Config TEST] No userId found in auth');
+    if (!user) {
+      console.error('[API Config TEST] No user found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

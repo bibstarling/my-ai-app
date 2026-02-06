@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { currentUser } from '@clerk/nextjs/server';
 import { getSupabaseServiceRole } from '@/lib/supabase-server';
 
 export const runtime = 'nodejs';
@@ -7,15 +7,15 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const authResult = await auth();
-    console.log('[API Config GET] Auth result:', { userId: authResult?.userId, hasAuth: !!authResult });
+    const user = await currentUser();
+    console.log('[API Config GET] User:', { userId: user?.id, hasUser: !!user });
     
-    const { userId } = authResult;
-    
-    if (!userId) {
-      console.error('[API Config GET] No userId found in auth');
+    if (!user) {
+      console.error('[API Config GET] No user found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    const userId = user.id;
 
     const supabase = getSupabaseServiceRole();
     
@@ -47,15 +47,15 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const authResult = await auth();
-    console.log('[API Config POST] Auth result:', { userId: authResult?.userId, hasAuth: !!authResult });
+    const user = await currentUser();
+    console.log('[API Config POST] User:', { userId: user?.id, hasUser: !!user });
     
-    const { userId } = authResult;
-    
-    if (!userId) {
-      console.error('[API Config POST] No userId found in auth');
+    if (!user) {
+      console.error('[API Config POST] No user found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    const userId = user.id;
 
     const { provider, apiKey } = await req.json();
 
@@ -109,15 +109,15 @@ export async function POST(req: Request) {
 
 export async function DELETE() {
   try {
-    const authResult = await auth();
-    console.log('[API Config DELETE] Auth result:', { userId: authResult?.userId, hasAuth: !!authResult });
+    const user = await currentUser();
+    console.log('[API Config DELETE] User:', { userId: user?.id, hasUser: !!user });
     
-    const { userId } = authResult;
-    
-    if (!userId) {
-      console.error('[API Config DELETE] No userId found in auth');
+    if (!user) {
+      console.error('[API Config DELETE] No user found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    const userId = user.id;
 
     const supabase = getSupabaseServiceRole();
 
