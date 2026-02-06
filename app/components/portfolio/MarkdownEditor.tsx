@@ -236,7 +236,7 @@ Use AI chat on the left to help you, or edit directly here!"
 
 // Helper function to convert existing structured data to markdown
 function convertDataToMarkdown(data?: any): string {
-  if (!data) return TEMPLATE;
+  if (!data) return MARKDOWN_TEMPLATE;
 
   let md = '';
 
@@ -375,5 +375,5 @@ function convertDataToMarkdown(data?: any): string {
     });
   }
 
-  return md || TEMPLATE;
+  return md || MARKDOWN_TEMPLATE;
 }

@@ -7,15 +7,20 @@ export type AIProvider = 'anthropic' | 'openai' | 'groq' | 'system';
 
 export interface AIMessage {
   role: 'user' | 'assistant' | 'system';
-  content: string | Array<{
-    type: 'text' | 'image';
-    text?: string;
-    source?: {
-      type: 'base64';
-      media_type: string;
-      data: string;
-    };
-  }>;
+  content: string | Array<
+    | {
+        type: 'text';
+        text: string;
+      }
+    | {
+        type: 'image';
+        source: {
+          type: 'base64';
+          media_type: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+          data: string;
+        };
+      }
+  >;
 }
 
 export interface AIResponse {
@@ -191,8 +196,8 @@ async function callOpenAI(
     messages: [
       { role: 'system', content: systemPrompt },
       ...messages.map(m => ({
-        role: m.role as 'user' | 'assistant' | 'system',
-        content: m.content,
+        role: m.role as 'user' | 'assistant',
+        content: typeof m.content === 'string' ? m.content : m.content.map(c => c.type === 'text' ? c.text : '').join('\n'),
       })),
     ],
   });
@@ -229,8 +234,8 @@ async function callGroq(
     messages: [
       { role: 'system', content: systemPrompt },
       ...messages.map(m => ({
-        role: m.role as 'user' | 'assistant' | 'system',
-        content: m.content,
+        role: m.role as 'user' | 'assistant',
+        content: typeof m.content === 'string' ? m.content : m.content.map(c => c.type === 'text' ? c.text : '').join('\n'),
       })),
     ],
   });

@@ -6,7 +6,7 @@
  */
 
 // Supported locales
-type Locale = 'en' | 'pt-BR';
+export type Locale = 'en' | 'pt-BR';
 
 // Common Portuguese words and phrases that are strong indicators
 const PORTUGUESE_INDICATORS = [

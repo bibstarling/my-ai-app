@@ -8,6 +8,7 @@ import {
   Search,
   ChevronDown,
   ChevronUp,
+  BookOpen,
   ExternalLink,
   Mail
 } from 'lucide-react';

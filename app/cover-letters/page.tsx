@@ -8,6 +8,13 @@ import type { JobListing } from '@/app/api/jobs/route';
 import { HelpButton } from '@/app/components/HelpButton';
 import { PageTour } from '@/app/components/PageTour';
 import { getPageTour } from '@/lib/page-tours';
+import type { Locale } from '@/lib/language-detection';
+
+const locales: Locale[] = ['en', 'pt-BR'];
+const localeNames: Record<Locale, string> = {
+  'en': 'English',
+  'pt-BR': 'Português (Brasil)'
+};
 
 export default function CoverLettersPage() {
   const [coverLetters, setCoverLetters] = useState<CoverLetter[]>([]);

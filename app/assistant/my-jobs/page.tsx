@@ -1358,6 +1358,19 @@ export default function MyJobsPage() {
           }}
         />
       )}
+
+      {/* Help Button */}
+      <HelpButton onClick={() => setShowPageTour(true)} />
+
+      {/* Page Tour */}
+      {pageTour && (
+        <PageTour
+          isOpen={showPageTour}
+          onClose={() => setShowPageTour(false)}
+          steps={pageTour.steps}
+          title={pageTour.title}
+        />
+      )}
     </div>
   );
 }
@@ -2146,19 +2159,6 @@ function ResumePreview({ resume }: { resume: any }) {
           </div>
         ))}
       </div>
-
-      {/* Help Button */}
-      <HelpButton onClick={() => setShowPageTour(true)} />
-
-      {/* Page Tour */}
-      {pageTour && (
-        <PageTour
-          isOpen={showPageTour}
-          onClose={() => setShowPageTour(false)}
-          steps={pageTour.steps}
-          title={pageTour.title}
-        />
-      )}
     </div>
   );
 }

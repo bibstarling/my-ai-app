@@ -228,7 +228,7 @@ function convertMarkdownToHTML(markdown: string): string {
   
   // Bullet lists
   html = html.replace(/^\- (.*$)/gim, '<li class="ml-4">$1</li>');
-  html = html.replace(/(<li.*<\/li>)/s, '<ul class="list-disc space-y-1 my-3">$1</ul>');
+  html = html.replace(/(<li[\s\S]*?<\/li>)/, '<ul class="list-disc space-y-1 my-3">$1</ul>');
   
   // Numbered lists
   html = html.replace(/^\d+\. (.*$)/gim, '<li class="ml-4">$1</li>');
