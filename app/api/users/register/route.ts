@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { getSupabaseServiceRole } from '@/lib/supabase-server';
 import { sendWelcomeEmail, sendWaitingApprovalEmail } from '@/lib/email';
+import { generateUniqueUsername } from '@/lib/username';
 
 /**
  * POST /api/users/register - Register current user in database
@@ -37,12 +38,28 @@ export async function POST() {
     const userEmail = user?.emailAddresses?.[0]?.emailAddress;
     const userName = user?.firstName || user?.username;
     
+    // Generate unique username from email
+    let username = null;
+    if (userEmail) {
+      try {
+        username = await generateUniqueUsername(
+          userEmail,
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+      } catch (error) {
+        console.error('Failed to generate username:', error);
+        // Continue without username, user can set it later
+      }
+    }
+    
     // Create new user record
     const { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert({
         clerk_id: userId,
         email: userEmail || null,
+        username: username,
         approved: false, // Will be approved by admin
         is_admin: false,
       })
@@ -63,11 +80,11 @@ export async function POST() {
       Promise.all([
         sendWelcomeEmail({
           to: userEmail,
-          userName,
+          userName: userName || undefined,
         }),
         sendWaitingApprovalEmail({
           to: userEmail,
-          userName,
+          userName: userName || undefined,
         }),
       ]).catch((emailError) => {
         // Log but don't fail the registration if emails fail
