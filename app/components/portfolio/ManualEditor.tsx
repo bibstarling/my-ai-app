@@ -430,38 +430,6 @@ export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
             </div>
           )}
 
-          {/* About Tab */}
-          {activeTab === 'about' && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold text-foreground">About Section</h2>
-              
-              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-                <p className="text-sm text-blue-900">
-                  This is the main introduction that appears at the top of your portfolio. Tell visitors about your background, expertise, and what drives you.
-                </p>
-              </div>
-              
-              <div>
-                <label className="mb-2 block text-sm font-medium text-foreground">
-                  About Me (Multiple Paragraphs)
-                </label>
-                <p className="mb-2 text-xs text-muted-foreground">
-                  Write multiple paragraphs separated by blank lines. Each paragraph will be displayed separately for better readability.
-                </p>
-                <textarea
-                  value={data.about || ''}
-                  onChange={(e) => updateField('about', e.target.value)}
-                  rows={12}
-                  className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-accent focus:outline-none font-sans"
-                  placeholder="I'm a [your role] with [X years] of experience in [your field]...&#10;&#10;Throughout my career, I've focused on [your specialization]...&#10;&#10;What drives me is [your passion/motivation]..."
-                />
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {(data.about || '').length} characters
-                </p>
-              </div>
-            </div>
-          )}
-
           {/* Experience Tab */}
           {activeTab === 'experience' && (
             <div className="space-y-6">

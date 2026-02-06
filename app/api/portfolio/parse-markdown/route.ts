@@ -42,6 +42,14 @@ IMPORTANT: Return ONLY valid JSON, no markdown code blocks, no explanations, no 
 
 The JSON structure should be:
 {
+  "fullName": "string (full name)",
+  "title": "string (professional title)",
+  "tagline": "string (one-liner tagline)",
+  "email": "string (email address)",
+  "location": "string (city, country)",
+  "linkedinUrl": "string (LinkedIn profile URL)",
+  "websiteUrl": "string (personal website URL)",
+  "githubUrl": "string (GitHub profile URL, optional)",
   "about": "string (professional summary/bio)",
   "pmArchetype": "string (professional style/archetype, optional)",
   "workStyle": "string (same as pmArchetype, optional)",
