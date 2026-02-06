@@ -23,20 +23,12 @@ type Message = {
   metadata?: any;
 };
 
-type UploadedFile = {
-  id: string;
-  fileName: string;
-  fileType: string;
-  fileUrl: string;
-  aiAnalysis?: any;
-};
-
-type ScrapedLink = {
-  id: string;
-  url: string;
-  title: string;
-  status: string;
-  aiAnalysis?: any;
+type Attachment = {
+  name: string;
+  type: string;
+  contentType: 'text' | 'image';
+  content: string;
+  size: number;
 };
 
 export default function PortfolioBuilderPage() {
@@ -48,10 +40,7 @@ export default function PortfolioBuilderPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(true);
-  const [uploads, setUploads] = useState<UploadedFile[]>([]);
-  const [links, setLinks] = useState<ScrapedLink[]>([]);
-  const [showLinkModal, setShowLinkModal] = useState(false);
-  const [linkInput, setLinkInput] = useState('');
+  const [pendingAttachments, setPendingAttachments] = useState<Attachment[]>([]);
   const [uploadProgress, setUploadProgress] = useState(false);
   const [username, setUsername] = useState('');
   
@@ -85,8 +74,6 @@ export default function PortfolioBuilderPage() {
       if (currentData.success) {
         setPortfolio(currentData.portfolio);
         setMessages(currentData.portfolio.messages || []);
-        setUploads(currentData.portfolio.uploads || []);
-        setLinks(currentData.portfolio.links || []);
         setUsername(currentData.portfolio.username || '');
 
         // Add welcome message if no messages
@@ -138,7 +125,6 @@ export default function PortfolioBuilderPage() {
           try {
             const formData = new FormData();
             formData.append('file', file, `pasted-image-${Date.now()}.png`);
-            formData.append('portfolioId', portfolio.id);
 
             const res = await fetch('/api/portfolio/upload', {
               method: 'POST',
@@ -148,22 +134,20 @@ export default function PortfolioBuilderPage() {
             const data = await res.json();
 
             if (data.success) {
-              setUploads((prev) => [data.upload, ...prev]);
+              setPendingAttachments((prev) => [...prev, data.file]);
               setMessages((prev) => [
                 ...prev,
                 {
-                  role: 'assistant',
-                  content: `Great! I've received your pasted image. ${
-                    data.upload.aiAnalysis?.suggestedUse || 'Let me know how you\'d like to use this in your portfolio!'
-                  }`,
+                  role: 'system',
+                  content: `📎 Image pasted: ${data.file.name} (${(data.file.size / 1024).toFixed(1)}KB) - Ready to send`,
                 },
               ]);
             } else {
               setMessages((prev) => [
                 ...prev,
                 {
-                  role: 'assistant',
-                  content: `Failed to upload pasted image: ${data.error}`,
+                  role: 'system',
+                  content: `Failed to process pasted image: ${data.error}`,
                 },
               ]);
             }
@@ -193,11 +177,20 @@ export default function PortfolioBuilderPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || loading || !portfolio) return;
+    if ((!input.trim() && pendingAttachments.length === 0) || loading || !portfolio) return;
 
     const userMessage = input.trim();
+    const attachments = [...pendingAttachments];
+    
     setInput('');
-    setMessages((prev) => [...prev, { role: 'user', content: userMessage }]);
+    setPendingAttachments([]);
+    
+    // Show user message with attachment count
+    let displayMessage = userMessage;
+    if (attachments.length > 0) {
+      displayMessage += `\n\n📎 ${attachments.length} file(s) attached`;
+    }
+    setMessages((prev) => [...prev, { role: 'user', content: displayMessage }]);
     setLoading(true);
 
     try {
@@ -207,6 +200,7 @@ export default function PortfolioBuilderPage() {
         body: JSON.stringify({
           message: userMessage,
           portfolioId: portfolio.id,
+          attachments,
         }),
       });
 
@@ -250,7 +244,6 @@ export default function PortfolioBuilderPage() {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('portfolioId', portfolio.id);
 
       const res = await fetch('/api/portfolio/upload', {
         method: 'POST',
@@ -260,14 +253,12 @@ export default function PortfolioBuilderPage() {
       const data = await res.json();
 
       if (data.success) {
-        setUploads((prev) => [data.upload, ...prev]);
+        setPendingAttachments((prev) => [...prev, data.file]);
         setMessages((prev) => [
           ...prev,
           {
-            role: 'assistant',
-            content: `Great! I've analyzed your file "${file.name}". ${
-              data.upload.aiAnalysis?.suggestedUse || 'Let me know how you\'d like to use this in your portfolio!'
-            }`,
+            role: 'system',
+            content: `📎 File attached: ${data.file.name} (${data.file.type}) - ${(data.file.size / 1024).toFixed(1)}KB - Ready to send`,
           },
         ]);
       } else {

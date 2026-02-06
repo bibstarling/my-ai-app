@@ -4,7 +4,7 @@ import "../globals.css";
 import { ClientAuthWrapper } from '../ClientAuthWrapper';
 import { AppLayout } from '../components/AppLayout';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { locales } from '@/i18n';
 
@@ -37,13 +37,16 @@ export default async function LocaleLayout(props: {
     notFound();
   }
 
+  // Enable static rendering
+  setRequestLocale(locale);
+
   // Providing all messages to the client
   // side is the easiest way to get started
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
-      <body className={`${inter.className} antialiased`}>
+    <html lang={locale} suppressHydrationWarning>
+      <body className={`${inter.className} antialiased`} suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
           {publishableKey ? (
             <ClientAuthWrapper publishableKey={publishableKey}>

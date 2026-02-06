@@ -15,11 +15,11 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { message, portfolioId } = body;
+    const { message, portfolioId, attachments } = body;
 
-    if (!message) {
+    if (!message && (!attachments || attachments.length === 0)) {
       return NextResponse.json(
-        { error: 'Message is required' },
+        { error: 'Message or attachments are required' },
         { status: 400 }
       );
     }
@@ -31,8 +31,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Process message with AI
-    const result = await processChatMessage(portfolioId, userId, message);
+    // Process message with AI (attachments are passed directly)
+    const result = await processChatMessage(portfolioId, userId, message, attachments);
 
     return NextResponse.json({
       success: true,

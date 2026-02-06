@@ -17,12 +17,6 @@ export function buildPortfolioSystemPrompt(context: PortfolioContext): string {
 CURRENT PORTFOLIO DATA:
 ${JSON.stringify(context.portfolioData, null, 2)}
 
-RECENT UPLOADS:
-${context.recentUploads.map(u => `- ${u.file_name} (${u.file_type}): ${u.extracted_text?.substring(0, 200) || 'No text extracted'}`).join('\n') || 'None'}
-
-RECENT LINKS:
-${context.recentLinks.map(l => `- ${l.title || l.url}: ${l.scraped_content?.substring(0, 200) || 'Pending'}`).join('\n') || 'None'}
-
 YOUR TASKS:
 1. Understand what content the user is adding or editing
 2. Extract relevant information (experiences, projects, skills, education, achievements, etc.)
@@ -139,22 +133,6 @@ export async function getPortfolioContext(
     .eq('clerk_id', userId)
     .single();
 
-  // Get recent uploads (last 10)
-  const { data: uploads } = await supabase
-    .from('portfolio_uploads')
-    .select('*')
-    .eq('portfolio_id', portfolioId)
-    .order('created_at', { ascending: false })
-    .limit(10);
-
-  // Get recent links (last 10)
-  const { data: links } = await supabase
-    .from('portfolio_links')
-    .select('*')
-    .eq('portfolio_id', portfolioId)
-    .order('created_at', { ascending: false })
-    .limit(10);
-
   // Get recent chat history (last 20 messages)
   const { data: messages } = await supabase
     .from('portfolio_chat_messages')
@@ -165,10 +143,17 @@ export async function getPortfolioContext(
 
   return {
     portfolioData: portfolio?.portfolio_data || {},
-    recentUploads: uploads || [],
-    recentLinks: links || [],
+    recentUploads: [],
+    recentLinks: [],
     chatHistory: (messages || []).reverse(), // Reverse to get chronological order
   };
+}
+
+interface Attachment {
+  name: string;
+  type: string;
+  contentType: 'text' | 'image';
+  content: string;
 }
 
 /**
@@ -177,13 +162,36 @@ export async function getPortfolioContext(
 export async function processChatMessage(
   portfolioId: string,
   userId: string,
-  userMessage: string
+  userMessage: string,
+  attachments?: Attachment[]
 ): Promise<{ message: string; updatedPortfolioData: any; suggestions: string[] }> {
   // Get context
   const context = await getPortfolioContext(portfolioId, userId);
   
   // Build system prompt
   const systemPrompt = buildPortfolioSystemPrompt(context);
+  
+  // Build user message with attachments
+  let fullMessage = userMessage || '';
+  
+  if (attachments && attachments.length > 0) {
+    const textAttachments = attachments.filter(a => a.contentType === 'text');
+    const imageAttachments = attachments.filter(a => a.contentType === 'image');
+    
+    if (textAttachments.length > 0) {
+      fullMessage += '\n\n=== ATTACHED CONTENT ===\n';
+      for (const att of textAttachments) {
+        fullMessage += `\n--- ${att.name} (${att.type}) ---\n${att.content}\n`;
+      }
+    }
+    
+    if (imageAttachments.length > 0) {
+      fullMessage += '\n\n=== ATTACHED IMAGES ===\n';
+      for (const att of imageAttachments) {
+        fullMessage += `${att.name}: [Image data will be sent separately]\n`;
+      }
+    }
+  }
   
   // Prepare messages for AI
   const messages: AIMessage[] = [
@@ -195,7 +203,7 @@ export async function processChatMessage(
     // Add current user message
     {
       role: 'user' as const,
-      content: userMessage,
+      content: fullMessage,
     },
   ];
 
