@@ -703,7 +703,7 @@ export default function PortfolioBuilderPage() {
                     type="file"
                     className="hidden"
                     accept="image/*,.pdf,.doc,.docx,.txt"
-                    onChange={handleFileSelect}
+                    onChange={handleFileUpload}
                   />
                   <button
                     onClick={() => fileInputRef.current?.click()}
