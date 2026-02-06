@@ -43,6 +43,8 @@ export default function PortfolioBuilderPage() {
   const [pendingAttachments, setPendingAttachments] = useState<Attachment[]>([]);
   const [uploadProgress, setUploadProgress] = useState(false);
   const [username, setUsername] = useState('');
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [linkUrl, setLinkUrl] = useState('');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -419,17 +421,19 @@ export default function PortfolioBuilderPage() {
             
             <button
               onClick={handlePublish}
-              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-accent-foreground transition-opacity ${
-                isPublished ? 'bg-muted text-foreground' : 'bg-accent hover:opacity-90'
+              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-accent-foreground transition-all button-bounce ${
+                isPublished ? 'bg-muted text-foreground' : 'bg-accent hover:opacity-90 hover-scale hover-glow-purple'
               }`}
             >
               {isPublished ? (
                 <>
                   <Check className="h-4 w-4" />
-                  Live! 🎉
+                  <span className="emoji-bounce">🎉</span> Live!
                 </>
               ) : (
-                'Publish & Celebrate! 🚀'
+                <>
+                  Publish & Celebrate! <span className="emoji-bounce">🚀</span>
+                </>
               )}
             </button>
 
@@ -509,7 +513,7 @@ export default function PortfolioBuilderPage() {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadProgress || !portfolio}
-                className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
+                className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50 button-bounce hover-scale transition-all"
               >
                 {uploadProgress ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -549,7 +553,7 @@ export default function PortfolioBuilderPage() {
               <button
                 type="submit"
                 disabled={loading || !input.trim() || !portfolio}
-                className="rounded-lg bg-accent px-4 py-3 font-semibold text-accent-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
+                className="rounded-lg bg-accent px-4 py-3 font-semibold text-accent-foreground hover:opacity-90 transition-all disabled:opacity-50 button-bounce hover-scale hover-glow-purple"
               >
                 <Send className="h-5 w-5" />
               </button>
