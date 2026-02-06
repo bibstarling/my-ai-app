@@ -19,31 +19,31 @@ export default function DashboardPage() {
   const quickActions = [
     {
       icon: <Sparkles className="h-6 w-6" />,
-      title: 'Build Portfolio',
-      description: 'Create your professional portfolio with AI assistance',
+      title: 'Build Portfolio ✨',
+      description: 'Show off your amazing work with AI help!',
       href: '/portfolio/builder',
-      color: 'bg-purple-500',
+      color: 'bg-applause-purple',
     },
     {
       icon: <FileText className="h-6 w-6" />,
-      title: 'Generate Resume',
-      description: 'Create job-specific resumes from your portfolio',
+      title: 'Generate Resume 🎯',
+      description: 'Create resumes that deserve applause',
       href: '/resume-builder',
-      color: 'bg-blue-500',
+      color: 'bg-celebration-pink',
     },
     {
       icon: <Bot className="h-6 w-6" />,
-      title: 'AI Assistant',
-      description: 'Get career coaching and interview prep',
+      title: 'AI Assistant 💪',
+      description: 'Your personal career cheerleader',
       href: '/assistant',
-      color: 'bg-green-500',
+      color: 'bg-success-green',
     },
     {
       icon: <Briefcase className="h-6 w-6" />,
-      title: 'Find Jobs',
-      description: 'Search for jobs matching your skills',
+      title: 'Find Jobs 🚀',
+      description: 'Discover roles that make you excited',
       href: '/assistant/job-search',
-      color: 'bg-orange-500',
+      color: 'bg-ocean-blue',
     },
   ];
 
@@ -71,25 +71,25 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b border-border">
+      <div className="gradient-primary border-b border-white/20">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">
-                Welcome back{user?.firstName ? `, ${user.firstName}` : ''}!
+              <h1 className="text-3xl font-bold text-white drop-shadow-lg flex items-center gap-2">
+                Welcome back{user?.firstName ? `, ${user.firstName}` : ''}! 🎉
               </h1>
-              <p className="text-muted mt-2">
-                Continue building your career with AI-powered tools
+              <p className="text-white/90 mt-2 drop-shadow">
+                Ready to celebrate more career wins? Let's make it happen! 🚀
               </p>
             </div>
             <Link
               href="/settings/portfolio"
-              className="flex items-center gap-2 px-4 py-2 bg-muted/50 hover:bg-muted rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-lg transition-all border border-white/30 text-white shadow-lg"
             >
               <Settings className="h-4 w-4" />
-              <span className="text-sm">Settings</span>
+              <span className="text-sm font-medium">Settings</span>
             </Link>
           </div>
         </div>
