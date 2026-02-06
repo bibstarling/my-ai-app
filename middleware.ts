@@ -1,22 +1,6 @@
 import { clerkMiddleware } from '@clerk/nextjs/server';
-import createMiddleware from 'next-intl/middleware';
-import { locales } from './i18n';
 
-const intlMiddleware = createMiddleware({
-  locales,
-  defaultLocale: 'en',
-  localePrefix: 'as-needed',
-});
-
-export default clerkMiddleware((auth, req) => {
-  // Skip i18n middleware for login route
-  if (req.nextUrl.pathname.startsWith('/login')) {
-    return;
-  }
-  
-  // Run i18n middleware for other routes
-  return intlMiddleware(req);
-});
+export default clerkMiddleware();
 
 export const config = {
   matcher: [
