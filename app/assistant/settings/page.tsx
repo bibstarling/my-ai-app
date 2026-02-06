@@ -132,9 +132,9 @@ export default function SettingsPage() {
                     key={item.label}
                     href={item.href}
                     className={`group flex items-center justify-between rounded-lg border border-border bg-card p-4 transition-colors hover:border-accent/50 ${
-                      item.comingSoon ? 'opacity-60 cursor-not-allowed' : ''
+                      (item as any).comingSoon ? 'opacity-60 cursor-not-allowed' : ''
                     }`}
-                    onClick={(e) => item.comingSoon && e.preventDefault()}
+                    onClick={(e) => (item as any).comingSoon && e.preventDefault()}
                   >
                     <div className="flex items-center gap-4">
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
@@ -145,7 +145,7 @@ export default function SettingsPage() {
                           <h3 className="font-medium text-foreground">
                             {item.label}
                           </h3>
-                          {item.comingSoon && (
+                          {(item as any).comingSoon && (
                             <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-xs text-amber-400">
                               Coming Soon
                             </span>
@@ -156,7 +156,7 @@ export default function SettingsPage() {
                         </p>
                       </div>
                     </div>
-                    {!item.comingSoon && (
+                    {!(item as any).comingSoon && (
                       <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-accent transition-colors" />
                     )}
                   </Link>
