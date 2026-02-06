@@ -10,7 +10,27 @@ interface MarkdownEditorProps {
   isSaving?: boolean;
 }
 
-export const MARKDOWN_TEMPLATE = `# About Me
+export const MARKDOWN_TEMPLATE = `# Basic Info
+
+**Full Name:** Your Name
+
+**Title:** Your Professional Title
+
+**Tagline:** A catchy one-liner about what you do
+
+**Email:** your@email.com
+
+**Location:** City, Country
+
+**LinkedIn:** https://linkedin.com/in/yourprofile
+
+**Website:** https://yourwebsite.com
+
+**GitHub:** https://github.com/yourusername (optional)
+
+---
+
+# About Me
 
 Write a few paragraphs about yourself, your background, and what drives you...
 

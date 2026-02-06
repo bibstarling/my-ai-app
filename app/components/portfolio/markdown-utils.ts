@@ -6,6 +6,20 @@ export function convertDataToMarkdown(data?: any): string {
 
   let md = '';
 
+  // Basic Info
+  if (data.fullName || data.title || data.tagline || data.email || data.location || data.linkedinUrl || data.websiteUrl || data.githubUrl) {
+    md += `# Basic Info\n\n`;
+    if (data.fullName) md += `**Full Name:** ${data.fullName}\n\n`;
+    if (data.title) md += `**Title:** ${data.title}\n\n`;
+    if (data.tagline) md += `**Tagline:** ${data.tagline}\n\n`;
+    if (data.email) md += `**Email:** ${data.email}\n\n`;
+    if (data.location) md += `**Location:** ${data.location}\n\n`;
+    if (data.linkedinUrl) md += `**LinkedIn:** ${data.linkedinUrl}\n\n`;
+    if (data.websiteUrl) md += `**Website:** ${data.websiteUrl}\n\n`;
+    if (data.githubUrl) md += `**GitHub:** ${data.githubUrl}\n\n`;
+    md += `---\n\n`;
+  }
+
   // About
   if (data.about) {
     md += `# About Me\n\n${data.about}\n\n---\n\n`;
