@@ -1,0 +1,41 @@
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Subtle repeating celebration pattern for backgrounds -->
+  
+  <defs>
+    <!-- Define a single pattern unit -->
+    <g id="pattern-unit">
+      <!-- Small dots -->
+      <circle cx="20" cy="20" r="2" fill="#8b5cf6" opacity="0.15"/>
+      <circle cx="80" cy="60" r="2" fill="#ec4899" opacity="0.15"/>
+      
+      <!-- Tiny shapes -->
+      <rect x="60" y="25" width="4" height="4" fill="#fbbf24" opacity="0.12" transform="rotate(45 62 27)"/>
+      <circle cx="35" cy="75" r="1.5" fill="#10b981" opacity="0.15"/>
+      
+      <!-- Small sparkle -->
+      <path d="M50 10 L51 13 L54 13 L52 15 L53 18 L50 16 L47 18 L48 15 L46 13 L49 13 Z" 
+            fill="#fb7185" opacity="0.1"/>
+    </g>
+  </defs>
+  
+  <!-- Tile the pattern across the canvas -->
+  <use href="#pattern-unit" x="0" y="0"/>
+  <use href="#pattern-unit" x="100" y="0"/>
+  <use href="#pattern-unit" x="200" y="0"/>
+  <use href="#pattern-unit" x="300" y="0"/>
+  
+  <use href="#pattern-unit" x="0" y="100"/>
+  <use href="#pattern-unit" x="100" y="100"/>
+  <use href="#pattern-unit" x="200" y="100"/>
+  <use href="#pattern-unit" x="300" y="100"/>
+  
+  <use href="#pattern-unit" x="0" y="200"/>
+  <use href="#pattern-unit" x="100" y="200"/>
+  <use href="#pattern-unit" x="200" y="200"/>
+  <use href="#pattern-unit" x="300" y="200"/>
+  
+  <use href="#pattern-unit" x="0" y="300"/>
+  <use href="#pattern-unit" x="100" y="300"/>
+  <use href="#pattern-unit" x="200" y="300"/>
+  <use href="#pattern-unit" x="300" y="300"/>
+</svg>

@@ -1,0 +1,32 @@
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Star burst celebration icon -->
+  
+  <!-- Outer rays -->
+  <g stroke="#fbbf24" stroke-width="3" stroke-linecap="round">
+    <line x1="50" y1="5" x2="50" y2="20"/>
+    <line x1="50" y1="80" x2="50" y2="95"/>
+    <line x1="5" y1="50" x2="20" y2="50"/>
+    <line x1="80" y1="50" x2="95" y2="50"/>
+    <line x1="15" y1="15" x2="25" y2="25"/>
+    <line x1="75" y1="75" x2="85" y2="85"/>
+    <line x1="85" y1="15" x2="75" y2="25"/>
+    <line x1="25" y1="75" x2="15" y2="85"/>
+  </g>
+  
+  <!-- Inner sparkle -->
+  <path d="M50 30 L52 45 L67 47 L55 57 L58 72 L50 65 L42 72 L45 57 L33 47 L48 45 Z" 
+        fill="url(#starGradient)"/>
+  
+  <!-- Gradient definition -->
+  <defs>
+    <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Small accent sparkles -->
+  <circle cx="30" cy="35" r="2" fill="#6ee7b7"/>
+  <circle cx="70" cy="35" r="2" fill="#6ee7b7"/>
+  <circle cx="50" cy="75" r="2" fill="#6ee7b7"/>
+</svg>

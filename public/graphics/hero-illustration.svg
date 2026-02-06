@@ -1,0 +1,112 @@
+<svg width="500" height="400" viewBox="0 0 500 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Hero illustration: Person celebrating career success -->
+  
+  <!-- Gradient definitions -->
+  <defs>
+    <linearGradient id="purplePink" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="greenMint" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6ee7b7;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background elements -->
+  <circle cx="400" cy="100" r="80" fill="#8b5cf6" opacity="0.1"/>
+  <circle cx="100" cy="320" r="60" fill="#ec4899" opacity="0.1"/>
+  
+  <!-- Laptop/Computer -->
+  <g transform="translate(150, 220)">
+    <!-- Screen -->
+    <rect x="0" y="0" width="200" height="120" rx="8" fill="#1a1a2e"/>
+    <rect x="10" y="10" width="180" height="100" fill="url(#purplePink)" opacity="0.2"/>
+    
+    <!-- Screen content - success message -->
+    <g opacity="0.8">
+      <rect x="30" y="30" width="140" height="8" rx="4" fill="#10b981"/>
+      <rect x="30" y="45" width="100" height="6" rx="3" fill="#8b5cf6"/>
+      <rect x="30" y="55" width="120" height="6" rx="3" fill="#8b5cf6"/>
+      <circle cx="160" cy="75" r="12" fill="#10b981"/>
+      <path d="M155 75 L158 78 L165 71" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    
+    <!-- Keyboard/base -->
+    <rect x="-20" y="120" width="240" height="10" rx="5" fill="#a78bfa"/>
+  </g>
+  
+  <!-- Person silhouette -->
+  <g transform="translate(280, 120)">
+    <!-- Head -->
+    <circle cx="0" cy="0" r="30" fill="#8b5cf6"/>
+    
+    <!-- Body -->
+    <ellipse cx="0" cy="60" rx="35" ry="45" fill="#8b5cf6"/>
+    
+    <!-- Left arm raised (celebrating) -->
+    <ellipse cx="-30" cy="35" rx="12" ry="35" fill="#a78bfa" transform="rotate(-45 -30 35)"/>
+    
+    <!-- Right arm raised (celebrating) -->
+    <ellipse cx="30" cy="35" rx="12" ry="35" fill="#a78bfa" transform="rotate(45 30 35)"/>
+    
+    <!-- Legs -->
+    <ellipse cx="-15" cy="100" rx="10" ry="30" fill="#7c3aed"/>
+    <ellipse cx="15" cy="100" rx="10" ry="30" fill="#7c3aed"/>
+  </g>
+  
+  <!-- Celebration elements around person -->
+  <g>
+    <!-- Stars -->
+    <path d="M220 80 L222 88 L230 88 L224 93 L226 101 L220 96 L214 101 L216 93 L210 88 L218 88 Z" fill="#fbbf24"/>
+    <path d="M360 90 L362 98 L370 98 L364 103 L366 111 L360 106 L354 111 L356 103 L350 98 L358 98 Z" fill="#fbbf24"/>
+    
+    <!-- Confetti pieces -->
+    <rect x="200" y="120" width="8" height="8" fill="#ec4899" transform="rotate(15 204 124)"/>
+    <circle cx="380" cy="130" r="5" fill="#10b981"/>
+    <rect x="240" y="60" width="10" height="10" fill="#fb7185" transform="rotate(-20 245 65)"/>
+    <circle cx="340" cy="60" r="4" fill="#3b82f6"/>
+    
+    <!-- Sparkles -->
+    <circle cx="190" cy="100" r="2" fill="#6ee7b7"/>
+    <circle cx="390" cy="110" r="2" fill="#6ee7b7"/>
+    <circle cx="250" cy="50" r="2" fill="#fbbf24"/>
+    <circle cx="350" cy="50" r="2" fill="#fbbf24"/>
+  </g>
+  
+  <!-- Trophy/Achievement icon -->
+  <g transform="translate(420, 280)">
+    <path d="M0 -20 L-10 -10 L-8 10 L8 10 L10 -10 Z" fill="url(#greenMint)"/>
+    <ellipse cx="0" cy="-22" rx="12" ry="5" fill="#fbbf24"/>
+    <rect x="-3" y="10" width="6" height="15" fill="url(#greenMint)"/>
+    <ellipse cx="0" cy="25" rx="15" ry="5" fill="#fbbf24"/>
+    
+    <!-- Handle left -->
+    <path d="M-10 -15 Q-20 -15 -20 -5 Q-20 5 -10 5" stroke="url(#greenMint)" stroke-width="3" fill="none"/>
+    <!-- Handle right -->
+    <path d="M10 -15 Q20 -15 20 -5 Q20 5 10 5" stroke="url(#greenMint)" stroke-width="3" fill="none"/>
+  </g>
+  
+  <!-- Document/Resume stack -->
+  <g transform="translate(70, 260)">
+    <rect x="0" y="0" width="50" height="60" rx="4" fill="white" stroke="#e7e5e4" stroke-width="2"/>
+    <rect x="5" y="-5" width="50" height="60" rx="4" fill="white" stroke="#e7e5e4" stroke-width="2"/>
+    <rect x="10" y="-10" width="50" height="60" rx="4" fill="white" stroke="#8b5cf6" stroke-width="2"/>
+    
+    <!-- Lines on top document -->
+    <line x1="18" y1="0" x2="50" y2="0" stroke="#8b5cf6" stroke-width="2"/>
+    <line x1="18" y1="8" x2="45" y2="8" stroke="#a8a29e" stroke-width="1.5"/>
+    <line x1="18" y1="15" x2="48" y2="15" stroke="#a8a29e" stroke-width="1.5"/>
+    <line x1="18" y1="22" x2="42" y2="22" stroke="#a8a29e" stroke-width="1.5"/>
+    
+    <!-- Checkmark -->
+    <circle cx="55" cy="35" r="12" fill="#10b981"/>
+    <path d="M50 35 L53 38 L60 31" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  
+  <!-- Floating celebration text bubbles -->
+  <g opacity="0.8">
+    <ellipse cx="100" cy="100" rx="30" ry="15" fill="#ec4899" opacity="0.2"/>
+    <ellipse cx="430" cy="200" rx="35" ry="15" fill="#8b5cf6" opacity="0.2"/>
+  </g>
+</svg>
