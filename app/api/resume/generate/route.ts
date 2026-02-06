@@ -129,7 +129,7 @@ export async function POST(req: Request) {
       const exp = portfolioInfo.experiences?.[expIndex];
       if (exp) {
         // Extract bullet points from description
-        const bullets = exp.description.split('. ').filter(Boolean).map(b => b.trim());
+        const bullets = exp.description.split('. ').filter(Boolean).map((b: string) => b.trim());
         
         sections.push({
           resume_id: resume.id,
