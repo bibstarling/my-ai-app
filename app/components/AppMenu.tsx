@@ -63,12 +63,12 @@ function Tooltip({ content, children, show }: TooltipProps) {
 
 const getMenuItems = (isAdmin: boolean): MenuItem[] => {
   const items: MenuItem[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, href: '/assistant' },
-    { id: 'portfolio-builder', label: 'Portfolio Builder', icon: <Briefcase className="w-5 h-5" />, href: '/portfolio/builder' },
-    { id: 'job-search', label: 'Job Search', icon: <Search className="w-5 h-5" />, href: '/assistant/job-search' },
-    { id: 'my-jobs', label: 'My Jobs', icon: <Kanban className="w-5 h-5" />, href: '/assistant/my-jobs' },
-    { id: 'chat', label: 'AI Assistant', icon: <MessageSquare className="w-5 h-5" />, href: '/assistant/chat' },
-    { id: 'resume', label: 'Resume Builder', icon: <FileText className="w-5 h-5" />, href: '/resume-builder' },
+    { id: 'dashboard', label: 'Home', icon: <LayoutDashboard className="w-5 h-5" />, href: '/assistant' },
+    { id: 'portfolio-builder', label: 'My Portfolio', icon: <Briefcase className="w-5 h-5" />, href: '/portfolio/builder' },
+    { id: 'job-search', label: 'Find Jobs', icon: <Search className="w-5 h-5" />, href: '/assistant/job-search' },
+    { id: 'my-jobs', label: 'Applications', icon: <Kanban className="w-5 h-5" />, href: '/assistant/my-jobs' },
+    { id: 'chat', label: 'Career Coach', icon: <MessageSquare className="w-5 h-5" />, href: '/assistant/chat' },
+    { id: 'resume', label: 'Resumes', icon: <FileText className="w-5 h-5" />, href: '/resume-builder' },
     { id: 'cover-letter', label: 'Cover Letters', icon: <Mail className="w-5 h-5" />, href: '/cover-letters' },
   ];
   

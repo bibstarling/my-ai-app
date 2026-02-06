@@ -86,7 +86,7 @@ export default function ResumeBuilderPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading resumes...</div>
+        <div className="text-gray-600">Loading your resumes... ✨</div>
       </div>
     );
   }
@@ -98,25 +98,25 @@ export default function ResumeBuilderPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Resume Builder</h1>
+              <h1 className="text-3xl font-bold text-gray-900">My Resumes 📄</h1>
               <p className="mt-2 text-sm text-gray-600">
-                Create and manage your professional resumes
+                Create resumes that deserve applause! ✨
               </p>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setShowGenerateModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-applause-purple text-white rounded-lg hover:opacity-90 transition-all shadow-lg"
               >
-                <Plus className="w-5 h-5" />
-                Generate from Job
+                <Sparkles className="w-5 h-5" />
+                AI Generate ✨
               </button>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-ocean-blue text-white rounded-lg hover:opacity-90 transition-all shadow-lg"
               >
                 <Plus className="w-5 h-5" />
-                New Blank Resume
+                Start from Scratch
               </button>
             </div>
           </div>
@@ -128,9 +128,9 @@ export default function ResumeBuilderPage() {
         {resumes.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
             <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No resumes yet</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Let's create your first resume! 🎉</h3>
             <p className="text-gray-600 mb-6">
-              Generate a tailored resume from your portfolio for a specific job, or create a blank one
+              Use AI to generate a tailored resume for a specific job, or start from scratch
             </p>
             <div className="flex gap-3 justify-center">
               <button

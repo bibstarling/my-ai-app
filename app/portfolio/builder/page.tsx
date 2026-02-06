@@ -81,7 +81,7 @@ export default function PortfolioBuilderPage() {
           setMessages([
             {
               role: 'assistant',
-              content: `Hi! I'm here to help you build your professional portfolio. You can:\n\n• Tell me about your experience, projects, and skills\n• Upload your resume, certificates, or project screenshots\n• Share links to your work (GitHub, LinkedIn, articles, etc.)\n• Paste images directly from your clipboard\n\nWhat would you like to add to your portfolio?`,
+              content: `Hey there! Let's build something amazing together! 🎉\n\nI'm your AI portfolio assistant, and I'm excited to help you show off your incredible work. Here's how we can get started:\n\n✨ Tell me about your achievements and projects\n📄 Upload your resume or certificates\n🔗 Share links (GitHub, LinkedIn, articles, projects)\n📸 Paste screenshots directly (Ctrl+V or Cmd+V)\n\nWhat would you like to showcase first?`,
             },
           ]);
         }
@@ -403,9 +403,9 @@ export default function PortfolioBuilderPage() {
       <div className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Portfolio Builder</h1>
+            <h1 className="text-2xl font-bold text-foreground">My Portfolio ✨</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Chat with AI to build your portfolio
+              Show off your amazing work with AI
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -426,10 +426,10 @@ export default function PortfolioBuilderPage() {
               {isPublished ? (
                 <>
                   <Check className="h-4 w-4" />
-                  Published
+                  Live! 🎉
                 </>
               ) : (
-                'Publish Portfolio'
+                'Publish & Celebrate! 🚀'
               )}
             </button>
 
@@ -463,13 +463,13 @@ export default function PortfolioBuilderPage() {
                   <Loader2 className="h-12 w-12 text-accent" />
                 </div>
                 <h2 className="mb-2 text-xl font-semibold text-foreground">
-                  Building Your Portfolio
+                  Let's Create Something Awesome! ✨
                 </h2>
                 <p className="max-w-md text-muted-foreground">
-                  Start by telling me about yourself, uploading files, or sharing links.
+                  Tell me about your achievements, upload files, or share links to get started!
                 </p>
                 <p className="mt-4 text-sm text-muted">
-                  💡 Tip: You can paste images directly with Ctrl+V (or Cmd+V)
+                  💡 Pro tip: Paste images directly with Ctrl+V (or Cmd+V)
                 </p>
               </div>
             ) : (
@@ -542,7 +542,7 @@ export default function PortfolioBuilderPage() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Tell me about your work..."
+                placeholder="Tell me about your awesome work! ✨"
                 disabled={loading || !portfolio}
                 className="flex-1 rounded-lg border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
               />
@@ -561,9 +561,9 @@ export default function PortfolioBuilderPage() {
         <div className="hidden flex-1 overflow-y-auto bg-muted p-6 lg:block">
           <div className="mx-auto max-w-3xl">
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-foreground">Live Preview</h2>
+              <h2 className="text-xl font-bold text-foreground">Live Preview 👀</h2>
               <p className="text-sm text-muted-foreground">
-                This is how your portfolio will look
+                Watch your portfolio come to life!
               </p>
             </div>
 
@@ -627,7 +627,7 @@ export default function PortfolioBuilderPage() {
               ) : (
                 <div className="py-12 text-center">
                   <p className="text-muted-foreground">
-                    Start chatting to see your portfolio come to life!
+                    Start chatting and watch the magic happen! ✨
                   </p>
                 </div>
               )}
