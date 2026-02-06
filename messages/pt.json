@@ -1,0 +1,133 @@
+{
+  "nav": {
+    "about": "Sobre",
+    "experience": "Experiência",
+    "work": "Trabalho",
+    "approach": "Como Trabalho",
+    "skills": "Habilidades",
+    "articles": "Artigos e Palestras",
+    "contact": "Contato"
+  },
+  "categories": {
+    "all": "Todos os Projetos",
+    "ai": "IA e Descoberta",
+    "community": "Comunidade e Engajamento",
+    "platform": "Plataforma e Integração",
+    "edtech": "Tecnologia Educacional",
+    "discovery": "Pesquisa e Descoberta"
+  },
+  "about": {
+    "heading": "Sobre",
+    "keyContributions": "Principais Contribuições e Impacto",
+    "awards": "Prêmios",
+    "intro1": "Líder de produto focada em construir produtos com IA que geram resultados mensuráveis. Atualmente moldando a estratégia de IA na Skillshare, com um histórico de produtos lançados em plataformas de EdTech e comunidade.",
+    "intro2": "Prospero na ambiguidade—assumindo múltiplas iniciativas complexas, movendo-se rapidamente com recursos limitados e encontrando soluções criativas quando as prioridades mudam. Reconhecida por resiliência, agilidade e impacto multifuncional."
+  },
+  "experience": {
+    "heading": "Experiência"
+  },
+  "work": {
+    "heading": "Trabalho",
+    "noProjects": "Nenhum projeto encontrado nesta categoria."
+  },
+  "approach": {
+    "heading": "Como Trabalho",
+    "whatIBring": "O Que Trago Para a Mesa",
+    "subtitle": "Avaliada como \"Superando Altas Expectativas\" por gerenciar projetos gigantes durante mudanças organizacionais.",
+    "intro1": "Sou uma construtora proativa que assume projetos complexos e ambíguos e entrega rápido. Quando as prioridades mudam no meio do caminho, me adapto rapidamente e mantenho múltiplas iniciativas avançando. Não espero condições perfeitas—encontro maneiras criativas de entregar com os recursos que tenho.",
+    "intro2": "Minha abordagem: Realizar descobertas que realmente informam decisões. Trabalhar de perto com engenharia para descobrir o que é possível. Construir a solução do tamanho certo, não a perfeita. Entregar rápido, aprender rápido, iterar.",
+    "iExcelAt": "Eu Me Destaco Em",
+    "whatIValue": "O Que Valorizo",
+    "whereIThrive": "Onde Prospero",
+    "thriveIntro": "Sou mais valiosa em ambientes que precisam de execução rápida através da ambiguidade:",
+    "excel": {
+      "zeroToOne": "Produtos 0-a-1:",
+      "zeroToOneDesc": "Construir do zero, entregar rápido, provar valor rapidamente",
+      "ambiguous": "Problemas ambíguos:",
+      "ambiguousDesc": "Prosperar quando o caminho não está claro, enquadrar problemas, encontrar soluções criativas",
+      "scrappy": "Execução criativa:",
+      "scrappyDesc": "Entregar com recursos limitados através de resolução criativa de problemas",
+      "multiple": "Múltiplas iniciativas:",
+      "multipleDesc": "Gerenciar projetos gigantes simultaneamente sem criar gargalos"
+    },
+    "values": {
+      "bias": "Tendência à ação:",
+      "biasDesc": "Entregar e aprender supera planejamento à perfeição",
+      "userReality": "Realidade do usuário:",
+      "userRealityDesc": "Descoberta que se conecta ao comportamento real, não apenas opiniões",
+      "measurable": "Resultados mensuráveis:",
+      "measurableDesc": "Métricas reais em vez de números de vaidade",
+      "crossFunctional": "Impacto multifuncional:",
+      "crossFunctionalDesc": "Desbloquear equipes além do meu papel principal, agir como um multiplicador de força"
+    },
+    "thrive": {
+      "earlyStage": "Startups em estágio inicial",
+      "earlyStageDesc": "que precisam provar valor rapidamente com recursos limitados",
+      "zeroToOne": "Equipes 0-a-1 em scale-ups",
+      "zeroToOneDesc": "lançando novas linhas de produtos ou iniciativas experimentais",
+      "aiFirst": "Empresas com foco em IA",
+      "aiFirstDesc": "construindo produtos onde o caminho não é óbvio e a iteração é fundamental",
+      "growthStage": "Empresas em estágio de crescimento",
+      "growthStageDesc": "navegando por escalonamento rápido e múltiplos pivôs"
+    }
+  },
+  "skills": {
+    "heading": "Habilidades",
+    "certifications": "Certificações",
+    "education": "Educação"
+  },
+  "articles": {
+    "heading": "Artigos e Palestras"
+  },
+  "contact": {
+    "heading": "Contato",
+    "intro": "Aberta para discutir funções de liderança de produto, estratégia de produto com IA e desafios interessantes em EdTech e plataformas de comunidade.",
+    "emailMe": "Envie um Email",
+    "linkedin": "Conecte no LinkedIn"
+  },
+  "footer": {
+    "language": "Idioma",
+    "switchLanguage": "Mudar Idioma",
+    "copyright": "Todos os direitos reservados."
+  },
+  "common": {
+    "close": "Fechar"
+  },
+  "menu": {
+    "controlRoom": "Central de Controle",
+    "jobTools": "Ferramentas de Trabalho",
+    "dashboard": "Painel",
+    "jobSearch": "Busca de Vagas",
+    "myJobs": "Minhas Vagas",
+    "aiAssistant": "Assistente de IA",
+    "resumeBuilder": "Construtor de Currículo",
+    "coverLetters": "Cartas de Apresentação",
+    "settings": "Configurações",
+    "portfolio": "Portfólio",
+    "collapse": "Recolher",
+    "expandMenu": "Expandir menu",
+    "collapseMenu": "Recolher menu",
+    "previewMode": "Modo de Visualização",
+    "authDisabled": "Autenticação desativada",
+    "profile": "Perfil"
+  },
+  "settings": {
+    "title": "Configurações",
+    "description": "Gerencie suas preferências e opções de geração de conteúdo",
+    "loading": "Carregando configurações...",
+    "contentGeneration": {
+      "title": "Geração de Conteúdo",
+      "description": "Escolha o idioma padrão para conteúdo gerado por IA como currículos e cartas de apresentação",
+      "defaultLanguage": "Idioma Padrão",
+      "note": "Você pode alterar o idioma para cada documento ao gerar"
+    },
+    "saveChanges": "Salvar Alterações",
+    "saving": "Salvando...",
+    "saveSuccess": "Configurações salvas com sucesso",
+    "saveFailed": "Falha ao salvar configurações",
+    "info": {
+      "title": "Sobre o Idioma do Conteúdo",
+      "description": "Esta configuração determina qual idioma será usado por padrão ao gerar currículos e cartas de apresentação. Você sempre pode alterá-lo para documentos individuais."
+    }
+  }
+}

@@ -14,9 +14,11 @@ import {
   Kanban,
   Mail,
   User,
+  Settings,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuthSafe } from '@/app/hooks/useAuthSafe';
+import { useTranslations } from 'next-intl';
 
 type MenuItem = {
   id: string;
@@ -57,13 +59,14 @@ function Tooltip({ content, children, show }: TooltipProps) {
   );
 }
 
-const getMenuItems = (): MenuItem[] => [
-  { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, href: '/assistant' },
-  { id: 'job-search', label: 'Job Search', icon: <Search className="w-5 h-5" />, href: '/assistant/job-search' },
-  { id: 'my-jobs', label: 'My Jobs', icon: <Kanban className="w-5 h-5" />, href: '/assistant/my-jobs' },
-  { id: 'chat', label: 'AI Assistant', icon: <MessageSquare className="w-5 h-5" />, href: '/assistant/chat' },
-  { id: 'resume', label: 'Resume Builder', icon: <FileText className="w-5 h-5" />, href: '/resume-builder' },
-  { id: 'cover-letter', label: 'Cover Letters', icon: <Mail className="w-5 h-5" />, href: '/cover-letters' },
+const getMenuItems = (t: (key: string) => string): MenuItem[] => [
+  { id: 'dashboard', label: t('dashboard'), icon: <LayoutDashboard className="w-5 h-5" />, href: '/assistant' },
+  { id: 'job-search', label: t('jobSearch'), icon: <Search className="w-5 h-5" />, href: '/assistant/job-search' },
+  { id: 'my-jobs', label: t('myJobs'), icon: <Kanban className="w-5 h-5" />, href: '/assistant/my-jobs' },
+  { id: 'chat', label: t('aiAssistant'), icon: <MessageSquare className="w-5 h-5" />, href: '/assistant/chat' },
+  { id: 'resume', label: t('resumeBuilder'), icon: <FileText className="w-5 h-5" />, href: '/resume-builder' },
+  { id: 'cover-letter', label: t('coverLetters'), icon: <Mail className="w-5 h-5" />, href: '/cover-letters' },
+  { id: 'settings', label: t('settings'), icon: <Settings className="w-5 h-5" />, href: '/assistant/settings' },
 ];
 
 type AppMenuProps = {
@@ -73,7 +76,8 @@ type AppMenuProps = {
 
 export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
   const pathname = usePathname();
-  const menuItems = getMenuItems();
+  const t = useTranslations('menu');
+  const menuItems = getMenuItems(t);
   const { user, isEmbedMode } = useAuthSafe();
 
   const isActive = (href: string) => {
@@ -98,12 +102,12 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
                 B
               </div>
               <div className="flex flex-col">
-                <span className="font-semibold text-gray-900 text-sm">Control Room</span>
-                <span className="text-xs text-gray-500">Job Tools</span>
+                <span className="font-semibold text-gray-900 text-sm">{t('controlRoom')}</span>
+                <span className="text-xs text-gray-500">{t('jobTools')}</span>
               </div>
             </Link>
           ) : (
-            <Tooltip content="Control Room" show={isCollapsed}>
+            <Tooltip content={t('controlRoom')} show={isCollapsed}>
               <Link href="/assistant" className="flex items-center justify-center">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
                   B
@@ -142,7 +146,7 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
           {/* User Profile */}
           {!isEmbedMode && user && (
             <Tooltip 
-              content={user.firstName || user.emailAddresses[0]?.emailAddress || 'Profile'} 
+              content={user.firstName || user.emailAddresses[0]?.emailAddress || t('profile')} 
               show={isCollapsed}
             >
               <div className={`flex items-center gap-3 px-3 py-2.5 ${
@@ -173,7 +177,7 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
           
           {/* Embed Mode Indicator */}
           {isEmbedMode && (
-            <Tooltip content="Preview Mode" show={isCollapsed}>
+            <Tooltip content={t('previewMode')} show={isCollapsed}>
               <div className={`flex items-center gap-3 px-3 py-2.5 ${
                 isCollapsed ? 'justify-center' : ''
               }`}>
@@ -182,8 +186,8 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
                 </div>
                 {!isCollapsed && (
                   <div className="flex flex-col min-w-0 flex-1">
-                    <span className="text-sm font-medium text-gray-900">Preview Mode</span>
-                    <span className="text-xs text-gray-500">Auth disabled</span>
+                    <span className="text-sm font-medium text-gray-900">{t('previewMode')}</span>
+                    <span className="text-xs text-gray-500">{t('authDisabled')}</span>
                   </div>
                 )}
               </div>
@@ -191,7 +195,7 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
           )}
           
           {/* Back to Portfolio Link */}
-          <Tooltip content="Portfolio" show={isCollapsed}>
+          <Tooltip content={t('portfolio')} show={isCollapsed}>
             <Link
               href="/"
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-gray-700 hover:bg-gray-100 w-full ${
@@ -199,12 +203,12 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
               }`}
             >
               <Home className="w-5 h-5" />
-              {!isCollapsed && <span className="text-sm font-medium">Portfolio</span>}
+              {!isCollapsed && <span className="text-sm font-medium">{t('portfolio')}</span>}
             </Link>
           </Tooltip>
           
           {/* Collapse Toggle */}
-          <Tooltip content={isCollapsed ? 'Expand menu' : 'Collapse menu'} show={isCollapsed}>
+          <Tooltip content={isCollapsed ? t('expandMenu') : t('collapseMenu')} show={isCollapsed}>
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-gray-700 hover:bg-gray-100 w-full ${
@@ -216,7 +220,7 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
               ) : (
                 <>
                   <ChevronLeft className="w-5 h-5" />
-                  <span className="text-sm font-medium">Collapse</span>
+                  <span className="text-sm font-medium">{t('collapse')}</span>
                 </>
               )}
             </button>

@@ -1,0 +1,133 @@
+{
+  "nav": {
+    "about": "About",
+    "experience": "Experience",
+    "work": "Work",
+    "approach": "How I Work",
+    "skills": "Skills",
+    "articles": "Articles & Talks",
+    "contact": "Contact"
+  },
+  "categories": {
+    "all": "All Projects",
+    "ai": "AI & Discovery",
+    "community": "Community & Engagement",
+    "platform": "Platform & Integration",
+    "edtech": "EdTech",
+    "discovery": "Research & Discovery"
+  },
+  "about": {
+    "heading": "About",
+    "keyContributions": "Key Contributions and Impact",
+    "awards": "Awards",
+    "intro1": "Product leader focused on building AI-powered products that drive measurable outcomes. Currently shaping AI strategy at Skillshare, with a track record of shipped products across EdTech and community platforms.",
+    "intro2": "I thrive in ambiguity—taking on multiple complex initiatives, moving fast with limited resources, and finding creative solutions when priorities shift. Recognized for resilience, agility, and cross-functional impact."
+  },
+  "experience": {
+    "heading": "Experience"
+  },
+  "work": {
+    "heading": "Work",
+    "noProjects": "No projects found in this category."
+  },
+  "approach": {
+    "heading": "How I Work",
+    "whatIBring": "What I Bring to the Table",
+    "subtitle": "Rated \"Exceeding High Expectations\" for managing behemoth projects through organizational change.",
+    "intro1": "I'm a high-agency builder who takes on complex, ambiguous projects and ships fast. When priorities shift mid-flight, I adapt quickly and keep multiple initiatives moving forward. I don't wait for perfect conditions—I find creative ways to ship with the resources I have.",
+    "intro2": "My approach: Run discovery that actually informs decisions. Work closely with engineering to figure out what's possible. Build the right-sized solution, not the perfect one. Ship fast, learn fast, iterate.",
+    "iExcelAt": "I Excel At",
+    "whatIValue": "What I Value",
+    "whereIThrive": "Where I Thrive",
+    "thriveIntro": "I'm most valuable in environments that need fast execution through ambiguity:",
+    "excel": {
+      "zeroToOne": "0-to-1 products:",
+      "zeroToOneDesc": "Build from nothing, ship fast, prove value quickly",
+      "ambiguous": "Ambiguous problems:",
+      "ambiguousDesc": "Thrive when the path isn't clear, frame problems, find creative solutions",
+      "scrappy": "Scrappy execution:",
+      "scrappyDesc": "Ship with limited resources through creative problem-solving",
+      "multiple": "Multiple initiatives:",
+      "multipleDesc": "Juggle behemoth projects simultaneously without creating bottlenecks"
+    },
+    "values": {
+      "bias": "Bias to action:",
+      "biasDesc": "Ship and learn beats planning to perfection",
+      "userReality": "User reality:",
+      "userRealityDesc": "Discovery that connects to actual behavior, not just opinions",
+      "measurable": "Measurable outcomes:",
+      "measurableDesc": "Real metrics over vanity numbers",
+      "crossFunctional": "Cross-functional impact:",
+      "crossFunctionalDesc": "Unblock teams beyond my core role, act as a force multiplier"
+    },
+    "thrive": {
+      "earlyStage": "Early-stage startups",
+      "earlyStageDesc": "that need to prove value quickly with limited resources",
+      "zeroToOne": "0-to-1 teams at scale-ups",
+      "zeroToOneDesc": "launching new product lines or experimental initiatives",
+      "aiFirst": "AI-first companies",
+      "aiFirstDesc": "building products where the path isn't obvious and iteration is key",
+      "growthStage": "Growth-stage companies",
+      "growthStageDesc": "navigating rapid scaling and multiple pivots"
+    }
+  },
+  "skills": {
+    "heading": "Skills",
+    "certifications": "Certifications",
+    "education": "Education"
+  },
+  "articles": {
+    "heading": "Articles & Talks"
+  },
+  "contact": {
+    "heading": "Contact",
+    "intro": "Open to discussing product leadership roles, AI product strategy, and interesting challenges in EdTech and community platforms.",
+    "emailMe": "Email Me",
+    "linkedin": "Connect on LinkedIn"
+  },
+  "footer": {
+    "language": "Language",
+    "switchLanguage": "Switch Language",
+    "copyright": "All rights reserved."
+  },
+  "common": {
+    "close": "Close"
+  },
+  "menu": {
+    "controlRoom": "Control Room",
+    "jobTools": "Job Tools",
+    "dashboard": "Dashboard",
+    "jobSearch": "Job Search",
+    "myJobs": "My Jobs",
+    "aiAssistant": "AI Assistant",
+    "resumeBuilder": "Resume Builder",
+    "coverLetters": "Cover Letters",
+    "settings": "Settings",
+    "portfolio": "Portfolio",
+    "collapse": "Collapse",
+    "expandMenu": "Expand menu",
+    "collapseMenu": "Collapse menu",
+    "previewMode": "Preview Mode",
+    "authDisabled": "Auth disabled",
+    "profile": "Profile"
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Manage your preferences and content generation options",
+    "loading": "Loading settings...",
+    "contentGeneration": {
+      "title": "Content Generation",
+      "description": "Choose the default language for AI-generated content like resumes and cover letters",
+      "defaultLanguage": "Default Language",
+      "note": "You can change the language for each document when generating"
+    },
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "saveSuccess": "Settings saved successfully",
+    "saveFailed": "Failed to save settings",
+    "info": {
+      "title": "About Content Language",
+      "description": "This setting determines which language will be used by default when generating resumes and cover letters. You can always change it for individual documents."
+    }
+  }
+}

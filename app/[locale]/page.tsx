@@ -4,27 +4,7 @@ import { useState, useEffect } from 'react';
 import { ArrowUpRight, Linkedin, Mail, X } from 'lucide-react';
 import { portfolioData, type PortfolioProject } from '@/lib/portfolio-data';
 import { useEmbedMode } from '@/app/ClientAuthWrapper';
-
-
-const navItems = [
-  { id: 'about', label: 'About' },
-  { id: 'experience', label: 'Experience' },
-  { id: 'work', label: 'Work' },
-  { id: 'approach', label: 'How I Work' },
-  { id: 'skills', label: 'Skills' },
-  { id: 'articles', label: 'Articles & Talks' },
-  { id: 'contact', label: 'Contact' },
-];
-
-// Extract unique categories from project tags
-const CATEGORIES = [
-  { id: 'all', label: 'All Projects' },
-  { id: 'ai', label: 'AI & Discovery' },
-  { id: 'community', label: 'Community & Engagement' },
-  { id: 'platform', label: 'Platform & Integration' },
-  { id: 'edtech', label: 'EdTech' },
-  { id: 'discovery', label: 'Research & Discovery' },
-];
+import { useTranslations } from 'next-intl';
 
 function getCategoryForProject(project: PortfolioProject): string[] {
   const categories: string[] = ['all'];
@@ -57,6 +37,17 @@ function ProjectGrid({
   onProjectClick: (project: PortfolioProject) => void;
 }) {
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const t = useTranslations('categories');
+  const tWork = useTranslations('work');
+
+  const CATEGORIES = [
+    { id: 'all', label: t('all') },
+    { id: 'ai', label: t('ai') },
+    { id: 'community', label: t('community') },
+    { id: 'platform', label: t('platform') },
+    { id: 'edtech', label: t('edtech') },
+    { id: 'discovery', label: t('discovery') },
+  ];
 
   const filteredProjects = projects.filter((project) => {
     if (selectedCategory === 'all') return true;
@@ -133,7 +124,7 @@ function ProjectGrid({
 
       {filteredProjects.length === 0 && (
         <div className="py-12 text-center text-muted">
-          <p>No projects found in this category.</p>
+          <p>{tWork('noProjects')}</p>
         </div>
       )}
     </div>
@@ -147,6 +138,7 @@ function ProjectModal({
   project: PortfolioProject;
   onClose: () => void;
 }) {
+  const t = useTranslations('common');
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -193,7 +185,7 @@ function ProjectModal({
               type="button"
               onClick={onClose}
               className="shrink-0 rounded-full p-2 text-muted hover:bg-accent/10 hover:text-accent transition-all"
-              aria-label="Close"
+              aria-label={t('close')}
             >
               <X className="h-5 w-5" />
             </button>
@@ -256,6 +248,24 @@ export default function HomePage() {
   const [activeSection, setActiveSection] = useState('about');
   const [modalProject, setModalProject] = useState<PortfolioProject | null>(null);
   const isEmbed = useEmbedMode();
+  const tNav = useTranslations('nav');
+  const tAbout = useTranslations('about');
+  const tExperience = useTranslations('experience');
+  const tWork = useTranslations('work');
+  const tApproach = useTranslations('approach');
+  const tSkills = useTranslations('skills');
+  const tArticles = useTranslations('articles');
+  const tContact = useTranslations('contact');
+
+  const navItems = [
+    { id: 'about', label: tNav('about') },
+    { id: 'experience', label: tNav('experience') },
+    { id: 'work', label: tNav('work') },
+    { id: 'approach', label: tNav('approach') },
+    { id: 'skills', label: tNav('skills') },
+    { id: 'articles', label: tNav('articles') },
+    { id: 'contact', label: tNav('contact') },
+  ];
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -353,18 +363,14 @@ export default function HomePage() {
         {/* About Section */}
         <section id="about" className="mb-24 scroll-mt-24 lg:mb-36">
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            About
+            {tAbout('heading')}
           </h3>
           <div className="space-y-4">
             <p className="text-muted leading-relaxed">
-              Product leader focused on building AI-powered products that drive measurable outcomes. 
-              Currently shaping AI strategy at Skillshare, with a track record of shipped products across 
-              EdTech and community platforms.
+              {tAbout('intro1')}
             </p>
             <p className="text-muted leading-relaxed">
-              I thrive in ambiguity—taking on multiple complex initiatives, moving fast with limited 
-              resources, and finding creative solutions when priorities shift. Recognized for resilience, 
-              agility, and cross-functional impact.
+              {tAbout('intro2')}
             </p>
           </div>
 
@@ -372,7 +378,7 @@ export default function HomePage() {
           <div className="mt-12 rounded-lg border border-border bg-white p-6 lg:p-8">
             <div className="mb-6">
               <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
-                Key Contributions and Impact
+                {tAbout('keyContributions')}
               </h4>
             </div>
             <ul className="space-y-4">
@@ -392,7 +398,7 @@ export default function HomePage() {
           {portfolioData.awards && portfolioData.awards.length > 0 && (
             <div className="mt-12">
               <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent">
-                Awards
+                {tAbout('awards')}
               </h4>
               <div className="space-y-6">
                 {portfolioData.awards.map((award, idx) => (
@@ -422,10 +428,10 @@ export default function HomePage() {
         {/* Experience Section */}
         <section id="experience" className="mb-24 scroll-mt-24 lg:mb-36">
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            Experience
+            {tExperience('heading')}
           </h3>
           <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
-            Experience
+            {tExperience('heading')}
           </h4>
           <div className="space-y-12">
             {portfolioData.experiences.map((exp, idx) => (
@@ -470,10 +476,10 @@ export default function HomePage() {
         {/* Work Section */}
         <section id="work" className="mb-24 scroll-mt-24 lg:mb-36">
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            Work
+            {tWork('heading')}
           </h3>
           <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
-            Work
+            {tWork('heading')}
           </h4>
           <ProjectGrid projects={portfolioData.projects} onProjectClick={setModalProject} />
           {modalProject && (
@@ -484,22 +490,18 @@ export default function HomePage() {
         {/* How I Work Section */}
         <section id="approach" className="mb-24 scroll-mt-24 lg:mb-36">
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            How I Work
+            {tApproach('heading')}
           </h3>
           <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
-            How I Work
+            {tApproach('heading')}
           </h4>
           
           <div className="space-y-6">
             <p className="text-muted leading-relaxed">
-              I'm a high-agency builder who takes on complex, ambiguous projects and ships fast. 
-              When priorities shift mid-flight, I adapt quickly and keep multiple initiatives moving forward. 
-              I don't wait for perfect conditions—I find creative ways to ship with the resources I have.
+              {tApproach('intro1')}
             </p>
             <p className="text-muted leading-relaxed">
-              My approach: Run discovery that actually informs decisions. Work closely with engineering to 
-              figure out what's possible. Build the right-sized solution, not the perfect one. Ship fast, 
-              learn fast, iterate.
+              {tApproach('intro2')}
             </p>
           </div>
 
@@ -507,10 +509,10 @@ export default function HomePage() {
           <div className="mt-12 rounded-lg border border-border bg-white p-6 lg:p-8">
             <div className="mb-6">
               <h4 className="text-xs font-bold uppercase tracking-widest text-accent mb-2">
-                What I Bring to the Table
+                {tApproach('whatIBring')}
               </h4>
               <p className="text-sm text-muted">
-                Rated "Exceeding High Expectations" for managing behemoth projects through organizational change.
+                {tApproach('subtitle')}
               </p>
             </div>
             <ul className="space-y-3">
@@ -527,35 +529,31 @@ export default function HomePage() {
           <div className="mt-8 grid gap-6 md:grid-cols-2">
             <div className="rounded-lg border border-border bg-white p-6">
               <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-accent">
-                I Excel At
+                {tApproach('iExcelAt')}
               </h4>
               <ul className="space-y-3">
                 <li className="flex items-start gap-3 text-sm">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
                   <p className="leading-relaxed text-foreground">
-                    <span className="font-medium">0-to-1 products:</span> Build from nothing, ship fast, 
-                    prove value quickly
+                    <span className="font-medium">{tApproach('excel.zeroToOne')}</span> {tApproach('excel.zeroToOneDesc')}
                   </p>
                 </li>
                 <li className="flex items-start gap-3 text-sm">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
                   <p className="leading-relaxed text-foreground">
-                    <span className="font-medium">Ambiguous problems:</span> Thrive when the path isn't clear, 
-                    frame problems, find creative solutions
+                    <span className="font-medium">{tApproach('excel.ambiguous')}</span> {tApproach('excel.ambiguousDesc')}
                   </p>
                 </li>
                 <li className="flex items-start gap-3 text-sm">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
                   <p className="leading-relaxed text-foreground">
-                    <span className="font-medium">Scrappy execution:</span> Ship with limited resources through 
-                    creative problem-solving
+                    <span className="font-medium">{tApproach('excel.scrappy')}</span> {tApproach('excel.scrappyDesc')}
                   </p>
                 </li>
                 <li className="flex items-start gap-3 text-sm">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
                   <p className="leading-relaxed text-foreground">
-                    <span className="font-medium">Multiple initiatives:</span> Juggle behemoth projects 
-                    simultaneously without creating bottlenecks
+                    <span className="font-medium">{tApproach('excel.multiple')}</span> {tApproach('excel.multipleDesc')}
                   </p>
                 </li>
               </ul>
@@ -563,33 +561,31 @@ export default function HomePage() {
 
             <div className="rounded-lg border border-border bg-white p-6">
               <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-accent">
-                What I Value
+                {tApproach('whatIValue')}
               </h4>
               <ul className="space-y-3">
                 <li className="flex items-start gap-3 text-sm">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
                   <p className="leading-relaxed text-foreground">
-                    <span className="font-medium">Bias to action:</span> Ship and learn beats planning to perfection
+                    <span className="font-medium">{tApproach('values.bias')}</span> {tApproach('values.biasDesc')}
                   </p>
                 </li>
                 <li className="flex items-start gap-3 text-sm">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
                   <p className="leading-relaxed text-foreground">
-                    <span className="font-medium">User reality:</span> Discovery that connects to actual behavior, 
-                    not just opinions
+                    <span className="font-medium">{tApproach('values.userReality')}</span> {tApproach('values.userRealityDesc')}
                   </p>
                 </li>
                 <li className="flex items-start gap-3 text-sm">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
                   <p className="leading-relaxed text-foreground">
-                    <span className="font-medium">Measurable outcomes:</span> Real metrics over vanity numbers
+                    <span className="font-medium">{tApproach('values.measurable')}</span> {tApproach('values.measurableDesc')}
                   </p>
                 </li>
                 <li className="flex items-start gap-3 text-sm">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
                   <p className="leading-relaxed text-foreground">
-                    <span className="font-medium">Cross-functional impact:</span> Unblock teams beyond my core role, 
-                    act as a force multiplier
+                    <span className="font-medium">{tApproach('values.crossFunctional')}</span> {tApproach('values.crossFunctionalDesc')}
                   </p>
                 </li>
               </ul>
@@ -599,38 +595,34 @@ export default function HomePage() {
           {/* Ideal Environments */}
           <div className="mt-8 rounded-lg bg-gradient-to-br from-accent/5 via-transparent to-transparent border border-border p-6 lg:p-8">
             <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-accent">
-              Where I Thrive
+              {tApproach('whereIThrive')}
             </h4>
             <p className="text-sm text-muted leading-relaxed mb-4">
-              I'm most valuable in environments that need fast execution through ambiguity:
+              {tApproach('thriveIntro')}
             </p>
             <ul className="space-y-2">
               <li className="flex items-start gap-3 text-sm">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
                 <p className="leading-relaxed text-foreground">
-                  <span className="font-medium">Early-stage startups</span> that need to prove value quickly with 
-                  limited resources
+                  <span className="font-medium">{tApproach('thrive.earlyStage')}</span> {tApproach('thrive.earlyStageDesc')}
                 </p>
               </li>
               <li className="flex items-start gap-3 text-sm">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
                 <p className="leading-relaxed text-foreground">
-                  <span className="font-medium">0-to-1 teams at scale-ups</span> launching new product lines or 
-                  experimental initiatives
+                  <span className="font-medium">{tApproach('thrive.zeroToOne')}</span> {tApproach('thrive.zeroToOneDesc')}
                 </p>
               </li>
               <li className="flex items-start gap-3 text-sm">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
                 <p className="leading-relaxed text-foreground">
-                  <span className="font-medium">AI-first companies</span> building products where the path isn't 
-                  obvious and iteration is key
+                  <span className="font-medium">{tApproach('thrive.aiFirst')}</span> {tApproach('thrive.aiFirstDesc')}
                 </p>
               </li>
               <li className="flex items-start gap-3 text-sm">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
                 <p className="leading-relaxed text-foreground">
-                  <span className="font-medium">Growth-stage companies</span> navigating rapid scaling and 
-                  multiple pivots
+                  <span className="font-medium">{tApproach('thrive.growthStage')}</span> {tApproach('thrive.growthStageDesc')}
                 </p>
               </li>
             </ul>
@@ -640,10 +632,10 @@ export default function HomePage() {
         {/* Skills Section */}
         <section id="skills" className="mb-24 scroll-mt-24 lg:mb-36">
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            Skills
+            {tSkills('heading')}
           </h3>
           <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
-            Skills
+            {tSkills('heading')}
           </h4>
           
           {/* Skills Grid */}
@@ -673,7 +665,7 @@ export default function HomePage() {
             <div className="rounded-lg border border-border bg-white p-6">
               <div className="mb-4">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
-                  Certifications
+                  {tSkills('certifications')}
                 </h4>
               </div>
               <ul className="space-y-3">
@@ -693,7 +685,7 @@ export default function HomePage() {
             <div className="rounded-lg border border-border bg-white p-6">
               <div className="mb-4">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
-                  Education
+                  {tSkills('education')}
                 </h4>
               </div>
               <ul className="space-y-3">
@@ -714,10 +706,10 @@ export default function HomePage() {
         {/* Articles & Talks Section */}
         <section id="articles" className="mb-24 scroll-mt-24 lg:mb-36">
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            Articles & Talks
+            {tArticles('heading')}
           </h3>
           <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
-            Articles & Talks
+            {tArticles('heading')}
           </h4>
           <div className="space-y-4">
             {portfolioData.articlesAndTalks.map((item, idx) => (
@@ -751,15 +743,14 @@ export default function HomePage() {
         {/* Contact Section */}
         <section id="contact" className="scroll-mt-24">
           <h3 className="mb-8 text-sm font-semibold uppercase tracking-widest text-accent lg:hidden">
-            Contact
+            {tContact('heading')}
           </h3>
           <h4 className="mb-6 text-xs font-bold uppercase tracking-widest text-accent hidden lg:block">
-            Contact
+            {tContact('heading')}
           </h4>
           <div className="max-w-lg">
             <p className="text-muted leading-relaxed mb-6">
-              Open to discussing product leadership roles, AI product strategy, and interesting 
-              challenges in EdTech and community platforms.
+              {tContact('intro')}
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:gap-6">
               <a
@@ -767,7 +758,7 @@ export default function HomePage() {
                 className="inline-flex items-center gap-2 text-accent hover:text-foreground transition-colors font-medium"
               >
                 <Mail className="h-4 w-4" />
-                Email Me
+                {tContact('emailMe')}
               </a>
               <a
                 href={portfolioData.linkedinUrl}
@@ -776,7 +767,7 @@ export default function HomePage() {
                 className="inline-flex items-center gap-2 text-accent hover:text-foreground transition-colors font-medium"
               >
                 <Linkedin className="h-4 w-4" />
-                Connect on LinkedIn
+                {tContact('linkedin')}
               </a>
             </div>
           </div>

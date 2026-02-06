@@ -8,6 +8,7 @@ import * as db from './db';
 import type { JobSourceEnum } from './types';
 import type { SyncMetrics } from './types';
 import { logger } from './logger';
+import { detectJobLanguage } from '@/lib/language-detection';
 
 const SOURCES: JobSourceEnum[] = ['remoteok', 'remotive', 'adzuna'];
 
@@ -69,6 +70,10 @@ export async function runSync(correlationId?: string): Promise<SyncResult[]> {
         const sourceUrl = rawItem ? getSourceUrl(source, rawItem) : null;
 
         try {
+          // Detect language from job description
+          const detectedLang = detectJobLanguage(job.title, job.description_text);
+          job.detected_language = detectedLang;
+          
           const existing = await db.findJobByDedupeKey(job.dedupe_key);
           const upsertResult = await db.upsertJob(job, existing);
           if (upsertResult.duplicate) result.duplicatesFound++;

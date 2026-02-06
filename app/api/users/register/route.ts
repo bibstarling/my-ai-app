@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { getSupabaseServiceRole } from '@/lib/supabase-server';
+import { sendWelcomeEmail, sendWaitingApprovalEmail } from '@/lib/email';
 
 /**
  * POST /api/users/register - Register current user in database
@@ -33,13 +34,15 @@ export async function POST() {
 
     // Get user info from Clerk
     const user = await currentUser();
+    const userEmail = user?.emailAddresses?.[0]?.emailAddress;
+    const userName = user?.firstName || user?.username;
     
     // Create new user record
     const { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert({
         clerk_id: userId,
-        email: user?.emailAddresses?.[0]?.emailAddress || null,
+        email: userEmail || null,
         approved: false, // Will be approved by admin
         is_admin: false,
       })
@@ -52,6 +55,24 @@ export async function POST() {
         { error: 'Failed to register user' },
         { status: 500 }
       );
+    }
+
+    // Send welcome and waiting approval emails
+    if (userEmail) {
+      // Send emails in parallel (don't wait for them to complete)
+      Promise.all([
+        sendWelcomeEmail({
+          to: userEmail,
+          userName,
+        }),
+        sendWaitingApprovalEmail({
+          to: userEmail,
+          userName,
+        }),
+      ]).catch((emailError) => {
+        // Log but don't fail the registration if emails fail
+        console.error('Failed to send registration emails:', emailError);
+      });
     }
 
     return NextResponse.json({

@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { getSupabaseServiceRole } from '@/lib/supabase-server';
 import { portfolioData, getPortfolioSummary } from '@/lib/portfolio-data';
 import type { SectionType } from '@/lib/types/resume';
+import { sendDocumentReadyEmail } from '@/lib/email';
 
 type GenerateRequest = {
   job_id?: string;
@@ -206,6 +207,23 @@ export async function POST(req: Request) {
       .select('*')
       .eq('resume_id', resume.id)
       .order('sort_order', { ascending: true });
+
+    // Send email notification (async, don't wait)
+    const user = await currentUser();
+    const userEmail = user?.emailAddresses?.[0]?.emailAddress;
+    const userName = user?.firstName || user?.username;
+    
+    if (userEmail) {
+      sendDocumentReadyEmail({
+        to: userEmail,
+        userName,
+        documentType: 'resume',
+        documentTitle: resume.title || `Resume for ${jobTitle || 'Job Application'}`,
+        documentUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/resume-builder/${resume.id}`,
+      }).catch((error) => {
+        console.error('Failed to send resume ready email:', error);
+      });
+    }
 
     return NextResponse.json({
       resume: {

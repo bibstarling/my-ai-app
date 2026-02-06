@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Plus, FileText, Calendar, Star, Edit2, Trash2, Copy, Eye, Sparkles, Briefcase } from 'lucide-react';
+import { Plus, FileText, Calendar, Star, Edit2, Trash2, Copy, Eye, Sparkles, Briefcase, Globe } from 'lucide-react';
 import type { ResumeWithSections } from '@/lib/types/resume';
 import type { JobListing } from '@/app/api/jobs/route';
+import { localeNames, type Locale, locales } from '@/i18n';
 
 export default function ResumeBuilderPage() {
   const [resumes, setResumes] = useState<ResumeWithSections[]>([]);
@@ -257,11 +258,15 @@ function GenerateFromJobModal({
 }) {
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string>('');
+  const [selectedJob, setSelectedJob] = useState<JobListing | null>(null);
   const [generating, setGenerating] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [contentLanguage, setContentLanguage] = useState<Locale>('en');
+  const [loadingSettings, setLoadingSettings] = useState(true);
 
   useEffect(() => {
     fetchJobs();
+    fetchUserSettings();
   }, []);
 
   async function fetchJobs() {
@@ -282,6 +287,31 @@ function GenerateFromJobModal({
     }
   }
 
+  async function fetchUserSettings() {
+    try {
+      const response = await fetch('/api/users/settings');
+      const data = await response.json();
+      if (data.settings) {
+        setContentLanguage(data.settings.content_language || 'en');
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    } finally {
+      setLoadingSettings(false);
+    }
+  }
+
+  // Update language when job is selected
+  function handleJobSelect(job: JobListing) {
+    setSelectedJobId(job.id);
+    setSelectedJob(job);
+    
+    // Auto-select language based on job if detected
+    if (job.detected_language && (job.detected_language === 'en' || job.detected_language === 'pt')) {
+      setContentLanguage(job.detected_language as Locale);
+    }
+  }
+
   async function handleGenerate() {
     if (!selectedJobId) return;
     
@@ -292,6 +322,7 @@ function GenerateFromJobModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           job_id: selectedJobId,
+          content_language: contentLanguage,
         }),
       });
 
@@ -339,29 +370,78 @@ function GenerateFromJobModal({
               </Link>
             </div>
           ) : (
-            <div className="space-y-3">
-              <p className="text-sm text-gray-700 mb-4">
-                Select a job posting to generate a tailored resume:
-              </p>
-              {jobs.map((job) => (
-                <button
-                  key={job.id}
-                  onClick={() => setSelectedJobId(job.id)}
-                  className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                    selectedJobId === job.id
-                      ? 'border-purple-500 bg-purple-50'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
-                  }`}
-                >
-                  <h3 className="font-semibold text-gray-900 mb-1">{job.title}</h3>
-                  <p className="text-sm text-gray-600 mb-2">{job.company}</p>
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <span>{job.location}</span>
-                    <span>•</span>
-                    <span>{job.type}</span>
+            <div className="space-y-6">
+              {/* Job Selection */}
+              <div>
+                <p className="text-sm text-gray-700 mb-4">
+                  Select a job posting to generate a tailored resume:
+                </p>
+                <div className="space-y-3">
+                  {jobs.map((job) => (
+                    <button
+                      key={job.id}
+                      onClick={() => handleJobSelect(job)}
+                      className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                        selectedJobId === job.id
+                          ? 'border-purple-500 bg-purple-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between mb-1">
+                        <h3 className="font-semibold text-gray-900 flex-1">{job.title}</h3>
+                        {job.detected_language && job.detected_language !== 'unknown' && (
+                          <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                            {job.detected_language === 'pt' ? '🇧🇷 PT' : '🇬🇧 EN'}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">{job.company}</p>
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <span>{job.location}</span>
+                        <span>•</span>
+                        <span>{job.type}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Language Selection */}
+              {!loadingSettings && (
+                <div className="pt-4 border-t border-gray-200">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                    <Globe className="w-4 h-4" />
+                    Content Language
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {locales.map((locale) => (
+                      <button
+                        key={locale}
+                        onClick={() => setContentLanguage(locale)}
+                        className={`p-3 rounded-lg border-2 transition-all ${
+                          contentLanguage === locale
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 bg-white hover:border-gray-300'
+                        }`}
+                      >
+                        <span className="font-medium text-gray-900 text-sm">
+                          {localeNames[locale]}
+                        </span>
+                      </button>
+                    ))}
                   </div>
-                </button>
-              ))}
+                  {selectedJob?.detected_language && selectedJob.detected_language !== 'unknown' ? (
+                    <p className="text-xs text-blue-600 mt-2 flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      Auto-detected from job posting (you can change it)
+                    </p>
+                  ) : (
+                    <p className="text-xs text-gray-500 mt-2">
+                      Resume content will be generated in this language
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>

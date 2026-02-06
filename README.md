@@ -43,6 +43,36 @@ See [docs/JOB_INGESTION.md](./docs/JOB_INGESTION.md) for job ingestion details.
 - Interview preparation
 - Cover letter assistance
 
+### 📧 Email System
+Professional email notifications powered by **Resend** with beautiful React Email templates:
+
+**Active Email Flows:**
+- **Welcome Email** - Sent when users sign up
+- **Approval Notifications** - Waiting for approval & confirmation emails
+- **Document Ready** - Notifies when resume/cover letter is generated
+- **Job Application** - Confirmation when tracking job applications (ready to integrate)
+- **Password Reset** - For forgotten password flows (template ready)
+
+**Features:**
+- 🎨 Beautiful, responsive email templates
+- 📊 Built-in analytics and tracking
+- 🚀 3,000 emails/month free tier
+- ✅ Easy integration and customization
+
+**Quick Setup:**
+1. Sign up at [resend.com](https://resend.com) (free)
+2. Get your API key
+3. Add `RESEND_API_KEY` to `.env.local`
+4. Done! Emails are automatically sent
+
+**Documentation:**
+- [docs/EMAIL_SETUP_GUIDE.md](./docs/EMAIL_SETUP_GUIDE.md) - Quick 5-minute setup
+- [docs/EMAIL_SYSTEM.md](./docs/EMAIL_SYSTEM.md) - Complete documentation
+- [docs/EMAIL_FLOWS.md](./docs/EMAIL_FLOWS.md) - Visual flow diagrams
+
+**Preview Templates:**
+Visit `http://localhost:3000/api/email/preview?template=welcome` to see templates in your browser.
+
 ## Getting Started
 
 First, run the development server:
@@ -61,7 +91,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ### Environment Setup
 
-Required environment variables:
+Required environment variables (see `.env.example` for full reference):
 
 ```bash
 # Clerk Authentication
@@ -70,10 +100,16 @@ CLERK_SECRET_KEY=your_secret
 
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_key
 
 # AI (Anthropic Claude)
 ANTHROPIC_API_KEY=your_key
+
+# Email (Resend) - Get free key at resend.com
+RESEND_API_KEY=re_your_key
+EMAIL_FROM=My AI App <onboarding@resend.dev>
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 # Optional: Job Search API
 JSEARCH_API_KEY=your_rapidapi_key
@@ -104,10 +140,17 @@ app/
     └── resume/        # Resume CRUD and adaptation
 lib/
 ├── jobs-ingestion/    # Job scraping and deduplication
+├── email/             # Email system and templates
+│   ├── templates/     # React Email templates
+│   ├── config.ts      # Email configuration
+│   └── send.ts        # Email sending functions
 └── types/             # TypeScript types
 docs/
-├── RESUME_BUILDER.md  # Resume builder documentation
-└── JOB_INGESTION.md   # Job ingestion documentation
+├── RESUME_BUILDER.md     # Resume builder documentation
+├── JOB_INGESTION.md      # Job ingestion documentation
+├── EMAIL_SETUP_GUIDE.md  # Quick email setup (5 min)
+├── EMAIL_SYSTEM.md       # Complete email documentation
+└── EMAIL_FLOWS.md        # Email flow diagrams
 ```
 
 ## Learn More

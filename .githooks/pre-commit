@@ -1,0 +1,17 @@
+#!/bin/sh
+# Pre-commit hook to validate translations
+
+echo "🔍 Validating translations..."
+
+npm run validate-translations
+
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "❌ Translation validation failed!"
+  echo "Please fix the translation issues before committing."
+  echo "Run 'npm run validate-translations' to see details."
+  exit 1
+fi
+
+echo "✅ Translations validated successfully!"
+exit 0

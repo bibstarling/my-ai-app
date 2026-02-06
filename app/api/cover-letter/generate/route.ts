@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { getSupabaseServiceRole } from '@/lib/supabase-server';
 import { portfolioData, getPortfolioSummary } from '@/lib/portfolio-data';
 import type { GenerateCoverLetterRequest, GenerateCoverLetterResponse } from '@/lib/types/cover-letter';
+import { sendDocumentReadyEmail } from '@/lib/email';
 
 /**
  * POST /api/cover-letter/generate - Auto-generate cover letter from portfolio data
@@ -80,6 +81,23 @@ export async function POST(req: Request) {
     if (insertError || !coverLetter) {
       console.error('Error saving cover letter:', insertError);
       return NextResponse.json({ error: 'Failed to save cover letter' }, { status: 500 });
+    }
+
+    // Send email notification (async, don't wait)
+    const user = await currentUser();
+    const userEmail = user?.emailAddresses?.[0]?.emailAddress;
+    const userName = user?.firstName || user?.username;
+    
+    if (userEmail) {
+      sendDocumentReadyEmail({
+        to: userEmail,
+        userName,
+        documentType: 'cover-letter',
+        documentTitle: `Cover Letter for ${jobTitle} at ${jobCompany}`,
+        documentUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/cover-letters/${coverLetter.id}`,
+      }).catch((error) => {
+        console.error('Failed to send cover letter ready email:', error);
+      });
     }
 
     return NextResponse.json({

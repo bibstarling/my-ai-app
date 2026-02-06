@@ -379,12 +379,43 @@ COMMENT ON COLUMN users.approved IS 'Whether the user has been approved by an ad
 COMMENT ON COLUMN users.is_admin IS 'Whether the user has admin privileges';
 
 -- ============================================================================
+-- Migration 7: Add User Preferences
+-- ============================================================================
+-- Add content generation preferences to users table
+ALTER TABLE users 
+ADD COLUMN IF NOT EXISTS content_language TEXT DEFAULT 'en' CHECK (content_language IN ('en', 'pt'));
+
+-- Add index for faster queries
+CREATE INDEX IF NOT EXISTS idx_users_content_language ON users(content_language);
+
+-- Comment
+COMMENT ON COLUMN users.content_language IS 'Default language for AI-generated content (resumes, cover letters, etc.)';
+
+-- ============================================================================
+-- Migration 8: Add Job Language Detection
+-- ============================================================================
+-- Add language detection to jobs table
+ALTER TABLE jobs 
+ADD COLUMN IF NOT EXISTS detected_language TEXT DEFAULT 'en' CHECK (detected_language IN ('en', 'pt', 'unknown'));
+
+-- Add index for faster filtering
+CREATE INDEX IF NOT EXISTS idx_jobs_detected_language ON jobs(detected_language);
+
+-- Comment
+COMMENT ON COLUMN jobs.detected_language IS 'Auto-detected language from job description (en, pt, or unknown)';
+
+-- Update existing jobs to 'unknown' if they don't have a language set
+UPDATE jobs 
+SET detected_language = 'unknown' 
+WHERE detected_language IS NULL;
+
+-- ============================================================================
 -- SETUP COMPLETE!
 -- ============================================================================
 -- You should now have all the tables needed for the application:
--- ✓ jobs, job_sources, job_sync_metrics, user_job_profiles
+-- ✓ jobs, job_sources, job_sync_metrics, user_job_profiles (with language detection)
 -- ✓ resumes, resume_sections, resume_adaptations  
 -- ✓ cover_letters
 -- ✓ tracked_jobs
--- ✓ users (admin management)
+-- ✓ users (admin management with content language preferences)
 -- ============================================================================

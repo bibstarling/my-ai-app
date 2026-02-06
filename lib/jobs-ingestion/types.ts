@@ -31,6 +31,7 @@ export interface CanonicalJob {
   dedupe_key: string;
   status: JobStatus;
   skills_json?: string[];
+  detected_language?: string | null;
 }
 
 export interface JobSourceRecord {

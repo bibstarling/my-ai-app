@@ -12,6 +12,7 @@ export type JobListing = {
   description: string;
   applyUrl: string;
   skills: string[];
+  detected_language?: string | null;
 };
 
 export type JobsParams = {

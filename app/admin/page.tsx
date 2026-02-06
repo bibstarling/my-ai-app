@@ -84,6 +84,33 @@ function AdminContent() {
   }, [isAdmin, adminChecked]);
 
   const updateUser = async (id: string, changes: Partial<UserRow>) => {
+    // If approving a user, use the API endpoint which sends email
+    if (changes.approved === true) {
+      try {
+        const response = await fetch('/api/users/approve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: id }),
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          setError(data.error || 'Failed to approve user');
+          return;
+        }
+
+        // Update local state
+        setUsers((prev) =>
+          prev.map((u) => (u.id === id ? { ...u, approved: true } : u)),
+        );
+        return;
+      } catch (err) {
+        setError('Failed to approve user');
+        return;
+      }
+    }
+
+    // For other updates, use direct Supabase update
     const { error: updateError } = await supabase
       .from('users')
       .update(changes)

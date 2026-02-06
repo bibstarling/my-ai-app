@@ -62,6 +62,7 @@ function toDbRow(job: CanonicalJob): Record<string, unknown> {
     dedupe_key: job.dedupe_key,
     status: job.status,
     skills_json: job.skills_json ?? [],
+    detected_language: job.detected_language ?? 'unknown',
     updated_at: new Date().toISOString(),
   };
 }
