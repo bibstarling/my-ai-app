@@ -323,8 +323,8 @@ export default function APISettingsPage() {
                   config ? 'text-green-700' : 'text-orange-700'
                 }`}>
                   {config 
-                    ? `All AI features will use your ${config.provider.toUpperCase()} account. You have unlimited usage and control your own costs.`
-                    : 'You are using the shared system API with a limit of 1M tokens per month. Add your own API key for unlimited usage.'
+                    ? `All AI features will use your ${config.provider.toUpperCase()} account. You have unlimited usage and control your own costs. If your API fails, the system will automatically fall back to the default API.`
+                    : 'You are using the shared system API (fallback) with a limit of 1M tokens per month. Add your own API key for unlimited usage and priority access.'
                   }
                 </p>
                 {config && (

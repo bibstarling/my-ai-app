@@ -287,12 +287,14 @@ export async function generateAICompletion(
   let provider: AIProvider;
   let apiKey: string;
   let model: string;
+  let usingUserApi = false;
 
   if (userConfig && userConfig.apiKey) {
     // Use user's configured API
     provider = userConfig.provider;
     apiKey = userConfig.apiKey;
     model = userConfig.model;
+    usingUserApi = true;
     console.log(`[generateAICompletion] ✅ Using user's ${provider.toUpperCase()} API with model ${model}`);
   } else {
     // Fallback to system API (your API key)
@@ -302,7 +304,7 @@ export async function generateAICompletion(
     console.log(`[generateAICompletion] ⚠️ Using SYSTEM fallback (user has no API key configured)`);
     
     if (!apiKey) {
-      throw new Error('No API key available. Please configure your own API key in settings.');
+      throw new Error('No API key available. Please configure your own API key in settings or set ANTHROPIC_API_KEY environment variable.');
     }
 
     // Log warning for high usage
@@ -360,6 +362,33 @@ export async function generateAICompletion(
       code: error.code,
     });
     
+    // If user's API failed and we have a system API, try falling back
+    if (usingUserApi && process.env.ANTHROPIC_API_KEY) {
+      console.log('[generateAICompletion] 🔄 User API failed, attempting fallback to system API...');
+      try {
+        const fallbackResponse = await callAnthropic(
+          process.env.ANTHROPIC_API_KEY,
+          'claude-sonnet-4-20250514',
+          systemPrompt,
+          messages,
+          maxTokens
+        );
+        
+        console.log(`[generateAICompletion] ✅ Fallback successful! Used ${fallbackResponse.usage.totalTokens} tokens`);
+        
+        // Log as system usage
+        await logAPIUsage(userId, 'system', fallbackResponse.model, feature, fallbackResponse.usage);
+        
+        return {
+          ...fallbackResponse,
+          provider: 'system',
+        };
+      } catch (fallbackError) {
+        console.error('[generateAICompletion] ❌ Fallback also failed:', fallbackError);
+        // Continue to throw original error
+      }
+    }
+    
     // Provide helpful error messages
     if (error.status === 401) {
       throw new Error('Invalid API key. Please check your API configuration in settings.');
@@ -397,12 +426,14 @@ export async function generateAICompletionMultimodal(
   let provider: AIProvider;
   let apiKey: string;
   let model: string;
+  let usingUserApi = false;
 
   if (userConfig && userConfig.apiKey) {
     // Use user's configured API
     provider = userConfig.provider;
     apiKey = userConfig.apiKey;
     model = userConfig.model;
+    usingUserApi = true;
     console.log(`[generateAICompletionMultimodal] ✅ Using user's ${provider.toUpperCase()} API with model ${model}`);
     
     // Multimodal (images) only supported by Anthropic currently
@@ -413,6 +444,7 @@ export async function generateAICompletionMultimodal(
       provider = 'system';
       apiKey = process.env.ANTHROPIC_API_KEY || '';
       model = 'claude-sonnet-4-20250514';
+      usingUserApi = false;
     }
   } else {
     // Fallback to system API (Anthropic)
@@ -422,7 +454,7 @@ export async function generateAICompletionMultimodal(
     console.log(`[generateAICompletionMultimodal] ⚠️ Using SYSTEM fallback (user has no API key configured)`);
     
     if (!apiKey) {
-      throw new Error('No API key available. Please configure your own API key in settings.');
+      throw new Error('No API key available. Please configure your own API key in settings or set ANTHROPIC_API_KEY environment variable.');
     }
 
     // Check usage limits
@@ -505,6 +537,48 @@ export async function generateAICompletionMultimodal(
     return response;
   } catch (error: any) {
     console.error(`[generateAICompletionMultimodal] ❌ Error calling ${actualProvider}:`, error.message);
+    
+    // If user's API failed and we have a system API, try falling back
+    if (usingUserApi && process.env.ANTHROPIC_API_KEY) {
+      console.log('[generateAICompletionMultimodal] 🔄 User API failed, attempting fallback to system API...');
+      try {
+        const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+        
+        const anthropicResponse = await anthropic.messages.create({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: maxTokens,
+          messages: [
+            {
+              role: 'user',
+              content,
+            },
+          ],
+        });
+        
+        const textContent = anthropicResponse.content[0].type === 'text' ? anthropicResponse.content[0].text : '';
+
+        const fallbackResponse = {
+          content: textContent,
+          usage: {
+            promptTokens: anthropicResponse.usage.input_tokens,
+            completionTokens: anthropicResponse.usage.output_tokens,
+            totalTokens: anthropicResponse.usage.input_tokens + anthropicResponse.usage.output_tokens,
+          },
+          model: anthropicResponse.model,
+          provider: 'system' as AIProvider,
+        };
+        
+        console.log(`[generateAICompletionMultimodal] ✅ Fallback successful! Used ${fallbackResponse.usage.totalTokens} tokens`);
+        
+        // Log as system usage
+        await logAPIUsage(userId, 'system', fallbackResponse.model, feature, fallbackResponse.usage);
+        
+        return fallbackResponse;
+      } catch (fallbackError) {
+        console.error('[generateAICompletionMultimodal] ❌ Fallback also failed:', fallbackError);
+        // Continue to throw original error
+      }
+    }
     
     if (error.status === 401) {
       throw new Error('Invalid API key. Please check your API configuration in settings.');
