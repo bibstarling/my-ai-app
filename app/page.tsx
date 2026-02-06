@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowUpRight, Linkedin, Mail, X } from 'lucide-react';
+import { ArrowUpRight, Linkedin, Mail, X, LayoutDashboard } from 'lucide-react';
 import { portfolioData, type PortfolioProject } from '@/lib/portfolio-data';
 import { useEmbedMode } from '@/app/ClientAuthWrapper';
-import { useTranslations } from 'next-intl';
+import { useAuth } from '@clerk/nextjs';
+import Link from 'next/link';
 
 function getCategoryForProject(project: PortfolioProject): string[] {
   const categories: string[] = ['all'];
@@ -245,6 +246,7 @@ export default function HomePage() {
   const [activeSection, setActiveSection] = useState('about');
   const [modalProject, setModalProject] = useState<PortfolioProject | null>(null);
   const isEmbed = useEmbedMode();
+  const { isSignedIn, isLoaded } = useAuth();
 
   const navItems = [
     { id: 'about', label: 'About' },
@@ -288,15 +290,30 @@ export default function HomePage() {
       {/* Left Sidebar - Sticky on Desktop */}
       <header className="lg:fixed lg:top-0 lg:left-0 lg:flex lg:h-screen lg:w-[30%] lg:flex-col lg:justify-between lg:py-12 lg:px-12 px-6 py-16">
         <div>
-          <h1 className="text-4xl font-bold text-foreground lg:text-5xl tracking-tight">
-            {portfolioData.fullName}
-          </h1>
-          <h2 className="mt-2 text-xl font-medium text-foreground/90 lg:text-2xl">
-            {portfolioData.title}
-          </h2>
-          <p className="mt-3 max-w-xs text-muted leading-relaxed">
-            {portfolioData.tagline}
-          </p>
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-foreground lg:text-5xl tracking-tight">
+                {portfolioData.fullName}
+              </h1>
+              <h2 className="mt-2 text-xl font-medium text-foreground/90 lg:text-2xl">
+                {portfolioData.title}
+              </h2>
+              <p className="mt-3 max-w-xs text-muted leading-relaxed">
+                {portfolioData.tagline}
+              </p>
+            </div>
+            
+            {/* Dashboard Button - Only shown when logged in */}
+            {isLoaded && isSignedIn && (
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent/90"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                <span className="hidden sm:inline">Dashboard</span>
+              </Link>
+            )}
+          </div>
 
           {/* Navigation - Desktop Only */}
           <nav className="mt-12 hidden lg:block lg:mb-12">
