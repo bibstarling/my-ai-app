@@ -2,6 +2,7 @@
 
 import { useAuth } from '@clerk/nextjs';
 import Link from 'next/link';
+import { useState } from 'react';
 import { 
   Sparkles, 
   FileText, 
@@ -12,9 +13,11 @@ import {
   Briefcase,
   TrendingUp,
 } from 'lucide-react';
+import { AuthModal } from './components/AuthModal';
 
 export default function LandingPage() {
   const { isSignedIn, isLoaded } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Don't block page render - show content immediately
   // Auth state will update in background
@@ -39,18 +42,18 @@ export default function LandingPage() {
               </Link>
             ) : (
               <>
-                <Link 
-                  href="/login" 
+                <button 
+                  onClick={() => setShowAuthModal(true)}
                   className="text-sm font-medium text-muted hover:text-foreground transition-colors"
                 >
                   Sign In
-                </Link>
-                <Link 
-                  href="/login" 
+                </button>
+                <button 
+                  onClick={() => setShowAuthModal(true)}
                   className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent/90 transition-all"
                 >
                   Get Started
-                </Link>
+                </button>
               </>
             )}
           </div>
@@ -82,20 +85,20 @@ export default function LandingPage() {
                   <ArrowRight className="h-5 w-5" />
                 </Link>
               ) : (
-                <Link 
-                  href="/login"
+                <button 
+                  onClick={() => setShowAuthModal(true)}
                   className="w-full sm:w-auto rounded-lg bg-accent px-8 py-4 text-base font-semibold text-white hover:bg-accent/90 transition-all shadow-lg hover:shadow-xl inline-flex items-center justify-center gap-2"
                 >
                   Start Building Free
                   <ArrowRight className="h-5 w-5" />
-                </Link>
+                </button>
               )}
-              <Link 
+              <a 
                 href="#features"
                 className="w-full sm:w-auto rounded-lg border-2 border-border px-8 py-4 text-base font-semibold text-foreground hover:border-accent hover:text-accent transition-all inline-flex items-center justify-center gap-2"
               >
                 See How It Works
-              </Link>
+              </a>
             </div>
           </div>
         </div>
@@ -361,13 +364,23 @@ export default function LandingPage() {
               : "Join professionals who are landing their dream jobs faster with AI-powered tools. Start building your future today—it's free to get started."
             }
           </p>
-          <Link 
-            href={isSignedIn ? "/dashboard" : "/login"}
-            className="inline-flex items-center gap-2 rounded-lg bg-accent px-8 py-4 text-lg font-semibold text-white hover:bg-accent/90 transition-all shadow-lg hover:shadow-xl"
-          >
-            {isSignedIn ? "Go to Dashboard" : "Get Started Free"}
-            <ArrowRight className="h-5 w-5" />
-          </Link>
+          {isSignedIn ? (
+            <Link 
+              href="/dashboard"
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-8 py-4 text-lg font-semibold text-white hover:bg-accent/90 transition-all shadow-lg hover:shadow-xl"
+            >
+              Go to Dashboard
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+          ) : (
+            <button 
+              onClick={() => setShowAuthModal(true)}
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-8 py-4 text-lg font-semibold text-white hover:bg-accent/90 transition-all shadow-lg hover:shadow-xl"
+            >
+              Get Started Free
+              <ArrowRight className="h-5 w-5" />
+            </button>
+          )}
         </div>
       </section>
 
@@ -385,9 +398,12 @@ export default function LandingPage() {
               © 2026 Applause. Your Career Deserves Applause.
             </p>
             <div className="flex items-center gap-6">
-              <Link href="/login" className="text-sm text-muted hover:text-accent transition-colors">
+              <button 
+                onClick={() => setShowAuthModal(true)}
+                className="text-sm text-muted hover:text-accent transition-colors"
+              >
                 Sign In
-              </Link>
+              </button>
               <Link href="/help" className="text-sm text-muted hover:text-accent transition-colors">
                 Help
               </Link>
@@ -395,6 +411,9 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* Auth Modal */}
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
   );
 }

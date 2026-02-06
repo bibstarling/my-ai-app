@@ -2,13 +2,25 @@
 
 import { SignIn } from '@clerk/nextjs';
 import { CheckCircle, Sparkles, Briefcase, FileText, Bot, Zap } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, isLoaded } = useAuth();
   const router = useRouter();
+  const [showClerkError, setShowClerkError] = useState(false);
+
+  // Show error if Clerk doesn't load within 10 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!isLoaded) {
+        setShowClerkError(true);
+      }
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, [isLoaded]);
 
   useEffect(() => {
     if (isSignedIn) {
@@ -144,44 +156,64 @@ export default function LoginPage() {
               </div>
               
               <div className="flex justify-center w-full">
-                <SignIn
-                  appearance={{
-                    elements: {
-                      formButtonPrimary: 
-                        'bg-accent hover:bg-accent/90 text-white',
-                      card: 'shadow-none w-full',
-                      rootBox: 'w-full',
-                      headerTitle: 'hidden',
-                      headerSubtitle: 'hidden',
-                      socialButtonsBlockButton:
-                        'border-border hover:bg-muted/50 transition-colors',
-                      socialButtonsBlockButtonText:
-                        'font-medium',
-                      formFieldInput:
-                        'border-border focus:border-accent focus:ring-accent',
-                      footerActionLink:
-                        'text-accent hover:text-accent/80 font-medium',
-                      identityPreviewText: 'font-medium',
-                      formFieldLabel: 'font-medium',
-                      otpCodeFieldInput:
-                        'border-border focus:border-accent',
-                      formResendCodeLink:
-                        'text-accent hover:text-accent/80',
-                      footer: 'hidden',
-                    },
-                    layout: {
-                      socialButtonsPlacement: 'top',
-                      socialButtonsVariant: 'blockButton',
-                    },
-                  }}
-                  routing="path"
-                  path="/login"
-                  signUpUrl="/login"
-                  forceRedirectUrl="/dashboard"
-                  fallbackRedirectUrl="/dashboard"
-                  signUpForceRedirectUrl="/dashboard"
-                  signUpFallbackRedirectUrl="/dashboard"
-                />
+                {!isLoaded && !showClerkError ? (
+                  <div className="w-full text-center py-12">
+                    <div className="animate-spin h-8 w-8 border-4 border-accent border-t-transparent rounded-full mx-auto mb-4"></div>
+                    <p className="text-sm text-muted">Loading sign in...</p>
+                  </div>
+                ) : showClerkError ? (
+                  <div className="w-full bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+                    <div className="text-red-600 mb-2 font-semibold">Authentication Service Error</div>
+                    <p className="text-sm text-red-800 mb-4">
+                      Unable to load the sign-in form. This may be due to a domain configuration issue.
+                    </p>
+                    <button 
+                      onClick={() => window.location.reload()}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                ) : (
+                  <SignIn
+                    appearance={{
+                      elements: {
+                        formButtonPrimary: 
+                          'bg-accent hover:bg-accent/90 text-white',
+                        card: 'shadow-none w-full',
+                        rootBox: 'w-full',
+                        headerTitle: 'hidden',
+                        headerSubtitle: 'hidden',
+                        socialButtonsBlockButton:
+                          'border-border hover:bg-muted/50 transition-colors',
+                        socialButtonsBlockButtonText:
+                          'font-medium',
+                        formFieldInput:
+                          'border-border focus:border-accent focus:ring-accent',
+                        footerActionLink:
+                          'text-accent hover:text-accent/80 font-medium',
+                        identityPreviewText: 'font-medium',
+                        formFieldLabel: 'font-medium',
+                        otpCodeFieldInput:
+                          'border-border focus:border-accent',
+                        formResendCodeLink:
+                          'text-accent hover:text-accent/80',
+                        footer: 'hidden',
+                      },
+                      layout: {
+                        socialButtonsPlacement: 'top',
+                        socialButtonsVariant: 'blockButton',
+                      },
+                    }}
+                    routing="path"
+                    path="/login"
+                    signUpUrl="/login"
+                    forceRedirectUrl="/dashboard"
+                    fallbackRedirectUrl="/dashboard"
+                    signUpForceRedirectUrl="/dashboard"
+                    signUpFallbackRedirectUrl="/dashboard"
+                  />
+                )}
               </div>
 
               <div className="mt-8 pt-8 border-t border-border">

@@ -64,6 +64,7 @@ export default function PortfolioBuilderPage() {
   const [loading, setLoading] = useState(false);
   const [pendingAttachments, setPendingAttachments] = useState<any[]>([]);
   const [uploadProgress, setUploadProgress] = useState(false);
+  const [scrapingUrl, setScrapingUrl] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -107,7 +108,7 @@ export default function PortfolioBuilderPage() {
           setMessages([
             {
               role: 'assistant',
-              content: `👋 Hi! I'm your **Profile Context Assistant**.\n\nI'm here to help you build a comprehensive professional profile that will power all your AI-generated content—resumes, cover letters, and more.\n\n**What I can do:**\n• Extract information from your resume, certificates, or documents (PDF, Word, text)\n• Analyze screenshots of your work or projects\n• Help you document your experience, skills, and achievements\n• Organize your professional story in a structured way\n\n**The more detailed your profile, the better your tailored content will be!**\n\nYou can upload files, paste images (Ctrl+V), or just tell me about your work. What would you like to add first?`,
+              content: `👋 Hi! I'm your **Profile Context Assistant**.\n\nI'm here to help you build a comprehensive professional profile that will power all your AI-generated content—resumes, cover letters, and more.\n\n**What I can do:**\n• Extract information from your resume, certificates, or documents (PDF, Word, text)\n• Scrape and analyze URLs (LinkedIn, GitHub, personal website, projects)\n• Analyze screenshots of your work or projects\n• Help you document your experience, skills, and achievements\n• Organize your professional story in a structured way\n\n**The more detailed your profile, the better your tailored content will be!**\n\nYou can upload files, paste images (Ctrl+V), share URLs, or just tell me about your work. What would you like to add first?`,
             },
           ]);
         }
@@ -356,21 +357,91 @@ export default function PortfolioBuilderPage() {
     scrollToBottom();
   }, [messages]);
 
+  const handleScrapeUrl = async (url: string) => {
+    if (!portfolio) return null;
+
+    setScrapingUrl(true);
+    try {
+      const res = await fetch('/api/portfolio/scrape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url,
+          portfolioId: portfolio.id,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        return {
+          name: `URL: ${data.link.title || url}`,
+          type: 'url',
+          contentType: 'text',
+          content: `**URL:** ${url}\n**Title:** ${data.link.title}\n**Description:** ${data.link.description}\n\n**AI Analysis:**\n${data.link.aiAnalysis}\n\n**Content Preview:**\n${data.link.content}`,
+        };
+      } else {
+        throw new Error(data.error || 'Failed to scrape URL');
+      }
+    } catch (error) {
+      console.error('Error scraping URL:', error);
+      throw error;
+    } finally {
+      setScrapingUrl(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if ((!input.trim() && pendingAttachments.length === 0) || loading || !portfolio) return;
 
     const userMessage = input.trim();
-    const attachments = [...pendingAttachments];
+    let attachments = [...pendingAttachments];
+    
+    // Check if input contains URLs
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const urls = userMessage.match(urlRegex);
+    
+    if (urls && urls.length > 0) {
+      setMessages((prev) => [...prev, { role: 'user', content: userMessage }]);
+      setMessages((prev) => [
+        ...prev,
+        { role: 'system', content: `🔍 Found ${urls.length} URL(s). Scraping content...` },
+      ]);
+      setLoading(true);
+      
+      // Scrape each URL
+      for (const url of urls) {
+        try {
+          const scrapedData = await handleScrapeUrl(url);
+          if (scrapedData) {
+            attachments.push(scrapedData);
+          }
+        } catch (error) {
+          setMessages((prev) => [
+            ...prev,
+            { role: 'system', content: `⚠️ Could not scrape ${url}. Continuing with text input.` },
+          ]);
+        }
+      }
+      
+      setMessages((prev) => [
+        ...prev,
+        { role: 'system', content: `✅ Scraping complete. Processing ${attachments.length} source(s)...` },
+      ]);
+    }
     
     setInput('');
     setPendingAttachments([]);
     
-    let displayMessage = userMessage;
-    if (attachments.length > 0) {
-      displayMessage += `\n\n📎 ${attachments.length} file(s) attached`;
+    if (!urls || urls.length === 0) {
+      let displayMessage = userMessage;
+      if (attachments.length > 0) {
+        displayMessage += `\n\n📎 ${attachments.length} file(s) attached`;
+      }
+      setMessages((prev) => [...prev, { role: 'user', content: displayMessage }]);
     }
-    setMessages((prev) => [...prev, { role: 'user', content: displayMessage }]);
+    
     setLoading(true);
 
     try {
@@ -849,6 +920,16 @@ export default function PortfolioBuilderPage() {
                     </div>
                   </div>
                 )}
+                {scrapingUrl && (
+                  <div className="flex justify-start">
+                    <div className="rounded-lg bg-blue-100 px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                        <span className="text-sm text-blue-800">Scraping URL content...</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {loading && (
                   <div className="flex justify-start">
                     <div className="rounded-lg bg-gray-100 px-4 py-3">
@@ -924,7 +1005,7 @@ export default function PortfolioBuilderPage() {
                   
                   <button
                     type="submit"
-                    disabled={loading || uploadProgress || (!input.trim() && pendingAttachments.length === 0)}
+                    disabled={loading || uploadProgress || scrapingUrl || (!input.trim() && pendingAttachments.length === 0)}
                     className="rounded-lg bg-accent p-2 text-white hover:bg-accent/90 disabled:opacity-50"
                   >
                     <Send className="h-5 w-5" />
@@ -932,8 +1013,8 @@ export default function PortfolioBuilderPage() {
                 </div>
               </form>
               <p className="text-xs text-gray-400 mt-2">
-                Type <kbd className="px-1 py-0.5 bg-gray-100 border border-gray-200 rounded text-xs font-mono">/</kbd> for commands • 
-                <kbd className="px-1 py-0.5 bg-gray-100 border border-gray-200 rounded text-xs font-mono ml-1">Ctrl+V</kbd> to paste images
+                Paste URLs (LinkedIn, GitHub, etc.) • Upload files • 
+                <kbd className="px-1 py-0.5 bg-gray-100 border border-gray-200 rounded text-xs font-mono ml-1">Ctrl+V</kbd> for images
               </p>
             </div>
           </div>
