@@ -21,6 +21,7 @@ import {
 import { useState } from 'react';
 import { useAuthSafe } from '@/app/hooks/useAuthSafe';
 import { useIsAdmin } from '@/app/hooks/useIsAdmin';
+import { SettingsModal } from './SettingsModal';
 
 type MenuItem = {
   id: string;
@@ -78,8 +79,6 @@ const getMenuItems = (isAdmin: boolean): MenuItem[] => {
     items.push({ id: 'admin', label: 'Admin', icon: <Shield className="w-5 h-5" />, href: '/admin' });
   }
   
-  items.push({ id: 'settings', label: 'Settings', icon: <Settings className="w-5 h-5" />, href: '/assistant/settings' });
-  
   return items;
 };
 
@@ -93,6 +92,7 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
   const { user, isEmbedMode } = useAuthSafe();
   const { isAdmin } = useIsAdmin();
   const menuItems = getMenuItems(isAdmin);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const isActive = (href: string) => {
     if (href === '/') {
@@ -153,6 +153,21 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
               </Tooltip>
             );
           })}
+          
+          {/* Settings Button */}
+          <Tooltip content="Settings" show={isCollapsed}>
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-gray-700 hover:bg-accent/5 hover:text-accent w-full ${
+                isCollapsed ? 'justify-center' : ''
+              }`}
+            >
+              <Settings className="w-5 h-5" />
+              {!isCollapsed && (
+                <span className="text-sm font-medium">Settings</span>
+              )}
+            </button>
+          </Tooltip>
         </nav>
 
         {/* Bottom Actions */}
@@ -174,7 +189,15 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
                       userButtonPopoverCard: 'shadow-xl',
                     },
                   }}
-                />
+                >
+                  <UserButton.MenuItems>
+                    <UserButton.Action
+                      label="Settings"
+                      labelIcon={<Settings className="h-4 w-4" />}
+                      onClick={() => setIsSettingsOpen(true)}
+                    />
+                  </UserButton.MenuItems>
+                </UserButton>
                 {!isCollapsed && (
                   <div className="flex flex-col min-w-0 flex-1">
                     <span className="text-sm font-medium text-gray-900 truncate">
@@ -228,6 +251,9 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
           </Tooltip>
         </div>
       </div>
+      
+      {/* Settings Modal */}
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </aside>
   );
 }

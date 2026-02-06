@@ -90,7 +90,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             >
               <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all">
                 {/* Header */}
-                <div className="relative border-b border-border bg-gradient-to-br from-accent/5 via-transparent to-transparent px-6 py-6">
+                <div className="relative border-b border-border bg-gradient-to-br from-terra-cotta/5 via-transparent to-transparent px-6 py-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <Dialog.Title className="text-2xl font-bold text-foreground">
@@ -102,7 +102,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     </div>
                     <button
                       onClick={onClose}
-                      className="rounded-full p-2 text-muted hover:bg-accent/10 hover:text-accent transition-all"
+                      className="rounded-full p-2 text-muted hover:bg-terra-cotta/10 hover:text-terra-cotta transition-all"
                       aria-label="Close settings"
                     >
                       <X className="h-5 w-5" />
@@ -117,7 +117,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
                           activeTab === tab.id
-                            ? 'bg-accent text-white shadow-md'
+                            ? 'bg-terra-cotta text-white shadow-md'
                             : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                         }`}
                       >
@@ -151,7 +151,7 @@ function AccountTab({ user }: { user: any }) {
       <div className="rounded-lg border border-border bg-white p-6">
         <h3 className="mb-4 text-lg font-semibold text-foreground">Profile Information</h3>
         <div className="flex items-center gap-4">
-          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-accent to-indigo-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-terra-cotta to-burnt-sienna flex items-center justify-center text-white text-2xl font-bold shadow-lg">
             {user?.firstName?.[0] || user?.emailAddresses?.[0]?.emailAddress[0] || 'U'}
           </div>
           <div>
@@ -424,7 +424,7 @@ function APITab() {
               className={`relative rounded-lg border-2 p-4 text-left transition-all ${
                 selectedProvider === provider.id
                   ? `${provider.borderColor} ${provider.bgColor}`
-                  : 'border-border bg-white hover:border-accent/50'
+                  : 'border-border bg-white hover:border-terra-cotta/50'
               }`}
             >
               {provider.isFree && (
@@ -452,7 +452,7 @@ function APITab() {
               href={selectedProviderInfo.signupUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-1 inline-flex items-center gap-1 text-sm text-accent hover:underline"
+              className="mt-1 inline-flex items-center gap-1 text-sm text-terra-cotta hover:underline"
             >
               Get API key
               <ExternalLink className="h-3 w-3" />
@@ -472,7 +472,7 @@ function APITab() {
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder={`Enter your ${selectedProviderInfo?.name} API key`}
-              className="w-full rounded-lg border border-border bg-background px-4 py-2.5 pr-12 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+              className="w-full rounded-lg border border-border bg-background px-4 py-2.5 pr-12 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-terra-cotta"
             />
             <button
               type="button"
@@ -517,7 +517,7 @@ function APITab() {
             <button
               onClick={handleSaveConfig}
               disabled={saving || !apiKey.trim()}
-              className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 transition-opacity shadow-md"
+              className="rounded-lg bg-terra-cotta px-4 py-2 text-sm font-semibold text-white hover:bg-burnt-sienna disabled:opacity-50 transition-colors shadow-md"
             >
               {saving ? (
                 <>
@@ -649,7 +649,7 @@ function UsageTab() {
               onClick={() => setTimeRange(days as 7 | 30 | 90)}
               className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                 timeRange === days
-                  ? 'bg-accent text-white shadow-md'
+                  ? 'bg-terra-cotta text-white shadow-md'
                   : 'bg-muted text-muted-foreground hover:bg-muted/70'
               }`}
             >
@@ -664,8 +664,8 @@ function UsageTab() {
         <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-lg border border-border bg-white p-4">
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-purple-100 p-2.5">
-                <Activity className="h-5 w-5 text-purple-600" />
+              <div className="rounded-lg bg-terra-cotta/10 p-2.5">
+                <Activity className="h-5 w-5 text-terra-cotta" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Total Requests</p>

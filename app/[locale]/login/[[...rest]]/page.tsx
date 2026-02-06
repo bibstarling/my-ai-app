@@ -60,17 +60,7 @@ export default function LoginPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-accent relative overflow-hidden">
-      {/* Floating celebration elements - reduced density */}
-      <FloatingElements density="low" />
-      
-      {/* Subtle gradient overlay */}
-      <div 
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: 'linear-gradient(135deg, rgba(224, 122, 95, 0.95) 0%, rgba(212, 102, 63, 0.95) 100%)',
-        }}
-      />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden">
 
       <div className="container relative z-10 mx-auto px-4 py-12">
         <div className="grid lg:grid-cols-2 gap-12 items-start max-w-7xl mx-auto">
@@ -78,7 +68,7 @@ export default function LoginPage() {
           <div className="space-y-8 lg:pt-12 animate-fade-up">
             {/* Header */}
             <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full border border-white/30 animate-bounce-in">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 backdrop-blur-sm rounded-full border border-accent/20 animate-bounce-in">
                 <Image 
                   src="/graphics/star-burst.svg" 
                   alt="" 
@@ -86,12 +76,12 @@ export default function LoginPage() {
                   height={20}
                   className="animate-pulse-subtle"
                 />
-                <span className="text-sm font-semibold text-white">AI-Powered Career Platform</span>
+                <span className="text-sm font-semibold text-accent">AI-Powered Career Platform</span>
               </div>
-              <h1 className="text-4xl lg:text-6xl font-bold text-white leading-tight drop-shadow-lg">
+              <h1 className="text-4xl lg:text-6xl font-bold text-foreground leading-tight">
                 Your Career Deserves Applause! 👏
               </h1>
-              <p className="text-xl text-white/90 leading-relaxed drop-shadow">
+              <p className="text-xl text-muted leading-relaxed">
                 Turn job searching into a celebration! Build stunning portfolios, create standout resumes, 
                 and find your dream role—all with AI as your cheerleader. 🎉
               </p>
@@ -101,7 +91,7 @@ export default function LoginPage() {
             <div 
               className="bg-white/95 backdrop-blur-md rounded-2xl border-2 border-white/50 p-6 shadow-2xl hover-lift animate-fade-up animate-delay-100"
             >
-              <h3 className="text-sm font-bold uppercase tracking-wider text-accent mb-4 flex items-center gap-2">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-foreground mb-4 flex items-center gap-2">
                 <Star className="h-4 w-4 fill-current" />
                 Why People Love Applause
               </h3>
@@ -125,12 +115,14 @@ export default function LoginPage() {
                 {features.map((feature, index) => (
                   <div 
                     key={index}
-                    className="bg-white/95 backdrop-blur-md rounded-xl border-2 border-white/50 p-5 hover:border-white hover:shadow-2xl transition-all group hover-lift animate-fade-up"
+                    className="bg-white rounded-xl border-2 border-gray-200 p-5 hover:border-accent hover:shadow-lg transition-all group hover-lift animate-fade-up"
                     style={{ animationDelay: `${(index + 3) * 100}ms` }}
                   >
                     <div className="flex items-start gap-4">
-                      <div className={`p-3 ${feature.color} rounded-xl text-white group-hover:scale-110 transition-transform shadow-lg`}>
-                        {feature.icon}
+                      <div className={`p-3 ${feature.color}/10 rounded-xl group-hover:scale-110 transition-transform border border-${feature.color}/20`}>
+                        <div className={`text-${feature.color.replace('bg-', '')}`}>
+                          {feature.icon}
+                        </div>
                       </div>
                       <div className="flex-1">
                         <h4 className="font-bold text-foreground mb-1">{feature.title}</h4>
@@ -143,7 +135,7 @@ export default function LoginPage() {
             </div>
 
             {/* Social Proof */}
-            <div className="bg-white/90 backdrop-blur-md rounded-2xl border-2 border-white/50 p-6 shadow-xl hover-lift animate-fade-up animate-delay-300">
+            <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 shadow-sm hover-lift animate-fade-up animate-delay-300">
               <div className="flex items-center gap-3 mb-3">
                 <div className="flex -space-x-2">
                   <div className="w-10 h-10 rounded-full bg-accent border-2 border-white shadow-lg" />
@@ -174,7 +166,7 @@ export default function LoginPage() {
 
           {/* Right Side - Sign In Form */}
           <div className="lg:sticky lg:top-12 animate-fade-up animate-delay-200">
-            <div className="bg-white rounded-3xl border-4 border-white/80 shadow-2xl p-8 backdrop-blur-md hover-lift relative overflow-hidden">
+            <div className="bg-white rounded-3xl border-2 border-gray-200 shadow-lg p-8 hover-lift relative overflow-hidden">
               {/* Decorative elements */}
               <div className="absolute -top-4 -right-4 w-24 h-24 opacity-20 pointer-events-none">
                 <Image 

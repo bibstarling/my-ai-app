@@ -143,13 +143,9 @@ export default function AccountPage() {
                 Track your AI usage and estimated costs
               </p>
             </div>
-            <button
-              onClick={() => router.push('/settings/api')}
-              className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
-            >
-              <Settings className="h-4 w-4" />
-              API Settings
-            </button>
+            <div className="text-sm text-muted-foreground">
+              <p>Access more settings from the profile menu in the sidebar</p>
+            </div>
           </div>
         </div>
       </div>

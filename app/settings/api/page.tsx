@@ -409,18 +409,16 @@ export default function APISettingsPage() {
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Info Box */}
           <div className="rounded-lg border border-border bg-white p-6">
-            <h2 className="mb-4 text-lg font-semibold text-foreground">Quick Links</h2>
-            
-            <div className="space-y-3">
-              <a
-                href="/settings/account"
-                className="flex items-center justify-between rounded-lg border border-border p-4 transition-colors hover:border-accent hover:bg-accent/5"
-              >
-                <span className="font-medium text-foreground">View Usage & Costs</span>
-                <ExternalLink className="h-4 w-4 text-muted" />
-              </a>
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+              <div className="text-sm text-foreground">
+                <p className="font-semibold mb-1">Tip:</p>
+                <p className="text-muted-foreground">
+                  You can also access settings from the profile menu in the sidebar for a quicker experience.
+                </p>
+              </div>
             </div>
           </div>
         </div>

@@ -71,22 +71,22 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="gradient-primary border-b border-white/20">
+      <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-white drop-shadow-lg flex items-center gap-2">
+              <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
                 Welcome back{user?.firstName ? `, ${user.firstName}` : ''}! 🎉
               </h1>
-              <p className="text-white/90 mt-2 drop-shadow">
+              <p className="text-muted mt-2">
                 Ready to celebrate more career wins? Let's make it happen! 🚀
               </p>
             </div>
             <Link
               href="/settings/portfolio"
-              className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-lg transition-all border border-white/30 text-white shadow-lg"
+              className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 rounded-lg transition-all border border-gray-200 text-foreground shadow-sm"
             >
               <Settings className="h-4 w-4" />
               <span className="text-sm font-medium">Settings</span>
@@ -132,35 +132,35 @@ export default function DashboardPage() {
             </section>
 
             {/* Getting Started */}
-            <section className="bg-accent rounded-2xl border-2 border-accent/20 p-6 shadow-xl text-white">
+            <section className="bg-white rounded-2xl border-2 border-gray-200 p-6 shadow-sm">
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl border border-white/30">
-                  <TrendingUp className="h-6 w-6 text-white" />
+                <div className="p-3 bg-accent/10 rounded-xl border border-accent/20">
+                  <TrendingUp className="h-6 w-6 text-accent" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-bold mb-2 drop-shadow">
+                  <h3 className="text-lg font-bold mb-2 text-foreground">
                     Get Started in 3 Steps 🎯
                   </h3>
                   <ul className="space-y-3">
                     <li className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-white shrink-0 mt-0.5 drop-shadow" />
+                      <CheckCircle className="h-5 w-5 text-success shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-sm font-bold drop-shadow">Build Your Portfolio</p>
-                        <p className="text-xs text-white/90">Let AI help you shine! ✨</p>
+                        <p className="text-sm font-bold text-foreground">Build Your Portfolio</p>
+                        <p className="text-xs text-muted">Let AI help you shine! ✨</p>
                       </div>
                     </li>
                     <li className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-white/70 shrink-0 mt-0.5 drop-shadow" />
+                      <CheckCircle className="h-5 w-5 text-muted shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-sm font-medium drop-shadow">Generate Resumes</p>
-                        <p className="text-xs text-white/90">Create standout applications 🎯</p>
+                        <p className="text-sm font-medium text-foreground">Generate Resumes</p>
+                        <p className="text-xs text-muted">Create standout applications 🎯</p>
                       </div>
                     </li>
                     <li className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-white/70 shrink-0 mt-0.5 drop-shadow" />
+                      <CheckCircle className="h-5 w-5 text-muted shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-sm font-medium drop-shadow">Apply to Jobs</p>
-                        <p className="text-xs text-white/90">Find your dream role! 🚀</p>
+                        <p className="text-sm font-medium text-foreground">Apply to Jobs</p>
+                        <p className="text-xs text-muted">Find your dream role! 🚀</p>
                       </div>
                     </li>
                   </ul>

@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { Mail, Linkedin, Github, ExternalLink } from 'lucide-react';
+import { WerkRoomButton } from '@/app/components/WerkRoomButton';
 
 async function getPortfolio(username: string) {
   try {
@@ -34,6 +35,9 @@ export default async function UserPortfolioPage({
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Werk Room Button - Top Right - Only shown when logged in */}
+      <WerkRoomButton />
+      
       {/* Header */}
       <header className="border-b border-border bg-white">
         <div className="mx-auto max-w-6xl px-6 py-16">

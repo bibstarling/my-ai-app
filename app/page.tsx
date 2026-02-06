@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowUpRight, Linkedin, Mail, X, LayoutDashboard } from 'lucide-react';
+import { ArrowUpRight, Linkedin, Mail, X } from 'lucide-react';
 import { portfolioData, type PortfolioProject } from '@/lib/portfolio-data';
 import { useEmbedMode } from '@/app/ClientAuthWrapper';
-import { useAuth } from '@clerk/nextjs';
-import Link from 'next/link';
+import { WerkRoomButton } from '@/app/components/WerkRoomButton';
 
 function getCategoryForProject(project: PortfolioProject): string[] {
   const categories: string[] = ['all'];
@@ -246,7 +245,6 @@ export default function HomePage() {
   const [activeSection, setActiveSection] = useState('about');
   const [modalProject, setModalProject] = useState<PortfolioProject | null>(null);
   const isEmbed = useEmbedMode();
-  const { isSignedIn, isLoaded } = useAuth();
 
   const navItems = [
     { id: 'about', label: 'About' },
@@ -281,15 +279,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white lg:flex">
       {/* Werk Room Button - Top Right - Only shown when logged in */}
-      {isLoaded && isSignedIn && !isEmbed && (
-        <Link
-          href="/dashboard"
-          className="fixed top-6 right-6 z-50 flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition-all hover:bg-accent/90 hover:shadow-xl"
-        >
-          <LayoutDashboard className="h-4 w-4" />
-          <span>Werk Room</span>
-        </Link>
-      )}
+      {!isEmbed && <WerkRoomButton />}
       
       {/* Embed Mode Indicator - Only visible in v0 preview */}
       {isEmbed && (
