@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
+
+// Force dynamic rendering to avoid static generation issues with Clerk
+export const dynamic = 'force-dynamic';
 import {
   Loader2,
   DollarSign,
