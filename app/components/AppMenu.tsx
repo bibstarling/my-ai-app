@@ -64,14 +64,20 @@ function Tooltip({ content, children, show }: TooltipProps) {
 
 const getMenuItems = (isAdmin: boolean): MenuItem[] => {
   const items: MenuItem[] = [
-    { id: 'portfolio', label: 'Portfolio', icon: <Home className="w-5 h-5" />, href: '/' },
-    { id: 'dashboard', label: 'Werk Room', icon: <LayoutDashboard className="w-5 h-5" />, href: '/dashboard' },
-    { id: 'portfolio-builder', label: 'My Portfolio', icon: <Briefcase className="w-5 h-5" />, href: '/portfolio/builder' },
+    // Dashboard
+    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, href: '/dashboard' },
+    
+    // Job Search
     { id: 'job-search', label: 'Find Jobs', icon: <Search className="w-5 h-5" />, href: '/assistant/job-search' },
-    { id: 'my-jobs', label: 'Applications', icon: <Kanban className="w-5 h-5" />, href: '/assistant/my-jobs' },
-    { id: 'chat', label: 'Career Coach', icon: <MessageSquare className="w-5 h-5" />, href: '/assistant/chat' },
+    { id: 'my-jobs', label: 'My Applications', icon: <Kanban className="w-5 h-5" />, href: '/assistant/my-jobs' },
+    
+    // Career Tools
+    { id: 'portfolio-builder', label: 'Portfolio', icon: <Briefcase className="w-5 h-5" />, href: '/portfolio/builder' },
     { id: 'resume', label: 'Resumes', icon: <FileText className="w-5 h-5" />, href: '/resume-builder' },
     { id: 'cover-letter', label: 'Cover Letters', icon: <Mail className="w-5 h-5" />, href: '/cover-letters' },
+    
+    // AI Assistant
+    { id: 'chat', label: 'AI Coach', icon: <MessageSquare className="w-5 h-5" />, href: '/assistant/chat' },
   ];
   
   // Add admin menu item if user is admin
@@ -153,21 +159,6 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
               </Tooltip>
             );
           })}
-          
-          {/* Settings Button */}
-          <Tooltip content="Settings" show={isCollapsed}>
-            <button
-              onClick={() => setIsSettingsOpen(true)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-gray-700 hover:bg-accent/5 hover:text-accent w-full ${
-                isCollapsed ? 'justify-center' : ''
-              }`}
-            >
-              <Settings className="w-5 h-5" />
-              {!isCollapsed && (
-                <span className="text-sm font-medium">Settings</span>
-              )}
-            </button>
-          </Tooltip>
         </nav>
 
         {/* Bottom Actions */}

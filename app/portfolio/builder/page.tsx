@@ -15,7 +15,10 @@ import {
   Globe,
   Lock,
   Check,
+  MessageSquare,
+  Edit3,
 } from 'lucide-react';
+import { ManualEditor } from '@/app/components/portfolio/ManualEditor';
 
 type Message = {
   role: 'user' | 'assistant' | 'system';
@@ -46,6 +49,7 @@ export default function PortfolioBuilderPage() {
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [editMode, setEditMode] = useState<'chat' | 'manual'>('chat');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -331,6 +335,26 @@ export default function PortfolioBuilderPage() {
     }
   };
 
+  const handleManualSave = async (portfolioData: any) => {
+    if (!portfolio) return;
+
+    const res = await fetch('/api/portfolio/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ portfolioData }),
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      setPortfolio((prev: any) => ({
+        ...prev,
+        portfolio_data: portfolioData,
+      }));
+    } else {
+      throw new Error(data.error || 'Failed to save');
+    }
+  };
+
   const handlePublish = async () => {
     if (!portfolio) return;
 
@@ -407,11 +431,39 @@ export default function PortfolioBuilderPage() {
       {/* Header */}
       <div className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">My Portfolio ✨</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Show off your amazing work with AI
-            </p>
+          <div className="flex items-center gap-6">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">My Portfolio ✨</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Show off your amazing work with AI
+              </p>
+            </div>
+
+            {/* Mode Toggle */}
+            <div className="flex items-center gap-1 rounded-lg border border-border bg-background p-1">
+              <button
+                onClick={() => setEditMode('chat')}
+                className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  editMode === 'chat'
+                    ? 'bg-accent text-white'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <MessageSquare className="h-4 w-4" />
+                Chat with AI
+              </button>
+              <button
+                onClick={() => setEditMode('manual')}
+                className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  editMode === 'manual'
+                    ? 'bg-accent text-white'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Edit3 className="h-4 w-4" />
+                Manual Edit
+              </button>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -458,11 +510,17 @@ export default function PortfolioBuilderPage() {
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Panel - Chat */}
-        <div
-          ref={chatContainerRef}
-          className="flex w-full flex-col border-r border-border bg-background lg:w-1/2"
-        >
+        {editMode === 'manual' ? (
+          /* Manual Editor Mode */
+          <div className="flex w-full flex-col lg:w-1/2">
+            <ManualEditor portfolioData={portfolioData} onSave={handleManualSave} />
+          </div>
+        ) : (
+          /* Chat Mode - Left Panel */
+          <div
+            ref={chatContainerRef}
+            className="flex w-full flex-col border-r border-border bg-background lg:w-1/2"
+          >
           {/* Mobile Preview - Only visible on small screens */}
           <div className="border-b border-border bg-muted p-4 lg:hidden">
             <div className="mb-3">
@@ -686,6 +744,7 @@ export default function PortfolioBuilderPage() {
             </div>
           </div>
         </div>
+        )}
       </div>
 
       {/* Link Modal */}
