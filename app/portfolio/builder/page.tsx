@@ -722,7 +722,7 @@ export default function PortfolioBuilderPage() {
                     <LinkIcon className="h-5 w-5" />
                   </button>
                   <button
-                    onClick={handleSendMessage}
+                    onClick={handleSubmit}
                     disabled={loading || uploadProgress || !input.trim()}
                     className="rounded-lg bg-accent p-3 text-white transition-colors hover:bg-accent/90 disabled:opacity-50"
                   >

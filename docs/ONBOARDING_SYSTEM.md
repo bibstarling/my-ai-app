@@ -1,4 +1,87 @@
-# Onboarding System
+# Onboarding & Tour System
+
+A comprehensive guided tour system with two types of tours:
+1. **Global Onboarding** - Platform-wide introduction for new users
+2. **Page-Specific Tours** - Contextual help for individual features
+
+## Page-Specific Tours
+
+Each major page has a dedicated help button (?) with tooltip that launches a guided tour specific to that page's features.
+
+### Available Page Tours
+
+- **Portfolio Builder** - 5 steps covering chat, upload, preview, and publish
+- **Resume Builder** - 5 steps covering generation, adaptation, editing, and export
+- **Cover Letters** - 4 steps covering generation, customization, and export
+- **Job Search** - 4 steps covering search, matching, and tracking
+- **My Applications** - 3 steps covering status tracking and documents
+- **AI Career Coach** - 3 steps covering the AI assistant features
+- **Dashboard** - 3 steps covering overview and quick actions
+
+### Help Button Features
+
+- **Fixed Position**: Bottom-right corner, always accessible
+- **Animated**: Pulse effect and shine on hover
+- **Tooltip**: "Take a guided tour of this page" on hover
+- **Brand Colors**: Gradient from Terra Cotta to Ocean Blue
+- **Responsive**: Works on all screen sizes
+
+### Customization
+
+Edit tours in `lib/page-tours.tsx`:
+
+```typescript
+export const pageTours: Record<string, { title: string; steps: TourStep[] }> = {
+  'your-page-id': {
+    title: 'Your Page Tour',
+    steps: [
+      {
+        id: 'step-1',
+        title: 'Step Title',
+        description: 'Step description',
+        icon: <Icon className="w-12 h-12 text-[#e07a5f]" />,
+        tips: [
+          'Tip 1',
+          'Tip 2',
+        ],
+      },
+    ],
+  },
+};
+```
+
+Add to any page:
+
+```typescript
+import { HelpButton } from '@/app/components/HelpButton';
+import { PageTour } from '@/app/components/PageTour';
+import { getPageTour } from '@/lib/page-tours';
+
+export default function YourPage() {
+  const [showPageTour, setShowPageTour] = useState(false);
+  const pageTour = getPageTour('your-page-id');
+
+  return (
+    <div>
+      {/* Your page content */}
+      
+      <HelpButton onClick={() => setShowPageTour(true)} />
+      {pageTour && (
+        <PageTour
+          isOpen={showPageTour}
+          onClose={() => setShowPageTour(false)}
+          steps={pageTour.steps}
+          title={pageTour.title}
+        />
+      )}
+    </div>
+  );
+}
+```
+
+---
+
+# Global Onboarding
 
 A comprehensive step-by-step guided onboarding experience for new users, with the ability to relaunch anytime from the user menu.
 
