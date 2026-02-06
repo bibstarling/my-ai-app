@@ -66,12 +66,29 @@ export async function GET() {
       .eq('clerk_id', userId)
       .single();
 
+    const isSuperAdmin = user?.is_super_admin || false;
+
+    // For super admin, load portfolio data from main page (portfolio-data.ts)
+    let portfolioDataToUse = portfolio.portfolio_data;
+    
+    if (isSuperAdmin) {
+      // Import the main portfolio data dynamically
+      try {
+        const { portfolioData } = await import('@/lib/portfolio-data');
+        portfolioDataToUse = portfolioData;
+      } catch (error) {
+        console.error('Failed to load main portfolio data:', error);
+        // Fall back to database data if import fails
+      }
+    }
+
     return NextResponse.json({
       success: true,
       portfolio: {
         ...portfolio,
+        portfolio_data: portfolioDataToUse,
         username: user?.username,
-        isSuperAdmin: user?.is_super_admin || false,
+        isSuperAdmin,
         messages: messages || [],
         uploads: uploads || [],
         links: links || [],

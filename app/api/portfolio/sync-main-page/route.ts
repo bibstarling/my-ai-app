@@ -9,13 +9,19 @@ import { join } from 'path';
  * Sync admin portfolio data to portfolio-data.ts file
  * Only accessible by admin users
  */
-export async function POST() {
+export async function POST(request: Request) {
   try {
-    const { userId } = await auth();
+    const { userId: authUserId } = await auth();
     
-    if (!userId) {
+    if (!authUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const body = await request.json();
+    const { portfolioData, userId } = body;
+
+    // Use userId from body if provided (for internal calls), otherwise use authUserId
+    const userIdToCheck = userId || authUserId;
 
     const supabase = getSupabaseServiceRole();
 
@@ -23,7 +29,7 @@ export async function POST() {
     const { data: user } = await supabase
       .from('users')
       .select('is_super_admin')
-      .eq('clerk_id', userId)
+      .eq('clerk_id', userIdToCheck)
       .single();
 
     const isSuperAdmin = user?.is_super_admin || false;
@@ -35,21 +41,25 @@ export async function POST() {
       );
     }
 
-    // Get admin's portfolio data
-    const { data: portfolio } = await supabase
-      .from('user_portfolios')
-      .select('portfolio_data')
-      .eq('clerk_id', userId)
-      .single();
+    // Use provided portfolio data, or fetch from database
+    let dataToSync = portfolioData;
+    
+    if (!dataToSync) {
+      const { data: portfolio } = await supabase
+        .from('user_portfolios')
+        .select('portfolio_data')
+        .eq('clerk_id', userIdToCheck)
+        .single();
 
-    if (!portfolio) {
-      return NextResponse.json(
-        { error: 'Portfolio not found' },
-        { status: 404 }
-      );
+      if (!portfolio) {
+        return NextResponse.json(
+          { error: 'Portfolio not found' },
+          { status: 404 }
+        );
+      }
+
+      dataToSync = portfolio.portfolio_data;
     }
-
-    const portfolioData = portfolio.portfolio_data;
 
     // Convert JSON to TypeScript format
     const tsContent = `// Auto-generated from admin portfolio
@@ -88,7 +98,7 @@ export interface PortfolioData {
   articles?: any[];
 }
 
-export const portfolioData: PortfolioData = ${JSON.stringify(portfolioData, null, 2)};
+export const portfolioData: PortfolioData = ${JSON.stringify(dataToSync, null, 2)};
 
 export default portfolioData;
 `;

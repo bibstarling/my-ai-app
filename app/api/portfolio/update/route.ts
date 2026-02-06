@@ -26,6 +26,15 @@ export async function POST(request: Request) {
 
     const supabase = getSupabaseServiceRole();
 
+    // Check if user is super admin
+    const { data: user } = await supabase
+      .from('users')
+      .select('is_super_admin')
+      .eq('clerk_id', userId)
+      .single();
+
+    const isSuperAdmin = user?.is_super_admin || false;
+
     // Get portfolio
     const { data: portfolio } = await supabase
       .from('user_portfolios')
@@ -40,7 +49,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Update portfolio data
+    // Update portfolio data in database
     const { error: updateError } = await supabase
       .from('user_portfolios')
       .update({ 
@@ -57,9 +66,33 @@ export async function POST(request: Request) {
       );
     }
 
+    // For super admin, also sync to portfolio-data.ts (main page)
+    if (isSuperAdmin) {
+      try {
+        const syncRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/portfolio/sync-main-page`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            portfolioData,
+            userId, // Pass userId for auth
+          }),
+        });
+
+        if (!syncRes.ok) {
+          console.warn('Failed to sync to main page');
+        }
+      } catch (syncError) {
+        console.error('Error syncing to main page:', syncError);
+        // Don't fail the update if sync fails
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Portfolio updated successfully',
+      syncedToMainPage: isSuperAdmin,
     });
   } catch (error) {
     console.error('POST /api/portfolio/update error:', error);
