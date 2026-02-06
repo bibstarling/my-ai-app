@@ -1,7 +1,6 @@
 'use client';
 
 import { useAuth } from '@clerk/nextjs';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   Sparkles, 
@@ -12,31 +11,16 @@ import {
   ArrowRight,
   Briefcase,
   TrendingUp,
-  Users
 } from 'lucide-react';
-import { useEffect } from 'react';
 
 export default function LandingPage() {
   const { isSignedIn, isLoaded } = useAuth();
-  const router = useRouter();
-
-  // Redirect authenticated users to dashboard
-  useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      router.push('/dashboard');
-    }
-  }, [isLoaded, isSignedIn, router]);
 
   // Show loading state while checking auth
   if (!isLoaded) {
     return <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="animate-pulse text-muted">Loading...</div>
     </div>;
-  }
-
-  // Don't render landing page for signed-in users (they're being redirected)
-  if (isSignedIn) {
-    return null;
   }
 
   return (
@@ -51,18 +35,29 @@ export default function LandingPage() {
             <span className="text-xl font-bold text-foreground">Applause</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link 
-              href="/login" 
-              className="text-sm font-medium text-muted hover:text-foreground transition-colors"
-            >
-              Sign In
-            </Link>
-            <Link 
-              href="/login" 
-              className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent/90 transition-all"
-            >
-              Get Started
-            </Link>
+            {isSignedIn ? (
+              <Link 
+                href="/dashboard" 
+                className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent/90 transition-all"
+              >
+                Go to Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link 
+                  href="/login" 
+                  className="text-sm font-medium text-muted hover:text-foreground transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link 
+                  href="/login" 
+                  className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent/90 transition-all"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -83,13 +78,23 @@ export default function LandingPage() {
               and land your dream job—all with intelligent assistance every step of the way.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link 
-                href="/login"
-                className="w-full sm:w-auto rounded-lg bg-accent px-8 py-4 text-base font-semibold text-white hover:bg-accent/90 transition-all shadow-lg hover:shadow-xl inline-flex items-center justify-center gap-2"
-              >
-                Start Building Free
-                <ArrowRight className="h-5 w-5" />
-              </Link>
+              {isSignedIn ? (
+                <Link 
+                  href="/dashboard"
+                  className="w-full sm:w-auto rounded-lg bg-accent px-8 py-4 text-base font-semibold text-white hover:bg-accent/90 transition-all shadow-lg hover:shadow-xl inline-flex items-center justify-center gap-2"
+                >
+                  Go to Dashboard
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+              ) : (
+                <Link 
+                  href="/login"
+                  className="w-full sm:w-auto rounded-lg bg-accent px-8 py-4 text-base font-semibold text-white hover:bg-accent/90 transition-all shadow-lg hover:shadow-xl inline-flex items-center justify-center gap-2"
+                >
+                  Start Building Free
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+              )}
               <Link 
                 href="#features"
                 className="w-full sm:w-auto rounded-lg border-2 border-border px-8 py-4 text-base font-semibold text-foreground hover:border-accent hover:text-accent transition-all inline-flex items-center justify-center gap-2"
@@ -356,14 +361,16 @@ export default function LandingPage() {
             Ready to Accelerate Your Career?
           </h2>
           <p className="text-lg text-muted mb-8 leading-relaxed">
-            Join professionals who are landing their dream jobs faster with AI-powered tools. 
-            Start building your future today—it's free to get started.
+            {isSignedIn 
+              ? "Access all your AI-powered career tools and continue building your future."
+              : "Join professionals who are landing their dream jobs faster with AI-powered tools. Start building your future today—it's free to get started."
+            }
           </p>
           <Link 
-            href="/login"
+            href={isSignedIn ? "/dashboard" : "/login"}
             className="inline-flex items-center gap-2 rounded-lg bg-accent px-8 py-4 text-lg font-semibold text-white hover:bg-accent/90 transition-all shadow-lg hover:shadow-xl"
           >
-            Get Started Free
+            {isSignedIn ? "Go to Dashboard" : "Get Started Free"}
             <ArrowRight className="h-5 w-5" />
           </Link>
         </div>
