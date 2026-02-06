@@ -63,7 +63,8 @@ function Tooltip({ content, children, show }: TooltipProps) {
 
 const getMenuItems = (isAdmin: boolean): MenuItem[] => {
   const items: MenuItem[] = [
-    { id: 'dashboard', label: 'Home', icon: <LayoutDashboard className="w-5 h-5" />, href: '/assistant' },
+    { id: 'portfolio', label: 'Portfolio', icon: <Home className="w-5 h-5" />, href: '/' },
+    { id: 'dashboard', label: 'Control Room', icon: <LayoutDashboard className="w-5 h-5" />, href: '/dashboard' },
     { id: 'portfolio-builder', label: 'My Portfolio', icon: <Briefcase className="w-5 h-5" />, href: '/portfolio/builder' },
     { id: 'job-search', label: 'Find Jobs', icon: <Search className="w-5 h-5" />, href: '/assistant/job-search' },
     { id: 'my-jobs', label: 'Applications', icon: <Kanban className="w-5 h-5" />, href: '/assistant/my-jobs' },
@@ -141,7 +142,7 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
                     active
                       ? 'gradient-primary text-white shadow-lg'
-                      : 'text-gray-700 hover:bg-accent/5 hover:text-applause-purple'
+                      : 'text-gray-700 hover:bg-accent/5 hover:text-accent'
                   } ${isCollapsed ? 'justify-center' : ''}`}
                 >
                   {item.icon}
@@ -206,19 +207,6 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
               </div>
             </Tooltip>
           )}
-          
-          {/* Back to Portfolio Link */}
-          <Tooltip content="Portfolio" show={isCollapsed}>
-            <Link
-              href="/"
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-gray-700 hover:bg-gray-100 w-full ${
-                isCollapsed ? 'justify-center' : ''
-              }`}
-            >
-              <Home className="w-5 h-5" />
-              {!isCollapsed && <span className="text-sm font-medium">Portfolio</span>}
-            </Link>
-          </Tooltip>
           
           {/* Collapse Toggle */}
           <Tooltip content={isCollapsed ? 'Expand Menu' : 'Collapse Menu'} show={isCollapsed}>

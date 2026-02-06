@@ -280,6 +280,17 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white lg:flex">
+      {/* Control Room Button - Top Right - Only shown when logged in */}
+      {isLoaded && isSignedIn && !isEmbed && (
+        <Link
+          href="/dashboard"
+          className="fixed top-6 right-6 z-50 flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition-all hover:bg-accent/90 hover:shadow-xl"
+        >
+          <LayoutDashboard className="h-4 w-4" />
+          <span>Control Room</span>
+        </Link>
+      )}
+      
       {/* Embed Mode Indicator - Only visible in v0 preview */}
       {isEmbed && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-blue-500 text-white text-xs py-1 px-4 text-center">
@@ -303,16 +314,6 @@ export default function HomePage() {
               </p>
             </div>
             
-            {/* Dashboard Button - Only shown when logged in */}
-            {isLoaded && isSignedIn && (
-              <Link
-                href="/dashboard"
-                className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent/90"
-              >
-                <LayoutDashboard className="h-4 w-4" />
-                <span className="hidden sm:inline">Dashboard</span>
-              </Link>
-            )}
           </div>
 
           {/* Navigation - Desktop Only */}
