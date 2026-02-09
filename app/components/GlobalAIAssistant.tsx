@@ -77,13 +77,26 @@ export function GlobalAIAssistant({ isOpen, onClose }: GlobalAIAssistantProps) {
     e.preventDefault();
     if ((!input.trim() && pendingAttachments.length === 0) || loading) return;
 
-    const userMessage = input.trim();
+    let userMessage = input.trim();
     const attachments = [...pendingAttachments];
+    
+    // Check if message contains URLs - enhance prompt to trigger scraping
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const urls = userMessage.match(urlRegex);
+    if (urls && urls.length > 0) {
+      // Make it explicit that we want to scrape
+      if (!userMessage.toLowerCase().includes('scrape') && 
+          !userMessage.toLowerCase().includes('fetch') &&
+          !userMessage.toLowerCase().includes('analyze') &&
+          !userMessage.toLowerCase().includes('extract')) {
+        userMessage = `Scrape and analyze this URL: ${userMessage}`;
+      }
+    }
     
     setInput('');
     setPendingAttachments([]);
     
-    let displayMessage = userMessage;
+    let displayMessage = input.trim(); // Show original message to user
     if (attachments.length > 0) {
       displayMessage += `\n\n📎 ${attachments.length} file(s) attached`;
     }
@@ -357,11 +370,11 @@ export function GlobalAIAssistant({ isOpen, onClose }: GlobalAIAssistantProps) {
                 Track job
               </button>
               <button
-                onClick={() => setInput('Scrape a website')}
+                onClick={() => setInput('Fetch data from https://')}
                 className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 hover:border-accent hover:text-accent transition-colors"
               >
                 <Globe className="h-4 w-4" />
-                Scrape URL
+                Fetch website
               </button>
             </div>
           </div>

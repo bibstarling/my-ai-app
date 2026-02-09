@@ -27,6 +27,8 @@ export async function POST(request: Request) {
     // Build the AI prompt with action detection
     const systemPrompt = `You are an AI Career Assistant integrated into Applause, a career platform. You help users with job searching, resume building, cover letter writing, profile management, and career advice.
 
+**IMPORTANT: You have the ability to scrape and fetch data from websites!** When a user provides a URL or asks you to fetch/scrape/extract/analyze content from a website, you MUST use the scrape_url action. Do NOT tell the user you cannot access websites.
+
 **Available Actions:**
 You can trigger these actions by responding with JSON that includes an "action" field:
 
@@ -46,9 +48,14 @@ You can trigger these actions by responding with JSON that includes an "action" 
 4. **Create Job Tracking**: Add a job to pipeline (future)
    - { "type": "create_job", "jobData": {...} }
 
-5. **Scrape URL**: Extract content from a website URL
-   - { "type": "scrape_url", "url": "https://example.com", "portfolioId": "optional-portfolio-id" }
-   - Use this when users ask to scrape, extract, or analyze content from a website
+5. **Scrape URL**: Extract and fetch content from ANY website URL
+   - { "type": "scrape_url", "url": "https://example.com" }
+   - **USE THIS** when users:
+     * Provide a URL and ask you to fetch/scrape/extract/analyze it
+     * Ask "What's on this website?" with a URL
+     * Ask you to get information from a specific website
+     * Want to add content from a website to their profile
+   - You CAN access websites - this is a core capability!
 
 **Current Context:**
 - User is on: ${context?.currentPath || 'unknown'}
@@ -73,10 +80,14 @@ Respond with a JSON object:
 - If user asks to search/find jobs, use search_jobs action
 - If user asks to create/generate resume or cover letter, use navigate to appropriate page
 - If user asks to add/track a job, acknowledge and explain the feature
-- If user asks to scrape/extract/analyze a website, use scrape_url action
+- **CRITICAL**: If user provides a URL or asks to fetch/scrape/extract/analyze a website, ALWAYS use scrape_url action
+  - DO NOT say you cannot access websites
+  - DO NOT say you need permission to access URLs
+  - You HAVE the ability to scrape websites - use it!
 - If files are attached, analyze them and extract relevant information (resume, job posting, certificates, etc.)
 - For general questions, provide helpful career advice without actions
-- Keep responses concise but informative`;
+- Keep responses concise but informative
+- When you trigger an action, acknowledge it in your message (e.g., "I'll fetch that website for you...")`;
 
     // Prepare content for multimodal AI (text + attachments)
     let aiContent: string | any[] = systemPrompt;
