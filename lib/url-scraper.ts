@@ -30,17 +30,31 @@ async function getBrowser() {
       const chromium = await import('@sparticuz/chromium');
       const puppeteerCore = await import('puppeteer-core');
       
+      // Get executable path
       const executablePath = await chromium.default.executablePath();
+      
       console.log(`[getBrowser] Chromium executable: ${executablePath}`);
       
+      // Get args
+      const args = chromium.default.args;
+      
       return puppeteerCore.default.launch({
-        args: [...chromium.default.args, '--disable-web-security'],
+        args: [
+          ...args,
+          '--disable-web-security',
+          '--disable-features=IsolateOrigins',
+          '--disable-site-isolation-trials',
+        ],
         defaultViewport: { width: 1920, height: 1080 },
         executablePath,
         headless: true,
       });
     } catch (error) {
       console.error('[getBrowser] Failed to launch serverless chromium:', error);
+      console.error('[getBrowser] Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown',
+        stack: error instanceof Error ? error.stack : 'No stack',
+      });
       throw new Error(`Failed to initialize browser in production: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   } else {
@@ -65,54 +79,119 @@ async function getBrowser() {
 }
 
 /**
+ * Fallback scraping using simple HTTP fetch (no browser)
+ */
+async function simpleScrapeUrl(url: string): Promise<ScrapedData> {
+  console.log(`[simpleScrapeUrl] Using fallback HTTP scraping for: ${url}`);
+  
+  const response = await fetch(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    },
+  });
+  
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+  
+  const html = await response.text();
+  
+  // Extract title
+  const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+  const title = titleMatch ? titleMatch[1].trim() : '';
+  
+  // Extract meta description
+  const descMatch = html.match(/<meta\s+name=["']description["']\s+content=["']([^"']+)["']/i);
+  const description = descMatch ? descMatch[1].trim() : '';
+  
+  // Extract Open Graph data
+  const ogTitleMatch = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i);
+  const ogDescMatch = html.match(/<meta\s+property=["']og:description["']\s+content=["']([^"']+)["']/i);
+  const ogImageMatch = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i);
+  
+  // Extract text content (remove HTML tags)
+  let content = html
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  // Limit content length
+  if (content.length > 10000) {
+    content = content.substring(0, 10000) + '...';
+  }
+  
+  console.log(`[simpleScrapeUrl] Extracted ${content.length} characters`);
+  
+  return {
+    title: title || (ogTitleMatch ? ogTitleMatch[1] : 'Untitled'),
+    description: description || (ogDescMatch ? ogDescMatch[1] : ''),
+    content,
+    metadata: {
+      ogTitle: ogTitleMatch ? ogTitleMatch[1] : undefined,
+      ogDescription: ogDescMatch ? ogDescMatch[1] : undefined,
+      ogImage: ogImageMatch ? ogImageMatch[1] : undefined,
+    },
+  };
+}
+
+/**
  * Scrape a URL and extract content
  */
 export async function scrapeUrl(url: string): Promise<ScrapedData> {
-  let browser = null;
+  let browser: any = null;
   const startTime = Date.now();
   
   try {
     console.log(`[scrapeUrl] Starting scrape for: ${url}`);
     
-    // Launch browser (production or dev)
-    browser = await getBrowser();
-    console.log(`[scrapeUrl] Browser launched in ${Date.now() - startTime}ms`);
-
-    const page = await browser.newPage();
-    
-    // Set user agent to avoid being blocked
-    await page.setUserAgent(
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-    );
-
-    console.log(`[scrapeUrl] Navigating to ${url}...`);
-    
-    // Navigate to URL with timeout - use domcontentloaded as fallback for slow sites
+    // Try browser-based scraping first
     try {
-      await page.goto(url, {
-        waitUntil: 'networkidle2',
-        timeout: 30000,
-      });
-      console.log(`[scrapeUrl] Page loaded (networkidle2) in ${Date.now() - startTime}ms`);
-    } catch (navError: any) {
-      // If networkidle2 times out, try with just domcontentloaded
-      if (navError?.message?.includes('timeout') || navError?.message?.includes('Navigation timeout')) {
-        console.log('[scrapeUrl] networkidle2 timed out, trying with domcontentloaded...');
-        await page.goto(url, {
-          waitUntil: 'domcontentloaded',
-          timeout: 20000,
-        });
-        // Give it a bit more time to load dynamic content using Promise-based delay
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        console.log(`[scrapeUrl] Page loaded (domcontentloaded + wait) in ${Date.now() - startTime}ms`);
-      } else {
-        throw navError;
-      }
-    }
+      // Launch browser (production or dev)
+      browser = await getBrowser();
+      console.log(`[scrapeUrl] Browser launched in ${Date.now() - startTime}ms`);
 
-    // Extract data from page
-    // Use type assertion to fix puppeteer/puppeteer-core type conflict
-    const scrapedData: ScrapedData = await (page as any).evaluate(() => {
+      const page = await browser.newPage();
+      
+      // Set user agent to avoid being blocked
+      await page.setUserAgent(
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      );
+
+      console.log(`[scrapeUrl] Navigating to ${url}...`);
+      
+      // Navigate to URL with timeout - use domcontentloaded as fallback for slow sites
+      try {
+        await page.goto(url, {
+          waitUntil: 'networkidle2',
+          timeout: 30000,
+        });
+        console.log(`[scrapeUrl] Page loaded (networkidle2) in ${Date.now() - startTime}ms`);
+      } catch (navError: any) {
+        // If networkidle2 times out, try with just domcontentloaded
+        if (navError?.message?.includes('timeout') || navError?.message?.includes('Navigation timeout')) {
+          console.log('[scrapeUrl] networkidle2 timed out, trying with domcontentloaded...');
+          await page.goto(url, {
+            waitUntil: 'domcontentloaded',
+            timeout: 20000,
+          });
+          // Give it a bit more time to load dynamic content using Promise-based delay
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          console.log(`[scrapeUrl] Page loaded (domcontentloaded + wait) in ${Date.now() - startTime}ms`);
+        } else {
+          throw navError;
+        }
+      }
+
+      // Extract data from page
+      // Use type assertion to fix puppeteer/puppeteer-core type conflict
+      const scrapedData: ScrapedData = await (page as any).evaluate(() => {
       // This function runs in the browser context
       // Extract title
       const title = document.querySelector('title')?.textContent || 
@@ -186,12 +265,28 @@ export async function scrapeUrl(url: string): Promise<ScrapedData> {
       };
     });
 
-    await browser.close();
-    
-    console.log(`[scrapeUrl] ✅ Scraping completed in ${Date.now() - startTime}ms`);
-    console.log(`[scrapeUrl] Extracted ${scrapedData.content.length} characters of content`);
+      await browser.close();
+      
+      console.log(`[scrapeUrl] ✅ Browser scraping completed in ${Date.now() - startTime}ms`);
+      console.log(`[scrapeUrl] Extracted ${scrapedData.content.length} characters of content`);
 
-    return scrapedData;
+      return scrapedData;
+    } catch (browserError) {
+      console.warn(`[scrapeUrl] ⚠️ Browser scraping failed, trying fallback...`, browserError);
+      
+      if (browser) {
+        try {
+          await browser.close();
+        } catch (closeError) {
+          console.error('[scrapeUrl] Failed to close browser:', closeError);
+        }
+      }
+      
+      // Fallback to simple HTTP scraping
+      const fallbackData = await simpleScrapeUrl(url);
+      console.log(`[scrapeUrl] ✅ Fallback scraping completed in ${Date.now() - startTime}ms`);
+      return fallbackData;
+    }
   } catch (error) {
     console.error(`[scrapeUrl] ❌ Error after ${Date.now() - startTime}ms:`, error);
     
