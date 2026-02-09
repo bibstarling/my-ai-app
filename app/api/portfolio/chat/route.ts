@@ -36,9 +36,13 @@ export async function POST(request: Request) {
       
       attachments.forEach((att: any) => {
         if (att.type === 'url') {
-          userPrompt += `\n📎 **Website Content from ${att.name}**\n`;
-          userPrompt += `${att.content}\n`;
-          userPrompt += `\n(This is scraped website content - extract relevant professional information from it)\n\n`;
+          userPrompt += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+          userPrompt += `🌐 **WEBSITE DATA (ALREADY SCRAPED)**\n`;
+          userPrompt += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+          userPrompt += `${att.content}\n\n`;
+          userPrompt += `⚠️ IMPORTANT: The above is REAL website content that was scraped for you.\n`;
+          userPrompt += `Extract ALL professional information from it and add to the portfolio!\n`;
+          userPrompt += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
         } else if (att.contentType === 'text' || att.text) {
           userPrompt += `\n📎 **${att.name}** (${att.type})\n`;
           userPrompt += `Content:\n${att.content || att.text}\n\n`;
@@ -67,7 +71,13 @@ export async function POST(request: Request) {
     // Build the prompt
     const promptText = `You are a professional portfolio assistant helping someone build their career portfolio in markdown format.
 
-**IMPORTANT: You CAN process website content!** When URLs or scraped website content are provided, you HAVE the data from those websites. DO NOT say you cannot access websites - the content has already been fetched for you.
+**CRITICAL - READ THIS CAREFULLY:**
+🚨 YOU ALREADY HAVE THE WEBSITE CONTENT! 🚨
+- When you see "SCRAPED WEBSITE CONTENT" or "Website Content" in the materials below, that IS the actual data from the website
+- The scraping has ALREADY BEEN DONE for you
+- You DO NOT need to scrape anything - just process the content that's provided
+- NEVER say "I can't access websites" - the content is RIGHT THERE in the attachments
+- If website content appears below, EXTRACT THE INFORMATION FROM IT immediately
 
 **Your job:**
 1. Analyze any materials provided (resume, documents, screenshots, URLs, website content, etc.)

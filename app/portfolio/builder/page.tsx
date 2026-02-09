@@ -392,11 +392,21 @@ export default function PortfolioBuilderPage() {
       const data = await res.json();
 
       if (data.success) {
+        // Format AI analysis properly
+        let analysisText = '';
+        if (data.link.aiAnalysis) {
+          if (typeof data.link.aiAnalysis === 'string') {
+            analysisText = data.link.aiAnalysis;
+          } else if (typeof data.link.aiAnalysis === 'object') {
+            analysisText = JSON.stringify(data.link.aiAnalysis, null, 2);
+          }
+        }
+        
         return {
-          name: `URL: ${data.link.title || url}`,
+          name: `Website: ${data.link.title || url}`,
           type: 'url',
           contentType: 'text',
-          content: `**URL:** ${url}\n**Title:** ${data.link.title}\n**Description:** ${data.link.description}\n\n**AI Analysis:**\n${data.link.aiAnalysis}\n\n**Content Preview:**\n${data.link.content}`,
+          content: `**SCRAPED WEBSITE CONTENT (Already fetched for you!)**\n\n**URL:** ${url}\n**Title:** ${data.link.title}\n**Description:** ${data.link.description}\n\n**AI Analysis:**\n${analysisText}\n\n**Full Content:**\n${data.link.content}\n\n---\nYOU HAVE ACCESS TO THIS DATA - Extract professional information from it!`,
         };
       } else {
         throw new Error(data.error || 'Failed to scrape URL');

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { generateAICompletion } from '@/lib/ai-provider';
+import { scrapeUrl, isValidUrl } from '@/lib/url-scraper';
 
 export async function POST(request: Request) {
   try {
@@ -24,42 +25,37 @@ export async function POST(request: Request) {
     }
 
     // Validate URL format
-    try {
-      new URL(url);
-    } catch {
+    if (!isValidUrl(url)) {
       return NextResponse.json(
         { error: 'Invalid URL format' },
         { status: 400 }
       );
     }
 
-    // Fetch the webpage content
-    let htmlContent: string;
+    // Scrape the webpage content using Puppeteer (works with JS-heavy sites)
+    let pageContent: string;
+    let pageTitle: string;
     try {
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch page: ${response.status}`);
-      }
-      
-      htmlContent = await response.text();
+      console.log('[Job Extract] Scraping URL:', url);
+      const scrapedData = await scrapeUrl(url);
+      pageContent = scrapedData.content;
+      pageTitle = scrapedData.title;
+      console.log('[Job Extract] Scraping successful, content length:', pageContent.length);
     } catch (error) {
-      console.error('Error fetching URL:', error);
+      console.error('[Job Extract] Error scraping URL:', error);
       return NextResponse.json(
         { error: 'Failed to fetch job posting. The page may be protected or unavailable.' },
         { status: 500 }
       );
     }
 
-    // Use Claude to extract job details from HTML
-    const prompt = `You are a job posting information extractor. Extract the key details from this job posting HTML.
+    // Use AI to extract job details from scraped content
+    const prompt = `You are a job posting information extractor. Extract the key details from this job posting content.
 
-HTML CONTENT:
-${htmlContent.slice(0, 50000)}
+JOB POSTING TITLE: ${pageTitle}
+
+JOB POSTING CONTENT:
+${pageContent.slice(0, 50000)}
 
 Extract and return ONLY valid JSON with these fields:
 {
