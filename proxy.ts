@@ -1,7 +1,11 @@
 import { clerkMiddleware } from '@clerk/nextjs/server';
 
-// Simple middleware - just let Clerk handle authentication
-export default clerkMiddleware();
+// Configure Clerk with custom domain for cookie handling
+export default clerkMiddleware({
+  // Clerk custom domain configuration
+  domain: 'clerk.applausejobs.com',
+  isSatellite: false,
+});
 
 export const config = {
   matcher: [

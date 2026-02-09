@@ -48,7 +48,10 @@ export function ClientAuthWrapper({
 
   // Normal mode: wrap with ClerkProvider
   return (
-    <ClerkProvider publishableKey={publishableKey}>
+    <ClerkProvider 
+      publishableKey={publishableKey}
+      domain="clerk.applausejobs.com"
+    >
       <EmbedModeContext.Provider value={false}>
         {children}
       </EmbedModeContext.Provider>
