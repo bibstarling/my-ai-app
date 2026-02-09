@@ -1,4 +1,3 @@
-import puppeteer, { Browser, Page } from 'puppeteer';
 import { generateAICompletion } from './ai-provider';
 
 interface ScrapedData {
@@ -17,14 +16,39 @@ interface ScrapedData {
 }
 
 /**
- * Scrape a URL and extract content
+ * Get Puppeteer browser instance (serverless-compatible)
  */
-export async function scrapeUrl(url: string): Promise<ScrapedData> {
-  let browser: Browser | null = null;
+async function getBrowser() {
+  const isProduction = process.env.NODE_ENV === 'production';
   
-  try {
-    // Launch browser
-    browser = await puppeteer.launch({
+  console.log(`[getBrowser] Environment: ${isProduction ? 'production' : 'development'}`);
+  
+  if (isProduction) {
+    // Use chromium for serverless (Vercel)
+    try {
+      console.log('[getBrowser] Loading serverless chromium...');
+      const chromium = await import('@sparticuz/chromium');
+      const puppeteerCore = await import('puppeteer-core');
+      
+      const executablePath = await chromium.default.executablePath();
+      console.log(`[getBrowser] Chromium executable: ${executablePath}`);
+      
+      return puppeteerCore.default.launch({
+        args: [...chromium.default.args, '--disable-web-security'],
+        defaultViewport: { width: 1920, height: 1080 },
+        executablePath,
+        headless: true,
+      });
+    } catch (error) {
+      console.error('[getBrowser] Failed to launch serverless chromium:', error);
+      throw new Error(`Failed to initialize browser in production: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  } else {
+    // Use regular puppeteer for local development
+    console.log('[getBrowser] Loading local puppeteer...');
+    const puppeteer = await import('puppeteer');
+    
+    return puppeteer.default.launch({
       headless: true,
       args: [
         '--no-sandbox',
@@ -33,25 +57,48 @@ export async function scrapeUrl(url: string): Promise<ScrapedData> {
         '--disable-accelerated-2d-canvas',
         '--no-first-run',
         '--no-zygote',
-        '--disable-gpu'
+        '--disable-gpu',
+        '--disable-web-security'
       ],
     });
+  }
+}
 
-    const page: Page = await browser.newPage();
+/**
+ * Scrape a URL and extract content
+ */
+export async function scrapeUrl(url: string): Promise<ScrapedData> {
+  let browser = null;
+  const startTime = Date.now();
+  
+  try {
+    console.log(`[scrapeUrl] Starting scrape for: ${url}`);
+    
+    // Launch browser (production or dev)
+    browser = await getBrowser();
+    console.log(`[scrapeUrl] Browser launched in ${Date.now() - startTime}ms`);
+
+    const page = await browser.newPage();
     
     // Set user agent to avoid being blocked
     await page.setUserAgent(
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
     );
 
+    console.log(`[scrapeUrl] Navigating to ${url}...`);
+    
     // Navigate to URL with timeout
     await page.goto(url, {
       waitUntil: 'networkidle2',
       timeout: 30000,
     });
+    
+    console.log(`[scrapeUrl] Page loaded in ${Date.now() - startTime}ms`);
 
     // Extract data from page
-    const scrapedData = await page.evaluate(() => {
+    // Use type assertion to fix puppeteer/puppeteer-core type conflict
+    const scrapedData: ScrapedData = await (page as any).evaluate(() => {
+      // This function runs in the browser context
       // Extract title
       const title = document.querySelector('title')?.textContent || 
                    document.querySelector('h1')?.textContent || 
@@ -125,14 +172,34 @@ export async function scrapeUrl(url: string): Promise<ScrapedData> {
     });
 
     await browser.close();
+    
+    console.log(`[scrapeUrl] ✅ Scraping completed in ${Date.now() - startTime}ms`);
+    console.log(`[scrapeUrl] Extracted ${scrapedData.content.length} characters of content`);
 
     return scrapedData;
   } catch (error) {
+    console.error(`[scrapeUrl] ❌ Error after ${Date.now() - startTime}ms:`, error);
+    
     if (browser) {
-      await browser.close();
+      try {
+        await browser.close();
+        console.log('[scrapeUrl] Browser closed after error');
+      } catch (closeError) {
+        console.error('[scrapeUrl] Failed to close browser:', closeError);
+      }
     }
     
-    console.error('Error scraping URL:', error);
+    // Provide helpful error messages
+    if (error instanceof Error) {
+      if (error.message.includes('timeout')) {
+        throw new Error(`Timeout while scraping ${url}. The website took too long to load.`);
+      } else if (error.message.includes('net::ERR_')) {
+        throw new Error(`Network error while accessing ${url}. The website may be down or blocking requests.`);
+      } else if (error.message.includes('executable')) {
+        throw new Error('Browser initialization failed. This may be a configuration issue in production.');
+      }
+    }
+    
     throw new Error(`Failed to scrape URL: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }

@@ -16,6 +16,7 @@ export const metadata: Metadata = {
 };
 
 const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? '';
+const clerkFrontendApi = process.env.NEXT_PUBLIC_CLERK_FRONTEND_API || 'https://clerk.applausejobs.com';
 
 export default function RootLayout({
   children,

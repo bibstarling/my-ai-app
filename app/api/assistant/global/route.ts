@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { generateAICompletionMultimodal } from '@/lib/ai-provider';
+import { getSupabaseServiceRole } from '@/lib/supabase-server';
 
 /**
  * POST /api/assistant/global
@@ -24,8 +25,43 @@ export async function POST(request: Request) {
       );
     }
 
+    // Get user's professional profile markdown for personalized context
+    const supabase = getSupabaseServiceRole();
+    const { data: userPortfolio } = await supabase
+      .from('user_portfolios')
+      .select('markdown, portfolio_data')
+      .eq('clerk_id', userId)
+      .maybeSingle();
+
+    const { data: userInfo } = await supabase
+      .from('users')
+      .select('is_super_admin')
+      .eq('clerk_id', userId)
+      .single();
+
+    let profileContext = '';
+    
+    // Get markdown content for personalization
+    if (userPortfolio?.markdown) {
+      profileContext = userPortfolio.markdown;
+    } else if (userInfo?.is_super_admin) {
+      // Super admin uses main portfolio data
+      try {
+        const { portfolioData } = await import('@/lib/portfolio-data');
+        // Convert structured data to markdown-like format for context
+        profileContext = `# ${portfolioData.fullName}\n${portfolioData.title}\n\n${portfolioData.tagline}\n\n## Experience\n${portfolioData.experiences.map((exp: any) => `### ${exp.title} at ${exp.company}\n${exp.description}`).join('\n\n')}`;
+      } catch (error) {
+        console.error('Failed to load super admin portfolio:', error);
+      }
+    }
+
     // Build the AI prompt with action detection
     const systemPrompt = `You are an AI Career Assistant integrated into Applause, a career platform. You help users with job searching, resume building, cover letter writing, profile management, and career advice.
+
+${profileContext ? `**USER'S PROFESSIONAL PROFILE:**
+${profileContext}
+
+Use this profile to provide PERSONALIZED career guidance. Reference their specific experience, skills, and achievements when relevant.` : '**Note:** User has not yet created their professional profile. Recommend they build one at /portfolio/builder for personalized assistance.'}
 
 **IMPORTANT: You have the ability to scrape and fetch data from websites!** When a user provides a URL or asks you to fetch/scrape/extract/analyze content from a website, you MUST use the scrape_url action. Do NOT tell the user you cannot access websites.
 

@@ -378,10 +378,13 @@ function GenerateCoverLetterModal({
   const [loading, setLoading] = useState(true);
   const [contentLanguage, setContentLanguage] = useState<Locale>('en');
   const [loadingSettings, setLoadingSettings] = useState(true);
+  const [profileStatus, setProfileStatus] = useState<{ hasProfile: boolean; markdownLength: number } | null>(null);
+  const [checkingProfile, setCheckingProfile] = useState(true);
 
   useEffect(() => {
     fetchJobs();
     fetchUserSettings();
+    checkProfileStatus();
   }, []);
 
   async function fetchJobs() {
@@ -414,6 +417,27 @@ function GenerateCoverLetterModal({
       console.error('Error fetching settings:', error);
     } finally {
       setLoadingSettings(false);
+    }
+  }
+
+  async function checkProfileStatus() {
+    try {
+      const response = await fetch('/api/portfolio/current', { credentials: 'include' });
+      const data = await response.json();
+      if (data.success && data.portfolio) {
+        const markdownLength = data.portfolio.markdown?.length || 0;
+        setProfileStatus({
+          hasProfile: markdownLength > 100, // Require at least 100 chars
+          markdownLength
+        });
+      } else {
+        setProfileStatus({ hasProfile: false, markdownLength: 0 });
+      }
+    } catch (error) {
+      console.error('Error checking profile:', error);
+      setProfileStatus({ hasProfile: false, markdownLength: 0 });
+    } finally {
+      setCheckingProfile(false);
     }
   }
 
@@ -472,6 +496,32 @@ function GenerateCoverLetterModal({
             </div>
           </div>
         </div>
+
+        {/* Profile Warning Banner */}
+        {!checkingProfile && profileStatus && !profileStatus.hasProfile && (
+          <div className="mx-6 mt-6 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-amber-800">Professional Profile Required</h3>
+                <p className="mt-1 text-sm text-amber-700">
+                  To generate personalized cover letters, the AI needs your professional profile as context. Please build your profile first with your experience, skills, and achievements.
+                </p>
+                <Link 
+                  href="/portfolio/builder"
+                  className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-amber-800 hover:text-amber-900 underline"
+                >
+                  <Briefcase className="w-4 h-4" />
+                  Build Your Profile Now
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
         
         <div className="p-6 overflow-y-auto max-h-[60vh]">
           {loading ? (
@@ -575,8 +625,9 @@ function GenerateCoverLetterModal({
             </button>
             <button
               onClick={handleGenerate}
-              disabled={!selectedJobId || generating}
+              disabled={!selectedJobId || generating || !profileStatus?.hasProfile}
               className="flex-1 px-4 py-2 bg-applause-orange text-white rounded-lg hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title={!profileStatus?.hasProfile ? 'Build your profile first to generate personalized cover letters' : ''}
             >
               {generating ? 'Generating...' : 'Generate Cover Letter'}
             </button>

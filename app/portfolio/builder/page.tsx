@@ -21,21 +21,23 @@ import {
   File,
   Briefcase,
   Save,
-  Bold,
-  Italic,
-  Code,
-  Heading1,
-  Heading2,
-  Heading3,
-  List,
-  ListOrdered,
-  Quote,
-  Image,
-  Table,
   Info,
   Sparkles,
 } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+import dynamic from 'next/dynamic';
+
+// Import markdown editor with no SSR (it uses browser-only APIs)
+const MDEditor = dynamic(
+  () => import('@uiw/react-md-editor').then((mod) => mod.default),
+  { ssr: false }
+);
+
+// Import markdown editor styles
+import '@uiw/react-md-editor/markdown-editor.css';
+import '@uiw/react-markdown-preview/markdown.css';
+
+// Import custom editor styles
+import './editor.css';
 
 export default function PortfolioBuilderPage() {
   const { user, isLoaded } = useUser();
@@ -50,13 +52,7 @@ export default function PortfolioBuilderPage() {
   // Markdown editor state
   const [markdown, setMarkdown] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [showSlashMenu, setShowSlashMenu] = useState(false);
-  const [slashMenuPosition, setSlashMenuPosition] = useState({ top: 0, left: 0 });
-  const [slashMenuFilter, setSlashMenuFilter] = useState('');
-  const [showFormatMenu, setShowFormatMenu] = useState(false);
-  const [formatMenuPosition, setFormatMenuPosition] = useState({ top: 0, left: 0 });
   const [showInfoBanner, setShowInfoBanner] = useState(true);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   
   // Chat state
   const [messages, setMessages] = useState<any[]>([]);
@@ -77,14 +73,6 @@ export default function PortfolioBuilderPage() {
     }
   }, [isLoaded, user]);
 
-  // Auto-resize textarea when markdown changes
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (textarea && markdown) {
-      textarea.style.height = 'auto';
-      textarea.style.height = Math.max(600, textarea.scrollHeight) + 'px';
-    }
-  }, [markdown]);
 
   const initializePortfolio = async () => {
     try {
@@ -164,207 +152,18 @@ export default function PortfolioBuilderPage() {
     }
   };
 
-  // Slash commands
-  const slashCommands = [
-    { label: 'Heading 1', icon: Heading1, value: '# ', description: 'Large section heading' },
-    { label: 'Heading 2', icon: Heading2, value: '## ', description: 'Medium section heading' },
-    { label: 'Heading 3', icon: Heading3, value: '### ', description: 'Small section heading' },
-    { label: 'Bullet List', icon: List, value: '- ', description: 'Create a bullet list' },
-    { label: 'Numbered List', icon: ListOrdered, value: '1. ', description: 'Create a numbered list' },
-    { label: 'Quote', icon: Quote, value: '> ', description: 'Create a quote block' },
-    { label: 'Code Block', icon: Code, value: '```\n\n```', description: 'Insert a code block' },
-    { label: 'Image', icon: Image, value: '![alt text](url)', description: 'Insert an image' },
-    { label: 'Link', icon: LinkIcon, value: '[text](url)', description: 'Insert a link' },
-    { label: 'Divider', icon: null, value: '\n---\n', description: 'Insert a horizontal line' },
-  ];
-
-  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    const cursorPos = e.target.selectionStart;
-    
-    setMarkdown(value);
-    
-    // Auto-resize textarea to fit content
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = Math.max(600, textarea.scrollHeight) + 'px';
-    }
-    
-    // Check for slash command
-    const textBeforeCursor = value.substring(0, cursorPos);
-    const lastLine = textBeforeCursor.split('\n').pop() || '';
-    const slashMatch = lastLine.match(/\/(\w*)$/);
-    
-    if (slashMatch) {
-      setSlashMenuFilter(slashMatch[1]);
-      setShowSlashMenu(true);
-      
-      // Calculate position
-      if (textarea) {
-        const lines = textBeforeCursor.split('\n');
-        const currentLine = lines.length;
-        const lineHeight = 24; // approximate
-        const top = currentLine * lineHeight;
-        setSlashMenuPosition({ top, left: 20 });
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSaveMarkdown();
       }
-    } else {
-      setShowSlashMenu(false);
-    }
-  };
-
-  const insertSlashCommand = (command: typeof slashCommands[0]) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
+    };
     
-    const cursorPos = textarea.selectionStart;
-    const textBeforeCursor = markdown.substring(0, cursorPos);
-    const textAfterCursor = markdown.substring(cursorPos);
-    
-    // Find and remove the slash command trigger
-    const lines = textBeforeCursor.split('\n');
-    const lastLine = lines[lines.length - 1];
-    const slashIndex = lastLine.lastIndexOf('/');
-    
-    if (slashIndex !== -1) {
-      lines[lines.length - 1] = lastLine.substring(0, slashIndex);
-      const newTextBefore = lines.join('\n');
-      
-      let newText;
-      let cursorOffset = 0;
-      
-      if (command.value === '```\n\n```') {
-        newText = newTextBefore + command.value + textAfterCursor;
-        cursorOffset = command.value.indexOf('\n\n') + 2;
-      } else {
-        newText = newTextBefore + command.value + textAfterCursor;
-        cursorOffset = command.value.length;
-      }
-      
-      setMarkdown(newText);
-      setShowSlashMenu(false);
-      
-      setTimeout(() => {
-        textarea.focus();
-        textarea.setSelectionRange(
-          newTextBefore.length + cursorOffset,
-          newTextBefore.length + cursorOffset
-        );
-      }, 0);
-    }
-  };
-
-  const handleTextSelection = () => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    
-    if (start !== end) {
-      // Text is selected, show format menu
-      const rect = textarea.getBoundingClientRect();
-      const textBeforeSelection = markdown.substring(0, start);
-      const lines = textBeforeSelection.split('\n');
-      const lineHeight = 24;
-      const top = lines.length * lineHeight - textarea.scrollTop;
-      
-      setFormatMenuPosition({ 
-        top: Math.max(60, top - 50), 
-        left: 100 
-      });
-      setShowFormatMenu(true);
-    } else {
-      setShowFormatMenu(false);
-    }
-  };
-
-  const applyFormat = (format: 'bold' | 'italic' | 'code' | 'link') => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = markdown.substring(start, end);
-    
-    if (!selectedText) return;
-    
-    let formatted = '';
-    let cursorOffset = 0;
-    
-    switch (format) {
-      case 'bold':
-        formatted = `**${selectedText}**`;
-        cursorOffset = 2;
-        break;
-      case 'italic':
-        formatted = `*${selectedText}*`;
-        cursorOffset = 1;
-        break;
-      case 'code':
-        formatted = `\`${selectedText}\``;
-        cursorOffset = 1;
-        break;
-      case 'link':
-        formatted = `[${selectedText}](url)`;
-        cursorOffset = selectedText.length + 3;
-        break;
-    }
-    
-    const newText = markdown.substring(0, start) + formatted + markdown.substring(end);
-    setMarkdown(newText);
-    setShowFormatMenu(false);
-    
-    setTimeout(() => {
-      textarea.focus();
-      if (format === 'link') {
-        // Select "url" part
-        textarea.setSelectionRange(start + cursorOffset, start + cursorOffset + 3);
-      } else {
-        textarea.setSelectionRange(start + cursorOffset, start + cursorOffset + selectedText.length);
-      }
-    }, 0);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Keyboard shortcuts
-    if (e.ctrlKey || e.metaKey) {
-      switch (e.key) {
-        case 'b':
-          e.preventDefault();
-          applyFormat('bold');
-          break;
-        case 'i':
-          e.preventDefault();
-          applyFormat('italic');
-          break;
-        case 'k':
-          e.preventDefault();
-          applyFormat('link');
-          break;
-        case '`':
-          e.preventDefault();
-          applyFormat('code');
-          break;
-        case 's':
-          e.preventDefault();
-          handleSaveMarkdown();
-          break;
-      }
-    }
-    
-    // Escape to close menus
-    if (e.key === 'Escape') {
-      setShowSlashMenu(false);
-      setShowFormatMenu(false);
-    }
-    
-    // Handle slash menu navigation
-    if (showSlashMenu && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
-      e.preventDefault();
-      // TODO: Add arrow key navigation
-    }
-  };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [markdown]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -831,7 +630,7 @@ export default function PortfolioBuilderPage() {
   const isPublic = portfolio?.is_public;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-background" data-color-mode="light">
       {/* Compact Header */}
       <div className="border-b border-border bg-white sticky top-0 z-30">
         <div className="mx-auto max-w-5xl px-6 py-3 flex items-center justify-between">
@@ -868,7 +667,7 @@ export default function PortfolioBuilderPage() {
             <div className="bg-blue-50 border border-blue-200 rounded-md px-3 py-2 flex items-center gap-2 text-xs">
               <Info className="h-4 w-4 text-blue-600 flex-shrink-0" />
               <p className="flex-1 text-blue-800">
-                <strong className="font-semibold">Tip:</strong> The more detailed your profile, the better your AI-generated resumes and cover letters will be.
+                <strong className="font-semibold">Notion-like editor:</strong> Edit on the left, see live preview on the right. Use the toolbar for formatting or markdown syntax. Ctrl+S to save.
               </p>
               <button
                 onClick={() => setShowInfoBanner(false)}
@@ -881,135 +680,116 @@ export default function PortfolioBuilderPage() {
         )}
       </div>
 
-      {/* Main Content - Clean Editor */}
+      {/* Main Content - Notion-like Editor */}
       <div className="flex-1 overflow-y-auto bg-gray-50">
         <div className="mx-auto max-w-5xl px-6 py-8">
           {/* Editor Container */}
-          <div className="rounded-lg bg-white shadow-sm border border-gray-200 p-12 min-h-[700px]">
-            <div className="relative">
-              {/* Rendered markdown display */}
-              <div className="pointer-events-none relative z-0">
-                {markdown ? (
-                  <ReactMarkdown
-                    components={{
-                      h1: ({node, ...props}) => <h1 className="text-5xl font-bold mb-6 text-gray-900 leading-tight" {...props} />,
-                      h2: ({node, ...props}) => <h2 className="text-4xl font-bold mb-4 mt-12 text-gray-900 leading-tight" {...props} />,
-                      h3: ({node, ...props}) => <h3 className="text-3xl font-semibold mb-3 mt-10 text-gray-900 leading-snug" {...props} />,
-                      p: ({node, ...props}) => <p className="text-lg leading-8 mb-4 text-gray-700" {...props} />,
-                      ul: ({node, ...props}) => <ul className="list-disc ml-6 mb-6 space-y-2 text-gray-700" {...props} />,
-                      ol: ({node, ...props}) => <ol className="list-decimal ml-6 mb-6 space-y-2 text-gray-700" {...props} />,
-                      li: ({node, ...props}) => <li className="text-lg leading-8 pl-2" {...props} />,
-                      blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-300 pl-6 italic text-gray-600 my-6 text-lg" {...props} />,
-                      code: ({node, className, children, ...props}) => {
-                        const inline = !className;
-                        return inline ? (
-                          <code className="bg-gray-100 text-red-600 px-2 py-1 rounded text-base font-mono" {...props}>
-                            {children}
-                          </code>
-                        ) : (
-                          <code className="block bg-gray-900 text-gray-100 p-6 rounded-lg overflow-x-auto text-base font-mono my-6" {...props}>
-                            {children}
-                          </code>
-                        );
-                      },
-                      a: ({node, ...props}) => <a className="text-blue-600 hover:underline" {...props} />,
-                      strong: ({node, ...props}) => <strong className="font-bold text-gray-900" {...props} />,
-                      em: ({node, ...props}) => <em className="italic" {...props} />,
-                      hr: ({node, ...props}) => <hr className="border-t border-gray-200 my-8" {...props} />,
-                    }}
-                  >
-                    {markdown}
-                  </ReactMarkdown>
-                ) : (
-                  <p className="text-lg text-gray-400">
-                    Type / for commands...
-                  </p>
-                )}
-              </div>
-              
-              {/* Invisible textarea overlay */}
-              <textarea
-                ref={textareaRef}
-                value={markdown}
-                onChange={handleTextareaChange}
-                onSelect={handleTextSelection}
-                onKeyDown={handleKeyDown}
-                className="absolute top-0 left-0 w-full resize-none text-transparent caret-gray-900 bg-transparent focus:outline-none z-10 cursor-text overflow-hidden"
-                style={{ 
-                  caretColor: '#111827',
-                  minHeight: '600px',
-                  height: '600px'
-                }}
-                placeholder=""
-              />
-              
-              {/* Slash Command Menu */}
-              {showSlashMenu && (
-                <div
-                  className="absolute z-50 bg-white rounded-lg shadow-xl border border-gray-200 py-2 w-80"
-                  style={{ top: slashMenuPosition.top, left: slashMenuPosition.left }}
-                >
-                  <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase">
-                    Blocks
-                  </div>
-                  {slashCommands
-                    .filter(cmd => 
-                      !slashMenuFilter || 
-                      cmd.label.toLowerCase().includes(slashMenuFilter.toLowerCase())
+          <div className="rounded-lg bg-white shadow-sm border border-gray-200 overflow-hidden">
+            <MDEditor
+              value={markdown}
+              onChange={(val) => setMarkdown(val || '')}
+              height={700}
+              preview="live"
+              hideToolbar={false}
+              enableScroll={true}
+              visibleDragbar={false}
+              highlightEnable={true}
+              style={{
+                border: 'none',
+                background: 'white',
+              }}
+              textareaProps={{
+                placeholder: 'Start writing your professional profile...\n\nTips:\n- Use # for headings\n- Use ** for bold\n- Use - for bullet lists\n- Paste images directly',
+              }}
+              previewOptions={{
+                rehypePlugins: [],
+                components: {
+                  h1: ({ children, ...props }) => (
+                    <h1 className="text-4xl font-bold mb-4 mt-8 text-gray-900" {...props}>
+                      {children}
+                    </h1>
+                  ),
+                  h2: ({ children, ...props }) => (
+                    <h2 className="text-3xl font-bold mb-3 mt-6 text-gray-900" {...props}>
+                      {children}
+                    </h2>
+                  ),
+                  h3: ({ children, ...props }) => (
+                    <h3 className="text-2xl font-semibold mb-2 mt-5 text-gray-900" {...props}>
+                      {children}
+                    </h3>
+                  ),
+                  p: ({ children, ...props }) => (
+                    <p className="text-base leading-7 mb-4 text-gray-700" {...props}>
+                      {children}
+                    </p>
+                  ),
+                  ul: ({ children, ...props }) => (
+                    <ul className="list-disc ml-6 mb-4 space-y-1 text-gray-700" {...props}>
+                      {children}
+                    </ul>
+                  ),
+                  ol: ({ children, ...props }) => (
+                    <ol className="list-decimal ml-6 mb-4 space-y-1 text-gray-700" {...props}>
+                      {children}
+                    </ol>
+                  ),
+                  li: ({ children, ...props }) => (
+                    <li className="text-base leading-7" {...props}>
+                      {children}
+                    </li>
+                  ),
+                  blockquote: ({ children, ...props }) => (
+                    <blockquote className="border-l-4 border-accent pl-4 italic text-gray-600 my-4" {...props}>
+                      {children}
+                    </blockquote>
+                  ),
+                  code: ({ inline, children, ...props }: any) => (
+                    inline ? (
+                      <code className="bg-gray-100 text-red-600 px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
+                        {children}
+                      </code>
+                    ) : (
+                      <code className="block bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono my-4" {...props}>
+                        {children}
+                      </code>
                     )
-                    .map((cmd, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => insertSlashCommand(cmd)}
-                        className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-100 text-left"
-                      >
-                        {cmd.icon && <cmd.icon className="h-4 w-4 text-gray-500" />}
-                        {!cmd.icon && <div className="h-4 w-4" />}
-                        <div className="flex-1">
-                          <div className="text-sm font-medium text-gray-900">{cmd.label}</div>
-                          <div className="text-xs text-gray-500">{cmd.description}</div>
-                        </div>
-                      </button>
-                    ))}
-                </div>
-              )}
-              
-              {/* Format Menu (appears on text selection) */}
-              {showFormatMenu && (
-                <div
-                  className="absolute z-50 bg-gray-900 rounded-lg shadow-xl py-1 flex items-center gap-1 px-1"
-                  style={{ top: formatMenuPosition.top, left: formatMenuPosition.left }}
-                >
-                  <button
-                    onClick={() => applyFormat('bold')}
-                    className="p-2 hover:bg-gray-800 rounded text-white"
-                    title="Bold (Ctrl+B)"
-                  >
-                    <Bold className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => applyFormat('italic')}
-                    className="p-2 hover:bg-gray-800 rounded text-white"
-                    title="Italic (Ctrl+I)"
-                  >
-                    <Italic className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => applyFormat('code')}
-                    className="p-2 hover:bg-gray-800 rounded text-white"
-                    title="Code (Ctrl+`)"
-                  >
-                    <Code className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => applyFormat('link')}
-                    className="p-2 hover:bg-gray-800 rounded text-white"
-                    title="Link (Ctrl+K)"
-                  >
-                    <LinkIcon className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
+                  ),
+                  a: ({ children, ...props }) => (
+                    <a className="text-accent hover:underline" {...props}>
+                      {children}
+                    </a>
+                  ),
+                  strong: ({ children, ...props }) => (
+                    <strong className="font-bold text-gray-900" {...props}>
+                      {children}
+                    </strong>
+                  ),
+                  hr: ({ ...props }) => (
+                    <hr className="border-t border-gray-200 my-6" {...props} />
+                  ),
+                },
+              }}
+            />
+          </div>
+          
+          {/* Helpful Tips */}
+          <div className="mt-4 space-y-2">
+            <div className="flex items-start gap-3 text-sm text-gray-600">
+              <div className="flex-shrink-0 w-5 h-5 rounded-full bg-accent/10 flex items-center justify-center">
+                <span className="text-xs text-accent font-semibold">💡</span>
+              </div>
+              <div>
+                <strong className="text-gray-700">Pro tip:</strong> This is a split-view editor. Type markdown on the left, see it rendered on the right in real-time—just like Notion!
+              </div>
+            </div>
+            <div className="flex items-start gap-3 text-sm text-gray-600">
+              <div className="flex-shrink-0 w-5 h-5 rounded-full bg-accent/10 flex items-center justify-center">
+                <span className="text-xs text-accent font-semibold">⌨️</span>
+              </div>
+              <div>
+                <strong className="text-gray-700">Shortcuts:</strong> Ctrl+S to save • Ctrl+B for bold • Ctrl+I for italic • Use toolbar for more formatting options
+              </div>
             </div>
           </div>
         </div>

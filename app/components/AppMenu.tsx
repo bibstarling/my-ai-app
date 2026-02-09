@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { UserButton } from '@clerk/nextjs';
+import { UserButton, SignInButton } from '@clerk/nextjs';
 import {
   Home,
   MessageSquare,
@@ -19,6 +19,7 @@ import {
   Shield,
   HelpCircle,
   Sparkles,
+  LogIn,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuthSafe } from '@/app/hooks/useAuthSafe';
@@ -101,7 +102,7 @@ type AppMenuProps = {
 export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isEmbedMode } = useAuthSafe();
+  const { user, isEmbedMode, isSignedIn, isLoaded } = useAuthSafe();
   const { isAdmin } = useIsAdmin();
   const menuItems = getMenuItems(isAdmin);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -123,7 +124,7 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
         {/* Logo/Brand */}
         <div className="p-4 border-b border-gray-200">
           {!isCollapsed ? (
-            <Link href="/assistant" className="flex items-center gap-2 group">
+            <Link href="/" className="flex items-center gap-2 group">
               <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-white font-bold shadow-lg group-hover:scale-110 transition-transform">
                 <Sparkles className="w-5 h-5" />
               </div>
@@ -134,7 +135,7 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
             </Link>
           ) : (
             <Tooltip content="Applause" show={isCollapsed}>
-              <Link href="/assistant" className="flex items-center justify-center group">
+              <Link href="/" className="flex items-center justify-center group">
                 <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-white font-bold shadow-lg group-hover:scale-110 transition-transform">
                   <Sparkles className="w-5 h-5" />
                 </div>
@@ -143,34 +144,68 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
           )}
         </div>
 
-        {/* Navigation Items */}
+        {/* Navigation Items - Only show if user is signed in */}
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {menuItems.map((item) => {
-            const active = isActive(item.href);
-            return (
-              <Tooltip key={item.id} content={item.label} show={isCollapsed}>
-                <Link
-                  href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
-                    active
-                      ? 'gradient-primary text-white shadow-lg'
-                      : 'text-gray-700 hover:bg-accent/5 hover:text-accent'
-                  } ${isCollapsed ? 'justify-center' : ''}`}
-                >
-                  {item.icon}
-                  {!isCollapsed && (
-                    <span className="text-sm font-medium">{item.label}</span>
-                  )}
-                </Link>
-              </Tooltip>
-            );
-          })}
+          {isLoaded && !isSignedIn && !isEmbedMode ? (
+            // Show login prompt for unauthenticated users
+            <div className="flex flex-col items-center justify-center h-full px-4 text-center space-y-4">
+              {!isCollapsed && (
+                <>
+                  <div className="w-16 h-16 rounded-full bg-gradient-primary/10 flex items-center justify-center">
+                    <LogIn className="w-8 h-8 text-primary" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-gray-900">Sign in to continue</h3>
+                    <p className="text-sm text-gray-600">
+                      Access your dashboard, career tools, and AI assistant
+                    </p>
+                  </div>
+                  <SignInButton mode="modal">
+                    <button className="w-full gradient-primary text-white px-4 py-2.5 rounded-lg font-medium hover:shadow-lg transition-all">
+                      Sign In
+                    </button>
+                  </SignInButton>
+                </>
+              )}
+              {isCollapsed && (
+                <Tooltip content="Sign in to continue" show={isCollapsed}>
+                  <SignInButton mode="modal">
+                    <button className="w-10 h-10 gradient-primary text-white rounded-lg flex items-center justify-center hover:shadow-lg transition-all">
+                      <LogIn className="w-5 h-5" />
+                    </button>
+                  </SignInButton>
+                </Tooltip>
+              )}
+            </div>
+          ) : (
+            // Show menu items for authenticated users
+            menuItems.map((item) => {
+              const active = isActive(item.href);
+              return (
+                <Tooltip key={item.id} content={item.label} show={isCollapsed}>
+                  <Link
+                    href={item.href}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                      active
+                        ? 'gradient-primary text-white shadow-lg'
+                        : 'text-gray-700 hover:bg-accent/5 hover:text-accent'
+                    } ${isCollapsed ? 'justify-center' : ''}`}
+                  >
+                    {item.icon}
+                    {!isCollapsed && (
+                      <span className="text-sm font-medium">{item.label}</span>
+                    )}
+                  </Link>
+                </Tooltip>
+              );
+            })
+          )}
         </nav>
 
         {/* Bottom Actions */}
         <div className="p-3 border-t border-gray-200 space-y-1">
-          {/* User Profile */}
-          {!isEmbedMode && user && (
+          {/* User Profile - Only show for authenticated users */}
+          {!isEmbedMode && user && isSignedIn && (
             <Tooltip 
               content={user.firstName || user.emailAddresses[0]?.emailAddress || 'Profile'} 
               show={isCollapsed}
@@ -179,7 +214,7 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
                 isCollapsed ? 'justify-center' : ''
               }`}>
                 <UserButton
-                  afterSignOutUrl="/assistant"
+                  afterSignOutUrl="/"
                   appearance={{
                     elements: {
                       avatarBox: 'h-8 w-8',
@@ -238,24 +273,26 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
             </Tooltip>
           )}
           
-          {/* Collapse Toggle */}
-          <Tooltip content={isCollapsed ? 'Expand Menu' : 'Collapse Menu'} show={isCollapsed}>
-            <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-gray-700 hover:bg-gray-100 w-full ${
-                isCollapsed ? 'justify-center' : ''
-              }`}
-            >
-              {isCollapsed ? (
-                <ChevronRight className="w-5 h-5" />
-              ) : (
-                <>
-                  <ChevronLeft className="w-5 h-5" />
-                  <span className="text-sm font-medium">Collapse</span>
-                </>
-              )}
-            </button>
-          </Tooltip>
+          {/* Collapse Toggle - Only show for authenticated users or in collapsed state */}
+          {(isSignedIn || isEmbedMode || isCollapsed) && (
+            <Tooltip content={isCollapsed ? 'Expand Menu' : 'Collapse Menu'} show={isCollapsed}>
+              <button
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-gray-700 hover:bg-gray-100 w-full ${
+                  isCollapsed ? 'justify-center' : ''
+                }`}
+              >
+                {isCollapsed ? (
+                  <ChevronRight className="w-5 h-5" />
+                ) : (
+                  <>
+                    <ChevronLeft className="w-5 h-5" />
+                    <span className="text-sm font-medium">Collapse</span>
+                  </>
+                )}
+              </button>
+            </Tooltip>
+          )}
         </div>
       </div>
       

@@ -4,5 +4,11 @@
       "path": "/api/admin/jobs/sync",
       "schedule": "0 0 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "app/api/portfolio/scrape/route.ts": {
+      "maxDuration": 60,
+      "memory": 3008
+    }
+  }
 }
