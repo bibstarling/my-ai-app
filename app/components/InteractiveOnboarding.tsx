@@ -91,6 +91,9 @@ export function InteractiveOnboarding() {
       credentials: 'include',
       body: JSON.stringify({ onboarding_completed: true }),
     }).catch(console.error);
+    
+    // Mark in localStorage that onboarding has been shown
+    localStorage.setItem('onboarding_has_been_shown', 'true');
   };
 
   const handleComplete = () => {
@@ -103,6 +106,9 @@ export function InteractiveOnboarding() {
       credentials: 'include',
       body: JSON.stringify({ onboarding_completed: true }),
     }).catch(console.error);
+    
+    // Mark in localStorage that onboarding has been shown
+    localStorage.setItem('onboarding_has_been_shown', 'true');
   };
 
   // Don't render until we've loaded state and we're on the right page

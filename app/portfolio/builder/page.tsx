@@ -402,11 +402,26 @@ export default function PortfolioBuilderPage() {
           }
         }
         
+        const fullContent = data.link.content || '';
+        const scrapedTitle = data.link.title || 'Untitled';
+        const scrapedDescription = data.link.description || '';
+        
+        console.log('[handleScrapeUrl] Scraped successfully:', {
+          url,
+          titleLength: scrapedTitle.length,
+          contentLength: fullContent.length,
+          descLength: scrapedDescription.length,
+        });
+        
+        if (fullContent.length < 100) {
+          throw new Error('Scraped content is too short - website may not have loaded properly');
+        }
+        
         return {
-          name: `Website: ${data.link.title || url}`,
+          name: `Website: ${scrapedTitle}`,
           type: 'url',
           contentType: 'text',
-          content: `**SCRAPED WEBSITE CONTENT (Already fetched for you!)**\n\n**URL:** ${url}\n**Title:** ${data.link.title}\n**Description:** ${data.link.description}\n\n**AI Analysis:**\n${analysisText}\n\n**Full Content:**\n${data.link.content}\n\n---\nYOU HAVE ACCESS TO THIS DATA - Extract professional information from it!`,
+          content: `**SCRAPED WEBSITE CONTENT (Already fetched for you!)**\n\n**URL:** ${url}\n**Title:** ${scrapedTitle}\n**Description:** ${scrapedDescription}\n\n**AI Analysis:**\n${analysisText}\n\n**Full Content:**\n${fullContent}\n\n---\nYOU HAVE ACCESS TO THIS DATA - Extract professional information from it!`,
         };
       } else {
         throw new Error(data.error || 'Failed to scrape URL');

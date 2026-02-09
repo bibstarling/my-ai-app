@@ -22,6 +22,11 @@ export async function POST(request: Request) {
       messageLength: message?.length || 0,
       attachmentsCount: attachments?.length || 0,
       attachmentTypes: attachments?.map((a: any) => a.type) || [],
+      firstAttachmentSample: attachments?.[0] ? {
+        type: attachments[0].type,
+        name: attachments[0].name,
+        contentPreview: attachments[0].content?.substring(0, 200) || 'No content',
+      } : null,
     });
 
     if (!message && (!attachments || attachments.length === 0)) {
@@ -29,6 +34,22 @@ export async function POST(request: Request) {
         { error: 'Message or attachments required' },
         { status: 400 }
       );
+    }
+
+    // If we have URL attachments but no content, return error
+    if (attachments && attachments.length > 0) {
+      const urlAttachment = attachments.find((a: any) => a.type === 'url');
+      if (urlAttachment && (!urlAttachment.content || urlAttachment.content.length < 100)) {
+        console.error('[Portfolio Chat] URL attachment has no content!', urlAttachment);
+        return NextResponse.json(
+          { 
+            success: false,
+            error: 'Website scraping may have failed. The scraped content is empty or too short.',
+            message: 'Failed to extract content from the website. Please try copying and pasting the content manually.'
+          },
+          { status: 200 }
+        );
+      }
     }
 
     // Build context for AI - support multimodal content
@@ -134,6 +155,15 @@ You are a professional portfolio assistant. The content above (if any) has ALREA
       // Text only
       finalContent = promptText;
     }
+
+    // Log the actual prompt being sent (first 1000 chars)
+    const promptPreview = typeof finalContent === 'string' 
+      ? finalContent.substring(0, 1000)
+      : JSON.stringify(finalContent[0]).substring(0, 1000);
+    console.log('[Portfolio Chat] Sending prompt preview:', promptPreview);
+    console.log('[Portfolio Chat] Total prompt length:', 
+      typeof finalContent === 'string' ? finalContent.length : JSON.stringify(finalContent).length
+    );
 
     // Use centralized AI provider (respects user's API key or uses system with limits)
     const response = await generateAICompletionMultimodal(

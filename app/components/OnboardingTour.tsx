@@ -201,21 +201,10 @@ export function OnboardingTour({ isOpen, onClose, autoStart = false }: Onboardin
     handleClose();
   };
 
-  const handleClose = async () => {
+  const handleClose = () => {
     setIsClosing(true);
     
-    // Mark onboarding as completed
-    try {
-      await fetch('/api/users/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ onboarding_completed: true }),
-      });
-    } catch (error) {
-      console.error('Failed to mark onboarding as completed:', error);
-    }
-    
+    // The onClose callback (from useOnboarding hook) will handle marking as completed
     onClose();
     setIsClosing(false);
   };
