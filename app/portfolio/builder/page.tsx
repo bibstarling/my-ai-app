@@ -118,7 +118,7 @@ export default function PortfolioBuilderPage() {
           setMessages([
             {
               role: 'assistant',
-              content: `👋 Hi! I'm your **Profile Context Assistant**.\n\nI'm here to help you build a comprehensive professional profile that will power all your AI-generated content—resumes, cover letters, and more.\n\n**What I can do:**\n• Extract information from your resume, certificates, or documents (PDF, Word, text)\n• Scrape and analyze URLs (LinkedIn, GitHub, personal website, projects)\n• Analyze screenshots of your work or projects\n• Help you document your experience, skills, and achievements\n• Organize your professional story in a structured way\n\n**The more detailed your profile, the better your tailored content will be!**\n\nYou can upload files, paste images (Ctrl+V), share URLs, or just tell me about your work. What would you like to add first?`,
+              content: `👋 Hi! I'm your **Profile Context Assistant**.\n\nI'm here to help you build a comprehensive professional profile that will power all your AI-generated content—resumes, cover letters, and more.\n\n**What I can do:**\n• Extract information from your resume, certificates, or documents (PDF, Word, text)\n• Scrape and analyze URLs (LinkedIn, GitHub, personal website, projects)\n• Analyze screenshots of your work or projects\n• Help you document your experience, skills, and achievements\n• **NEW**: Directly paste website content without AI processing\n\n**Quick Commands:**\n• Paste any URL and I'll scrape it\n• Say "paste it directly" after a URL to skip AI and add content immediately\n• Upload files or paste images (Ctrl+V)\n\n**The more detailed your profile, the better your tailored content will be!**\n\nWhat would you like to add first?`,
             },
           ]);
         }
@@ -421,6 +421,11 @@ export default function PortfolioBuilderPage() {
           name: `Website: ${scrapedTitle}`,
           type: 'url',
           contentType: 'text',
+          title: scrapedTitle,
+          description: scrapedDescription,
+          rawContent: fullContent,
+          aiAnalysis: analysisText,
+          url: url,
           content: `**SCRAPED WEBSITE CONTENT (Already fetched for you!)**\n\n**URL:** ${url}\n**Title:** ${scrapedTitle}\n**Description:** ${scrapedDescription}\n\n**AI Analysis:**\n${analysisText}\n\n**Full Content:**\n${fullContent}\n\n---\nYOU HAVE ACCESS TO THIS DATA - Extract professional information from it!`,
         };
       } else {
@@ -432,6 +437,83 @@ export default function PortfolioBuilderPage() {
     } finally {
       setScrapingUrl(false);
     }
+  };
+
+  const handleDirectPasteToProfile = (scrapedData: any) => {
+    // Format scraped content as markdown and add directly to the editor
+    const title = scrapedData.title || 'Website Content';
+    const url = scrapedData.url || '';
+    const description = scrapedData.description || '';
+    const content = scrapedData.rawContent || scrapedData.content || '';
+    
+    // Try to intelligently parse the content
+    let newContent = `\n\n---\n\n## ${title}\n\n`;
+    
+    if (url) {
+      newContent += `*Source: [${url}](${url})*\n\n`;
+    }
+    
+    if (description) {
+      newContent += `${description}\n\n`;
+    }
+    
+    // Parse the content for common patterns
+    const contentLines = content.split('\n').filter((line: string) => line.trim().length > 0);
+    
+    // Look for sections in the content
+    const hasExperienceKeywords = content.toLowerCase().includes('experience') || 
+                                   content.toLowerCase().includes('work history') ||
+                                   content.toLowerCase().includes('employment');
+    const hasProjectKeywords = content.toLowerCase().includes('project') ||
+                                content.toLowerCase().includes('portfolio');
+    const hasSkillKeywords = content.toLowerCase().includes('skill') ||
+                             content.toLowerCase().includes('expertise') ||
+                             content.toLowerCase().includes('technologies');
+    
+    // Add relevant sections based on content
+    if (hasExperienceKeywords) {
+      newContent += `### Work Experience\n\n`;
+      // Add first few lines that might contain experience
+      const experienceLines = contentLines.slice(0, 20).join('\n');
+      newContent += `${experienceLines}\n\n`;
+    } else if (hasProjectKeywords) {
+      newContent += `### Projects\n\n`;
+      const projectLines = contentLines.slice(0, 20).join('\n');
+      newContent += `${projectLines}\n\n`;
+    } else if (hasSkillKeywords) {
+      newContent += `### Skills\n\n`;
+      const skillLines = contentLines.slice(0, 15).join('\n');
+      newContent += `${skillLines}\n\n`;
+    } else {
+      // Generic content
+      newContent += `### Details\n\n`;
+      const preview = contentLines.slice(0, 30).join('\n');
+      newContent += `${preview}${contentLines.length > 30 ? '\n\n*... (content truncated, edit to expand)*' : ''}\n\n`;
+    }
+    
+    // AI analysis if available
+    if (scrapedData.aiAnalysis) {
+      let analysisText = typeof scrapedData.aiAnalysis === 'string' 
+        ? scrapedData.aiAnalysis 
+        : JSON.stringify(scrapedData.aiAnalysis, null, 2);
+      
+      if (analysisText && analysisText.length > 0 && analysisText !== '{}') {
+        newContent += `### AI Insights\n\n${analysisText}\n\n`;
+      }
+    }
+    
+    newContent += `*📝 Note: This content was scraped directly. Please review, format, and refine as needed.*\n\n`;
+    
+    // Append to current markdown
+    setMarkdown(prev => prev + newContent);
+    
+    setMessages(prev => [
+      ...prev,
+      { 
+        role: 'system', 
+        content: `✅ Content from "${title}" has been **pasted directly** to your profile!\n\n🎯 **Next steps:**\n1. Scroll up in the editor to see the new content\n2. Edit and refine the text as needed\n3. Click the **Save** button when done\n\nThe content has been added at the bottom of your profile.` 
+      },
+    ]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -454,23 +536,49 @@ export default function PortfolioBuilderPage() {
       setLoading(true);
       
       // Scrape each URL
+      const scrapedDataList: any[] = [];
       for (const url of urls) {
         try {
           const scrapedData = await handleScrapeUrl(url);
           if (scrapedData) {
+            scrapedDataList.push(scrapedData);
             attachments.push(scrapedData);
           }
         } catch (error) {
           setMessages((prev) => [
             ...prev,
-            { role: 'system', content: `⚠️ Could not scrape ${url}. Continuing with text input.` },
+            { role: 'system', content: `⚠️ Could not scrape ${url}. ${error instanceof Error ? error.message : ''}` },
           ]);
         }
       }
       
+      // DEFAULT: Direct paste mode (skip AI unless user asks for AI processing)
+      const wantsAIProcessing = userMessage.toLowerCase().includes('analyze with ai') || 
+                                 userMessage.toLowerCase().includes('use ai') ||
+                                 userMessage.toLowerCase().includes('ai process') ||
+                                 (userMessage.toLowerCase().includes('extract') && userMessage.toLowerCase().includes('ai'));
+      
+      if (!wantsAIProcessing) {
+        // Direct paste mode - DEFAULT behavior
+        setInput('');
+        setPendingAttachments([]);
+        
+        setMessages((prev) => [
+          ...prev,
+          { role: 'system', content: `✅ Scraping complete! Adding content directly to your profile...` },
+        ]);
+        
+        for (const scraped of scrapedDataList) {
+          handleDirectPasteToProfile(scraped);
+        }
+        
+        setLoading(false);
+        return;
+      }
+      
       setMessages((prev) => [
         ...prev,
-        { role: 'system', content: `✅ Scraping complete. Processing ${attachments.length} source(s)...` },
+        { role: 'system', content: `✅ Scraping complete. Processing with AI...` },
       ]);
     }
     
