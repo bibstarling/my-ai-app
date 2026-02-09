@@ -102,8 +102,8 @@ export async function scrapeUrl(url: string): Promise<ScrapedData> {
           waitUntil: 'domcontentloaded',
           timeout: 20000,
         });
-        // Give it a bit more time to load dynamic content
-        await page.waitForTimeout(3000);
+        // Give it a bit more time to load dynamic content using Promise-based delay
+        await new Promise(resolve => setTimeout(resolve, 3000));
         console.log(`[scrapeUrl] Page loaded (domcontentloaded + wait) in ${Date.now() - startTime}ms`);
       } else {
         throw navError;
