@@ -49,7 +49,7 @@ export default function ResumeBuilderPage() {
     if (!confirm('Are you sure you want to delete this resume? This cannot be undone.')) return;
     
     try {
-      await fetch(`/api/resume/${id}`, { method: 'DELETE' });
+      await fetch(`/api/resume/${id}`, { method: 'DELETE', credentials: 'include' });
       setResumes(resumes.filter(r => r.id !== id));
     } catch (error) {
       console.error('Error deleting resume:', error);
@@ -82,6 +82,7 @@ export default function ResumeBuilderPage() {
         await fetch(`/api/resume/${newResume.id}/sections`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({
             section_type: section.section_type,
             title: section.title,

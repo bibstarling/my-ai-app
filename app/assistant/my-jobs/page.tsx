@@ -1948,7 +1948,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
     setLoading(true);
     try {
       const endpoint = type === 'resume' ? `/api/resume/${id}` : `/api/cover-letter/${id}`;
-      const response = await fetch(endpoint);
+      const response = await fetch(endpoint, { credentials: 'include' });
       const data = await response.json();
       setContent(type === 'resume' ? data.resume : data.cover_letter);
     } catch (error) {

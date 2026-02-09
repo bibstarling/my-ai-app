@@ -49,7 +49,7 @@ export default function CoverLettersPage() {
     if (!confirm('Are you sure you want to delete this cover letter? This cannot be undone.')) return;
     
     try {
-      await fetch(`/api/cover-letter/${id}`, { method: 'DELETE' });
+      await fetch(`/api/cover-letter/${id}`, { method: 'DELETE', credentials: 'include' });
       setCoverLetters(coverLetters.filter(cl => cl.id !== id));
     } catch (error) {
       console.error('Error deleting cover letter:', error);
@@ -252,7 +252,7 @@ function CoverLetterPreviewModal({ coverLetterId, onClose }: { coverLetterId: st
   async function fetchCoverLetter() {
     setLoading(true);
     try {
-      const response = await fetch(`/api/cover-letter/${coverLetterId}`);
+      const response = await fetch(`/api/cover-letter/${coverLetterId}`, { credentials: 'include' });
       const data = await response.json();
       setCoverLetter(data.cover_letter);
     } catch (error) {
