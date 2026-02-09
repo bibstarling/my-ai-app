@@ -17,7 +17,7 @@ The platform has been localized to support both English and Portuguese, with a l
   - `messages/en.json` - English translations
   - `messages/pt.json` - Portuguese translations
 - Restructured app routes under `app/[locale]/` for locale support
-- Updated `proxy.ts` to combine Clerk authentication with i18n routing
+- Updated `middleware.ts` to combine Clerk authentication with i18n routing
 
 ### 3. UI Components
 - Created `Footer` component with language switcher dropdown
