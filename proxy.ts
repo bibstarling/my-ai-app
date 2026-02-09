@@ -1,11 +1,7 @@
 import { clerkMiddleware } from '@clerk/nextjs/server';
 
-// Configure Clerk to use satellite domain mode for proper cookie sharing
-export default clerkMiddleware({
-  // This ensures cookies work across www.applausejobs.com and clerk.applausejobs.com
-  isSatellite: false,
-  // Domain is inferred from the publishable key
-});
+// Simple middleware - let Clerk auto-detect configuration from publishable key
+export default clerkMiddleware();
 
 export const config = {
   matcher: [
