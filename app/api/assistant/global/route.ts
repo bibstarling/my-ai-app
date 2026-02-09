@@ -15,11 +15,11 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { message, context } = body;
+    const { message, attachments, context } = body;
 
-    if (!message) {
+    if (!message && (!attachments || attachments.length === 0)) {
       return NextResponse.json(
-        { error: 'Message required' },
+        { error: 'Message or attachments required' },
         { status: 400 }
       );
     }
@@ -46,12 +46,20 @@ You can trigger these actions by responding with JSON that includes an "action" 
 4. **Create Job Tracking**: Add a job to pipeline (future)
    - { "type": "create_job", "jobData": {...} }
 
+5. **Scrape URL**: Extract content from a website URL
+   - { "type": "scrape_url", "url": "https://example.com", "portfolioId": "optional-portfolio-id" }
+   - Use this when users ask to scrape, extract, or analyze content from a website
+
 **Current Context:**
 - User is on: ${context?.currentPath || 'unknown'}
 - Previous context: ${context?.previousMessages?.map((m: any) => `${m.role}: ${m.content}`).join('\n') || 'none'}
 
+${attachments && attachments.length > 0 ? `**Attached Files:**
+${attachments.map((att: any) => `- ${att.name} (${att.type}): ${att.content || att.text || 'Binary file'}`).join('\n')}
+` : ''}
+
 **User's Request:**
-${message}
+${message || 'Analyze the attached files'}
 
 **Response Format:**
 Respond with a JSON object:
@@ -65,15 +73,41 @@ Respond with a JSON object:
 - If user asks to search/find jobs, use search_jobs action
 - If user asks to create/generate resume or cover letter, use navigate to appropriate page
 - If user asks to add/track a job, acknowledge and explain the feature
+- If user asks to scrape/extract/analyze a website, use scrape_url action
+- If files are attached, analyze them and extract relevant information (resume, job posting, certificates, etc.)
 - For general questions, provide helpful career advice without actions
 - Keep responses concise but informative`;
+
+    // Prepare content for multimodal AI (text + attachments)
+    const contentParts: any[] = [];
+    
+    // Add attachments if present
+    if (attachments && attachments.length > 0) {
+      for (const attachment of attachments) {
+        if (attachment.contentType?.startsWith('image/')) {
+          // Image attachment
+          contentParts.push({
+            type: 'image',
+            data: attachment.content, // base64 or URL
+            mimeType: attachment.contentType,
+          });
+        } else if (attachment.text || attachment.content) {
+          // Text-based attachment (PDF, resume, etc.)
+          contentParts.push({
+            type: 'text',
+            text: `--- File: ${attachment.name} (${attachment.type}) ---\n${attachment.text || attachment.content}\n--- End of ${attachment.name} ---`,
+          });
+        }
+      }
+    }
 
     // Call AI with centralized provider
     const response = await generateAICompletionMultimodal(
       userId,
       'global_assistant',
       systemPrompt,
-      2048
+      2048,
+      contentParts.length > 0 ? contentParts : undefined
     );
 
     // Parse AI response
