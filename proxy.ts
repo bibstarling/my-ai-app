@@ -1,7 +1,11 @@
 import { clerkMiddleware } from '@clerk/nextjs/server';
 
-// Simple proxy - Clerk domain is configured via environment variables
-export default clerkMiddleware();
+// Configure Clerk to use satellite domain mode for proper cookie sharing
+export default clerkMiddleware({
+  // This ensures cookies work across www.applausejobs.com and clerk.applausejobs.com
+  isSatellite: false,
+  // Domain is inferred from the publishable key
+});
 
 export const config = {
   matcher: [
