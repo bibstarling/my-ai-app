@@ -112,17 +112,25 @@ export async function POST(request: Request) {
 You are a professional portfolio assistant. The content above (if any) has ALREADY been scraped/fetched for you.
 
 **YOUR TASK:**
-1. Look at the content provided above (website data, files, etc.)
-2. Extract ALL professional information from it
-3. Update the portfolio markdown by adding the extracted information
-4. Return the COMPLETE updated markdown
+1. **REVIEW** the current portfolio markdown (provided at the end)
+2. **EXTRACT** all professional information from the attached content (website data, files, etc.)
+3. **INTELLIGENTLY INTEGRATE** the new information into the existing profile:
+   - Merge similar experiences (don't duplicate)
+   - Enhance existing sections with more detail
+   - Add new sections if needed
+   - Maintain chronological order for experiences
+   - Consolidate skills and projects
+   - Keep the profile comprehensive and well-organized
+4. Return the COMPLETE updated markdown with integrated content
 
 **CRITICAL RULES:**
 ✅ The website content above is REAL DATA - not a request to scrape
 ✅ You HAVE the content - extract information from it NOW
 ✅ NEVER say "I can't access websites" - the data is RIGHT THERE above
-✅ If you see "SCRAPED WEBSITE CONTENT" or "Website Content" above, process it immediately
-✅ Return updated markdown with all the new information added
+✅ **INTEGRATE** new content into existing sections (don't just append at bottom)
+✅ If similar information exists, **ENHANCE** it rather than duplicate
+✅ Maintain a professional, comprehensive, and well-structured profile
+✅ Return the COMPLETE updated markdown with ALL sections
 
 **Markdown Structure:**
 - # Professional Profile (main title)
@@ -132,15 +140,16 @@ You are a professional portfolio assistant. The content above (if any) has ALREA
 - ## Skills
 - ## Education
 - ## Awards & Recognition
+- ## Certifications (if applicable)
 
 **Response Format (JSON):**
 {
-  "message": "Explain what you extracted and added",
-  "updatedMarkdown": "COMPLETE updated markdown with ALL new content",
-  "changes": ["List specific additions like 'Added 3 experiences', 'Added 5 skills'"]
+  "message": "Explain what you extracted and how you integrated it",
+  "updatedMarkdown": "COMPLETE updated markdown with INTEGRATED content",
+  "changes": ["List specific changes like 'Enhanced About Me section', 'Added 2 new projects', 'Merged skills into existing categories'"]
 }
 
-**If you see website/file content above: EXTRACT IT AND ADD TO MARKDOWN NOW!**`;
+**REMEMBER: INTEGRATE content intelligently into existing sections, don't just add at the bottom!**`;
 
     // Prepare content for API call - support multimodal (text + images)
     let finalContent;

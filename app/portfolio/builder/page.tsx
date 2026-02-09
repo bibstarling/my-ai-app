@@ -106,7 +106,7 @@ export default function PortfolioBuilderPage() {
           setMessages([
             {
               role: 'assistant',
-              content: `👋 Hi! I'm your **Profile Context Assistant**.\n\nI'm here to help you build a comprehensive professional profile that will power all your AI-generated content—resumes, cover letters, and more.\n\n**What I can do:**\n• Extract information from your resume, certificates, or documents (PDF, Word, text)\n• Scrape and analyze URLs (LinkedIn, GitHub, personal website, projects)\n• Analyze screenshots of your work or projects\n• Help you document your experience, skills, and achievements\n• **NEW**: Directly paste website content without AI processing\n\n**Quick Commands:**\n• Paste any URL and I'll scrape it\n• Say "paste it directly" after a URL to skip AI and add content immediately\n• Upload files or paste images (Ctrl+V)\n\n**The more detailed your profile, the better your tailored content will be!**\n\nWhat would you like to add first?`,
+              content: `👋 Hi! I'm your **Profile Context Assistant**.\n\nI'm here to help you build a comprehensive professional profile that will power all your AI-generated content—resumes, cover letters, and more.\n\n**What I can do:**\n• Extract information from your resume, certificates, or documents (PDF, Word, text)\n• Scrape and analyze URLs (LinkedIn, GitHub, personal website, projects)\n• Intelligently integrate new content into your existing profile\n• Enhance and expand sections with more detail\n• Maintain a well-organized, comprehensive profile\n\n**How it works:**\n• Paste any URL → I'll scrape it and intelligently integrate the content\n• Upload files (PDF, Word, images) → I'll extract and merge the information\n• Say "paste it directly" if you want raw content added without AI integration\n• Use Ctrl+V to paste images\n\n**The more detailed your profile, the better your tailored content will be!**\n\nWhat would you like to add first?`,
             },
           ]);
         }
@@ -396,20 +396,20 @@ export default function PortfolioBuilderPage() {
       
       console.log('[handleSubmit] Total URLs scraped:', scrapedDataList.length, 'out of', urls.length);
       
-      // DEFAULT: Direct paste mode (skip AI unless user asks for AI processing)
-      const wantsAIProcessing = userMessage.toLowerCase().includes('analyze with ai') || 
-                                 userMessage.toLowerCase().includes('use ai') ||
-                                 userMessage.toLowerCase().includes('ai process') ||
-                                 (userMessage.toLowerCase().includes('extract') && userMessage.toLowerCase().includes('ai'));
+      // Check if user wants direct paste (explicit keywords)
+      const wantsDirectPaste = userMessage.toLowerCase().includes('paste directly') || 
+                                userMessage.toLowerCase().includes('direct paste') ||
+                                userMessage.toLowerCase().includes('no ai') ||
+                                userMessage.toLowerCase().includes('skip ai');
       
-      if (!wantsAIProcessing) {
-        // Direct paste mode - DEFAULT behavior
+      if (wantsDirectPaste) {
+        // Direct paste mode - only if explicitly requested
         setInput('');
         setPendingAttachments([]);
         
         setMessages((prev) => [
           ...prev,
-          { role: 'system', content: `✅ Scraping complete! Adding content directly to your profile...` },
+          { role: 'system', content: `✅ Scraping complete! Pasting content directly to your profile...` },
         ]);
         
         for (const scraped of scrapedDataList) {
@@ -420,9 +420,10 @@ export default function PortfolioBuilderPage() {
         return;
       }
       
+      // DEFAULT: AI processing - intelligently integrate content
       setMessages((prev) => [
         ...prev,
-        { role: 'system', content: `✅ Scraping complete. Processing with AI...` },
+        { role: 'system', content: `✅ Scraping complete. AI is reviewing and integrating the content...` },
       ]);
     }
     
