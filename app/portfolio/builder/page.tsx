@@ -77,6 +77,15 @@ export default function PortfolioBuilderPage() {
     }
   }, [isLoaded, user]);
 
+  // Auto-resize textarea when markdown changes
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea && markdown) {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.max(600, textarea.scrollHeight) + 'px';
+    }
+  }, [markdown]);
+
   const initializePortfolio = async () => {
     try {
       // Initialize portfolio
@@ -175,6 +184,13 @@ export default function PortfolioBuilderPage() {
     
     setMarkdown(value);
     
+    // Auto-resize textarea to fit content
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.max(600, textarea.scrollHeight) + 'px';
+    }
+    
     // Check for slash command
     const textBeforeCursor = value.substring(0, cursorPos);
     const lastLine = textBeforeCursor.split('\n').pop() || '';
@@ -185,7 +201,6 @@ export default function PortfolioBuilderPage() {
       setShowSlashMenu(true);
       
       // Calculate position
-      const textarea = textareaRef.current;
       if (textarea) {
         const lines = textBeforeCursor.split('\n');
         const currentLine = lines.length;
@@ -737,20 +752,8 @@ export default function PortfolioBuilderPage() {
       <div className="flex-1 overflow-y-auto bg-gray-50">
         <div className="mx-auto max-w-5xl px-6 py-8">
           {/* Editor Container */}
-          <div className="rounded-lg bg-white shadow-sm border border-gray-200 p-12 min-h-[700px] relative">
+          <div className="rounded-lg bg-white shadow-sm border border-gray-200 p-12 min-h-[700px]">
             <div className="relative">
-              {/* Hidden textarea for actual editing */}
-              <textarea
-                ref={textareaRef}
-                value={markdown}
-                onChange={handleTextareaChange}
-                onSelect={handleTextSelection}
-                onKeyDown={handleKeyDown}
-                className="absolute inset-0 w-full h-full resize-none text-transparent caret-gray-900 bg-transparent focus:outline-none z-10"
-                style={{ caretColor: '#111827' }}
-                placeholder=""
-              />
-              
               {/* Rendered markdown display */}
               <div className="pointer-events-none relative z-0">
                 {markdown ? (
@@ -790,6 +793,22 @@ export default function PortfolioBuilderPage() {
                   </p>
                 )}
               </div>
+              
+              {/* Invisible textarea overlay */}
+              <textarea
+                ref={textareaRef}
+                value={markdown}
+                onChange={handleTextareaChange}
+                onSelect={handleTextSelection}
+                onKeyDown={handleKeyDown}
+                className="absolute top-0 left-0 w-full resize-none text-transparent caret-gray-900 bg-transparent focus:outline-none z-10 cursor-text overflow-hidden"
+                style={{ 
+                  caretColor: '#111827',
+                  minHeight: '600px',
+                  height: '600px'
+                }}
+                placeholder=""
+              />
               
               {/* Slash Command Menu */}
               {showSlashMenu && (
