@@ -79,35 +79,43 @@ Respond with a JSON object:
 - Keep responses concise but informative`;
 
     // Prepare content for multimodal AI (text + attachments)
-    const contentParts: any[] = [];
+    let aiContent: string | any[] = systemPrompt;
     
-    // Add attachments if present
+    // If attachments are present, build multimodal content
     if (attachments && attachments.length > 0) {
+      const contentParts: any[] = [
+        { type: 'text', text: systemPrompt }
+      ];
+      
       for (const attachment of attachments) {
         if (attachment.contentType?.startsWith('image/')) {
           // Image attachment
           contentParts.push({
             type: 'image',
-            data: attachment.content, // base64 or URL
-            mimeType: attachment.contentType,
+            source: {
+              type: 'base64',
+              media_type: attachment.contentType as any,
+              data: attachment.content.split(',')[1] || attachment.content, // Remove data:image prefix if present
+            }
           });
         } else if (attachment.text || attachment.content) {
           // Text-based attachment (PDF, resume, etc.)
           contentParts.push({
             type: 'text',
-            text: `--- File: ${attachment.name} (${attachment.type}) ---\n${attachment.text || attachment.content}\n--- End of ${attachment.name} ---`,
+            text: `\n\n--- File: ${attachment.name} (${attachment.type}) ---\n${attachment.text || attachment.content}\n--- End of ${attachment.name} ---`,
           });
         }
       }
+      
+      aiContent = contentParts;
     }
 
     // Call AI with centralized provider
     const response = await generateAICompletionMultimodal(
       userId,
       'global_assistant',
-      systemPrompt,
-      2048,
-      contentParts.length > 0 ? contentParts : undefined
+      aiContent,
+      2048
     );
 
     // Parse AI response
