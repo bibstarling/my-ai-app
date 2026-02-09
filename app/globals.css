@@ -32,6 +32,8 @@
   --emerald: #10b981;
   --ocean-blue: #3b82f6;
   --warm-sand: #f4a460;
+  --applause-orange: #e07a5f;
+  --sunshine-yellow: #fbbf24;
   
   /* Gradients - Earthy and sophisticated */
   --gradient-primary: linear-gradient(135deg, #e07a5f 0%, #d4663f 100%);
@@ -63,6 +65,8 @@
   --color-emerald: var(--emerald);
   --color-ocean-blue: var(--ocean-blue);
   --color-warm-sand: var(--warm-sand);
+  --color-applause-orange: var(--applause-orange);
+  --color-sunshine-yellow: var(--sunshine-yellow);
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
