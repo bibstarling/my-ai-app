@@ -174,10 +174,19 @@ export default function PortfolioBuilderPage() {
   }, [messages]);
 
   const handleScrapeUrl = async (url: string) => {
-    if (!portfolio) return null;
+    if (!portfolio) {
+      console.error('[handleScrapeUrl] No portfolio available');
+      return null;
+    }
 
+    console.log('[handleScrapeUrl] Starting scrape for URL:', url);
+    console.log('[handleScrapeUrl] Portfolio ID:', portfolio.id);
+    
     setScrapingUrl(true);
     try {
+      console.log('[handleScrapeUrl] Making API call to /api/portfolio/scrape...');
+      const startTime = Date.now();
+      
       const res = await fetch('/api/portfolio/scrape', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -188,7 +197,16 @@ export default function PortfolioBuilderPage() {
         }),
       });
 
+      const elapsedTime = Date.now() - startTime;
+      console.log('[handleScrapeUrl] API response received in', elapsedTime, 'ms');
+      console.log('[handleScrapeUrl] Response status:', res.status);
+
       const data = await res.json();
+      console.log('[handleScrapeUrl] Response data:', {
+        success: data.success,
+        hasLink: !!data.link,
+        error: data.error,
+      });
 
       if (data.success) {
         // Format AI analysis properly
@@ -216,6 +234,8 @@ export default function PortfolioBuilderPage() {
           throw new Error('Scraped content is too short - website may not have loaded properly');
         }
         
+        console.log('[handleScrapeUrl] ✅ Scrape successful, building attachment...');
+        
         return {
           name: `Website: ${scrapedTitle}`,
           type: 'url',
@@ -228,10 +248,15 @@ export default function PortfolioBuilderPage() {
           content: `**SCRAPED WEBSITE CONTENT (Already fetched for you!)**\n\n**URL:** ${url}\n**Title:** ${scrapedTitle}\n**Description:** ${scrapedDescription}\n\n**AI Analysis:**\n${analysisText}\n\n**Full Content:**\n${fullContent}\n\n---\nYOU HAVE ACCESS TO THIS DATA - Extract professional information from it!`,
         };
       } else {
+        console.error('[handleScrapeUrl] ❌ Scrape failed:', data.error);
         throw new Error(data.error || 'Failed to scrape URL');
       }
     } catch (error) {
-      console.error('Error scraping URL:', error);
+      console.error('[handleScrapeUrl] ❌ Exception caught:', error);
+      console.error('[handleScrapeUrl] Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown',
+        stack: error instanceof Error ? error.stack : 'No stack',
+      });
       throw error;
     } finally {
       setScrapingUrl(false);
@@ -337,19 +362,30 @@ export default function PortfolioBuilderPage() {
       // Scrape each URL
       const scrapedDataList: any[] = [];
       for (const url of urls) {
+        console.log('[handleSubmit] Processing URL:', url);
         try {
           const scrapedData = await handleScrapeUrl(url);
           if (scrapedData) {
+            console.log('[handleSubmit] ✅ URL scraped successfully');
             scrapedDataList.push(scrapedData);
             attachments.push(scrapedData);
+          } else {
+            console.log('[handleSubmit] ⚠️ URL scraping returned null');
           }
         } catch (error) {
+          console.error('[handleSubmit] ❌ Failed to scrape URL:', url, error);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           setMessages((prev) => [
             ...prev,
-            { role: 'system', content: `⚠️ Could not scrape ${url}. ${error instanceof Error ? error.message : ''}` },
+            { 
+              role: 'system', 
+              content: `⚠️ **Failed to scrape:** ${url}\n\n**Error:** ${errorMessage}\n\n**Try:**\n• Check if the URL is accessible\n• Try a different URL\n• Copy and paste the content manually instead` 
+            },
           ]);
         }
       }
+      
+      console.log('[handleSubmit] Total URLs scraped:', scrapedDataList.length, 'out of', urls.length);
       
       // DEFAULT: Direct paste mode (skip AI unless user asks for AI processing)
       const wantsAIProcessing = userMessage.toLowerCase().includes('analyze with ai') || 

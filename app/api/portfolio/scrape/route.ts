@@ -8,17 +8,26 @@ import { scrapeUrl, analyzeScrapedContent, isValidUrl } from '@/lib/url-scraper'
  * Scrape a URL and extract content for portfolio
  */
 export async function POST(request: Request) {
+  const requestStartTime = Date.now();
+  console.log('[Portfolio Scrape] ========== NEW SCRAPE REQUEST ==========');
+  
   try {
     const { userId } = await auth();
     
     if (!userId) {
+      console.log('[Portfolio Scrape] ❌ Unauthorized - no userId');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    console.log('[Portfolio Scrape] ✅ Authorized user:', userId);
 
     const body = await request.json();
     const { url, portfolioId } = body;
 
+    console.log('[Portfolio Scrape] Request body:', { url, portfolioId });
+
     if (!url) {
+      console.log('[Portfolio Scrape] ❌ Missing URL');
       return NextResponse.json(
         { error: 'URL is required' },
         { status: 400 }
@@ -26,6 +35,7 @@ export async function POST(request: Request) {
     }
 
     if (!portfolioId) {
+      console.log('[Portfolio Scrape] ❌ Missing portfolioId');
       return NextResponse.json(
         { error: 'Portfolio ID is required' },
         { status: 400 }
@@ -34,11 +44,14 @@ export async function POST(request: Request) {
 
     // Validate URL format
     if (!isValidUrl(url)) {
+      console.log('[Portfolio Scrape] ❌ Invalid URL format:', url);
       return NextResponse.json(
         { error: 'Invalid URL format' },
         { status: 400 }
       );
     }
+
+    console.log('[Portfolio Scrape] ✅ URL validation passed:', url);
 
     const supabase = getSupabaseServiceRole();
 
@@ -77,13 +90,26 @@ export async function POST(request: Request) {
     }
 
     // Scrape URL in background
+    console.log('[Portfolio Scrape] 🚀 Starting URL scrape...');
+    const scrapeStartTime = Date.now();
+    
     try {
       const scrapedData = await scrapeUrl(url);
+      console.log('[Portfolio Scrape] ✅ Scraping completed in', Date.now() - scrapeStartTime, 'ms');
+      console.log('[Portfolio Scrape] Scraped data:', {
+        titleLength: scrapedData.title?.length || 0,
+        contentLength: scrapedData.content?.length || 0,
+        descLength: scrapedData.description?.length || 0,
+      });
       
       // Analyze scraped content with AI
+      console.log('[Portfolio Scrape] 🤖 Starting AI analysis...');
+      const aiStartTime = Date.now();
       const analysis = await analyzeScrapedContent(url, scrapedData, userId);
+      console.log('[Portfolio Scrape] ✅ AI analysis completed in', Date.now() - aiStartTime, 'ms');
       
       // Update link record with scraped data
+      console.log('[Portfolio Scrape] 💾 Updating database record...');
       const { error: updateError } = await supabase
         .from('portfolio_links')
         .update({
@@ -99,8 +125,14 @@ export async function POST(request: Request) {
         .eq('id', linkRecord.id);
 
       if (updateError) {
-        console.error('Error updating link with scraped data:', updateError);
+        console.error('[Portfolio Scrape] ❌ Error updating link with scraped data:', updateError);
+      } else {
+        console.log('[Portfolio Scrape] ✅ Database updated successfully');
       }
+
+      const totalTime = Date.now() - requestStartTime;
+      console.log('[Portfolio Scrape] ========== SCRAPE COMPLETE ==========');
+      console.log('[Portfolio Scrape] Total request time:', totalTime, 'ms');
 
       return NextResponse.json({
         success: true,
@@ -109,14 +141,20 @@ export async function POST(request: Request) {
           url: url,
           title: scrapedData.title,
           description: scrapedData.description,
-          content: scrapedData.content.substring(0, 500) + '...', // Preview only
+          content: scrapedData.content, // Return full content, not just preview
           metadata: scrapedData.metadata,
           aiAnalysis: analysis,
           status: 'scraped',
         },
       });
     } catch (scrapeError) {
-      console.error('Error scraping URL:', scrapeError);
+      const totalTime = Date.now() - requestStartTime;
+      console.error('[Portfolio Scrape] ❌ ========== SCRAPE FAILED ==========');
+      console.error('[Portfolio Scrape] Error after', totalTime, 'ms:', scrapeError);
+      console.error('[Portfolio Scrape] Error details:', {
+        message: scrapeError instanceof Error ? scrapeError.message : 'Unknown',
+        stack: scrapeError instanceof Error ? scrapeError.stack : 'No stack',
+      });
       
       // Update link status to failed
       await supabase
@@ -125,13 +163,14 @@ export async function POST(request: Request) {
           status: 'failed',
           metadata: {
             error: scrapeError instanceof Error ? scrapeError.message : 'Unknown error',
+            timestamp: new Date().toISOString(),
           },
         })
         .eq('id', linkRecord.id);
 
       return NextResponse.json({
         success: false,
-        error: 'Failed to scrape URL. You can still manually add information about this link.',
+        error: `Failed to scrape URL: ${scrapeError instanceof Error ? scrapeError.message : 'Unknown error'}`,
         linkId: linkRecord.id,
       });
     }

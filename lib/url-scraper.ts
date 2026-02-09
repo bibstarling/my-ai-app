@@ -87,13 +87,28 @@ export async function scrapeUrl(url: string): Promise<ScrapedData> {
 
     console.log(`[scrapeUrl] Navigating to ${url}...`);
     
-    // Navigate to URL with timeout
-    await page.goto(url, {
-      waitUntil: 'networkidle2',
-      timeout: 30000,
-    });
-    
-    console.log(`[scrapeUrl] Page loaded in ${Date.now() - startTime}ms`);
+    // Navigate to URL with timeout - use domcontentloaded as fallback for slow sites
+    try {
+      await page.goto(url, {
+        waitUntil: 'networkidle2',
+        timeout: 30000,
+      });
+      console.log(`[scrapeUrl] Page loaded (networkidle2) in ${Date.now() - startTime}ms`);
+    } catch (navError: any) {
+      // If networkidle2 times out, try with just domcontentloaded
+      if (navError?.message?.includes('timeout') || navError?.message?.includes('Navigation timeout')) {
+        console.log('[scrapeUrl] networkidle2 timed out, trying with domcontentloaded...');
+        await page.goto(url, {
+          waitUntil: 'domcontentloaded',
+          timeout: 20000,
+        });
+        // Give it a bit more time to load dynamic content
+        await page.waitForTimeout(3000);
+        console.log(`[scrapeUrl] Page loaded (domcontentloaded + wait) in ${Date.now() - startTime}ms`);
+      } else {
+        throw navError;
+      }
+    }
 
     // Extract data from page
     // Use type assertion to fix puppeteer/puppeteer-core type conflict
