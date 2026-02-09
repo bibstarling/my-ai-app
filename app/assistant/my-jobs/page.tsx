@@ -399,7 +399,7 @@ export default function MyJobsPage() {
   const loadQuestions = async (jobId: string) => {
     try {
       setLoadingQuestions(true);
-      const response = await fetch(`/api/jobs/${jobId}/questions`);
+      const response = await fetch(`/api/jobs/${jobId}/questions`, { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         setQuestions(data.questions || []);
@@ -419,6 +419,7 @@ export default function MyJobsPage() {
       const response = await fetch(`/api/jobs/${selectedJob.id}/questions/extract`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ url: selectedJob.apply_url }),
       });
 
@@ -449,6 +450,7 @@ export default function MyJobsPage() {
       const response = await fetch(`/api/jobs/${selectedJob.id}/questions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ question_text: newQuestionText.trim() }),
       });
 
@@ -474,6 +476,7 @@ export default function MyJobsPage() {
       setGeneratingAnswer(questionId);
       const response = await fetch(`/api/jobs/${selectedJob.id}/questions/${questionId}/generate-answer`, {
         method: 'POST',
+        credentials: 'include',
       });
 
       if (response.ok) {
@@ -500,6 +503,7 @@ export default function MyJobsPage() {
       const response = await fetch(`/api/jobs/${selectedJob.id}/questions/${questionId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ answer_text: answerText }),
       });
 
@@ -525,6 +529,7 @@ export default function MyJobsPage() {
     try {
       const response = await fetch(`/api/jobs/${selectedJob.id}/questions/${questionId}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
 
       if (response.ok) {
