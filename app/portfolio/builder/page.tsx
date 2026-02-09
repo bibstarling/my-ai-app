@@ -347,15 +347,24 @@ export default function PortfolioBuilderPage() {
     const userMessage = input.trim();
     let attachments = [...pendingAttachments];
     
-    // Check if input contains URLs
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    const urls = userMessage.match(urlRegex);
+    // Check if input contains URLs (with or without protocol)
+    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9-]+\.(com|org|net|edu|gov|io|co|ai)[^\s]*)/gi;
+    const urlMatches = userMessage.match(urlRegex);
+    
+    // Normalize URLs (add https:// if missing)
+    const urls = urlMatches?.map(url => {
+      if (!url.match(/^https?:\/\//i)) {
+        return `https://${url}`;
+      }
+      return url;
+    });
     
     if (urls && urls.length > 0) {
+      console.log('[handleSubmit] URLs detected:', urls);
       setMessages((prev) => [...prev, { role: 'user', content: userMessage }]);
       setMessages((prev) => [
         ...prev,
-        { role: 'system', content: `🔍 Found ${urls.length} URL(s). Scraping content...` },
+        { role: 'system', content: `🔍 Found ${urls.length} URL(s). Scraping content...\n\n${urls.map(u => `• ${u}`).join('\n')}` },
       ]);
       setLoading(true);
       
