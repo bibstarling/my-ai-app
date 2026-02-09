@@ -32,16 +32,20 @@ export async function POST(request: Request) {
     const messageContent: any[] = [];
     
     if (attachments && attachments.length > 0) {
-      userPrompt += '\n\nI have attached the following files:\n';
+      userPrompt += '\n\n**ATTACHED MATERIALS (analyze and extract content from these):**\n';
       
       attachments.forEach((att: any) => {
-        userPrompt += `\n- ${att.name} (${att.type})\n`;
-        
-        if (att.contentType === 'text') {
-          userPrompt += `Content:\n${att.content}\n`;
+        if (att.type === 'url') {
+          userPrompt += `\n📎 **Website Content from ${att.name}**\n`;
+          userPrompt += `${att.content}\n`;
+          userPrompt += `\n(This is scraped website content - extract relevant professional information from it)\n\n`;
+        } else if (att.contentType === 'text' || att.text) {
+          userPrompt += `\n📎 **${att.name}** (${att.type})\n`;
+          userPrompt += `Content:\n${att.content || att.text}\n\n`;
         } else if (att.contentType === 'image') {
+          userPrompt += `\n📎 **${att.name}** (Image)\n`;
           // Add image to multimodal content
-          const base64Match = att.content.match(/^data:([^;]+);base64,(.+)$/);
+          const base64Match = att.content?.match(/^data:([^;]+);base64,(.+)$/);
           if (base64Match) {
             messageContent.push({
               type: 'image',
@@ -52,6 +56,8 @@ export async function POST(request: Request) {
               },
             });
           }
+        } else {
+          userPrompt += `\n📎 **${att.name}** (${att.type})\n`;
         }
       });
     }
@@ -61,20 +67,23 @@ export async function POST(request: Request) {
     // Build the prompt
     const promptText = `You are a professional portfolio assistant helping someone build their career portfolio in markdown format.
 
+**IMPORTANT: You CAN process website content!** When URLs or scraped website content are provided, you HAVE the data from those websites. DO NOT say you cannot access websites - the content has already been fetched for you.
+
 **Your job:**
-1. Analyze any materials provided (resume, documents, screenshots, etc.)
+1. Analyze any materials provided (resume, documents, screenshots, URLs, website content, etc.)
 2. Extract relevant professional information (experience, projects, skills, achievements, education)
 3. Update the portfolio markdown by ADDING or ENHANCING sections
 4. Provide a friendly response explaining what you did
 
 **Guidelines:**
 - ALWAYS return updated markdown when the user provides materials or asks to add content
+- When URL content is provided, extract ALL relevant professional information from it
 - Maintain proper markdown structure with clear heading hierarchy (# for title, ## for sections, ### for subsections)
 - Add content to existing sections or create new sections as needed
 - Keep existing content unless explicitly asked to remove it
 - Use professional, compelling language with concrete metrics when available
 - Format lists properly with bullet points (-)
-- Extract and organize ALL relevant information from provided materials
+- Extract and organize ALL relevant information from provided materials (including scraped websites)
 
 **Sections to include/update:**
 - ## About Me (professional summary)
@@ -87,7 +96,10 @@ export async function POST(request: Request) {
 **Current request:**
 ${userPrompt}
 
-**IMPORTANT:** If the user provided files or information, you MUST extract content from them and update the markdown. Don't just acknowledge - actually add the content!
+**CRITICAL:** 
+- If the user provided files, URLs, or information, you MUST extract content from them and update the markdown
+- Don't just acknowledge - actually add the content!
+- When website/URL content is provided, process it - you HAVE access to that data!
 
 Respond in this JSON format:
 {
