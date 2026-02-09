@@ -863,15 +863,15 @@ export default function PortfolioBuilderPage() {
         </div>
       </div>
 
-      {/* Compact Floating AI Chat Button */}
+      {/* Add to Profile AI Button */}
       {!isChatOpen && (
         <button
           onClick={() => setIsChatOpen(true)}
           className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-accent px-4 py-3 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all"
-          title="Open AI Assistant"
+          title="Add content to your profile with AI"
         >
           <Sparkles className="h-4 w-4" />
-          <span className="text-sm font-medium">AI Assistant</span>
+          <span className="text-sm font-medium">Add to Profile</span>
         </button>
       )}
 
@@ -882,7 +882,10 @@ export default function PortfolioBuilderPage() {
           <div className="border-b border-gray-200 px-4 py-3 flex items-center justify-between bg-white">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-accent" />
-              <h3 className="font-semibold text-gray-900 text-sm">AI Assistant</h3>
+              <div>
+                <h3 className="font-semibold text-gray-900 text-sm">Add to Profile</h3>
+                <p className="text-xs text-gray-500">Upload files, URLs, or describe your work</p>
+              </div>
             </div>
             <button
               onClick={() => setIsChatOpen(false)}

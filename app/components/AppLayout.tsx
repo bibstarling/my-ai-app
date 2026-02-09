@@ -25,6 +25,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   // Check if pathname ends with locale or is the home page (e.g., /en, /pt-BR, /en/, /pt-BR/)
   const isHomePage = pathname === '/' || /^\/(en|pt-BR)\/?$/.test(pathname);
   const isLoginPage = pathname === '/login' || pathname.startsWith('/login/');
+  const isPortfolioBuilder = pathname === '/portfolio/builder';
   const showMenu = !isHomePage && !isLoginPage && !pathname.startsWith('/_') && !pathname.startsWith('/api');
 
   // Keyboard shortcut: Cmd+K (Mac) or Ctrl+K (Windows/Linux)
@@ -62,8 +63,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           onClose={() => setIsAIAssistantOpen(false)} 
         />
 
-        {/* Floating AI Assistant Button (only show when menu is visible) */}
-        {showMenu && !isAIAssistantOpen && (
+        {/* Floating AI Assistant Button (only show when menu is visible, but not on portfolio builder) */}
+        {showMenu && !isAIAssistantOpen && !isPortfolioBuilder && (
           <button
             onClick={() => setIsAIAssistantOpen(true)}
             className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-gradient-primary px-5 py-3 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all group"
