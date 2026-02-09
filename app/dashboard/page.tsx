@@ -511,18 +511,6 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* Tips Card */}
-            <div className="gradient-success rounded-xl border-2 border-white/50 p-6 text-white shadow-xl">
-              <div className="flex items-start gap-3">
-                <Sparkles className="h-5 w-5 text-white shrink-0 mt-0.5 drop-shadow" />
-                <div>
-                  <h4 className="text-sm font-bold mb-2 drop-shadow">Pro Tip 💡</h4>
-                  <p className="text-xs text-white/90 leading-relaxed drop-shadow">
-                    Upload your resume or LinkedIn profile to build an amazing portfolio in minutes!
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
