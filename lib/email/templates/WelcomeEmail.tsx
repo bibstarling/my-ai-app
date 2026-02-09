@@ -46,6 +46,12 @@ export const WelcomeEmail = ({
             Your account has been created with the email:{' '}
             <strong>{userEmail}</strong>
           </Text>
+          <Text style={text}>
+            <strong>🚀 First Step:</strong> Build your professional profile - it powers everything! Chat with AI, upload your resume, or paste your LinkedIn URL. Your profile feeds all your resumes, cover letters, and job matching.
+          </Text>
+          <Text style={text}>
+            <strong>💡 Pro Tip:</strong> Press Cmd+K (or Ctrl+K) from anywhere in the app to ask AI for help with anything!
+          </Text>
           <Section style={buttonContainer}>
             <Button style={button} href={appUrl}>
               Get Started

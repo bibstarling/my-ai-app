@@ -103,31 +103,31 @@ export default function DashboardPage() {
   const quickActions = [
     {
       icon: <Sparkles className="h-6 w-6" />,
-      title: 'Build Portfolio',
-      description: 'Showcase your work with AI assistance',
+      title: 'Build Profile',
+      description: '⚠️ Start here! Powers everything (Cmd+K for AI help)',
       href: '/portfolio/builder',
       color: 'bg-accent',
     },
     {
+      icon: <Briefcase className="h-6 w-6" />,
+      title: 'Find Jobs',
+      description: 'Search jobs with AI-powered match scores',
+      href: '/assistant/job-search',
+      color: 'bg-slate',
+    },
+    {
       icon: <FileText className="h-6 w-6" />,
       title: 'Generate Resume',
-      description: 'Create professional resumes instantly',
+      description: 'Create resumes from your profile (AI-powered)',
       href: '/resume-builder',
       color: 'bg-secondary',
     },
     {
       icon: <Bot className="h-6 w-6" />,
       title: 'AI Career Coach',
-      description: 'Get personalized career guidance',
+      description: 'Get personalized guidance (or press Cmd+K)',
       href: '/assistant',
       color: 'bg-ocean-blue',
-    },
-    {
-      icon: <Briefcase className="h-6 w-6" />,
-      title: 'Find Jobs',
-      description: 'Discover your next opportunity',
-      href: '/assistant/job-search',
-      color: 'bg-slate',
     },
   ];
 

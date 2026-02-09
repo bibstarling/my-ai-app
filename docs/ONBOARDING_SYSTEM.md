@@ -56,25 +56,22 @@ The interactive onboarding provides a hands-on, step-by-step walkthrough that:
 
 ### Tour Steps
 
-The tour follows the natural user workflow:
+The tour follows the natural user workflow (profile-first approach):
 
-1. **Welcome** - Introduction modal (center)
+1. **Welcome** - Introduction modal with AI assistant tip (Cmd+K) (center)
 2. **Dashboard Overview** - Shows the dashboard (center)
-3. **Sidebar Menu** - Highlights navigation menu (right)
-4. **Find Jobs Nav** - Job search menu item - START HERE (right)
-5. **Job Search Page** - Search input for finding jobs (bottom)
-6. **My Applications Nav** - Application tracking menu item (right)
-7. **Profile Nav** - Profile/portfolio menu item (right)
-8. **Profile Builder** - Chat/input for building profile (top)
-9. **Profile Modes** - Editing mode switcher (bottom)
-10. **Resume Nav** - Resume builder menu item (right)
-11. **Resume Builder** - Create resume button (bottom)
-12. **Cover Letter Nav** - Cover letter menu item (right)
-13. **Cover Letter Builder** - Create cover letter button (bottom)
-14. **AI Coach Nav** - AI coach menu item (right)
-15. **AI Coach Chat** - Chat input for career advice (top)
-16. **User Menu** - Settings and account menu (left)
-17. **Complete** - Completion message (center)
+3. **Profile Nav** - ⚠️ START HERE - Profile/portfolio menu item (right)
+   - Emphasizes: Required! Powers everything (resumes, cover letters, job matching)
+4. **Find Jobs Nav** - Job search menu item (right)
+   - Emphasizes: AI-powered match scores based on profile
+5. **My Applications Nav** - Application tracking menu item (right)
+6. **Resume Nav** - Resume builder menu item (right)
+   - Emphasizes: Powered by profile
+7. **Cover Letter Nav** - Cover letter menu item (right)
+   - Emphasizes: Powered by profile
+8. **AI Coach Nav** - AI coach menu item (right)
+   - Emphasizes: Cmd+K available everywhere
+9. **Complete** - Completion message with key tips (center)
 
 ### Starting the Interactive Tour
 

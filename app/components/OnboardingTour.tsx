@@ -36,11 +36,11 @@ const steps: OnboardingStep[] = [
   {
     id: 'welcome',
     title: '👏 Welcome to Applause!',
-    description: 'Your AI-powered career platform that makes job searching feel like a celebration. Let\'s take a quick tour of what you can do!',
+    description: 'Your AI-powered career platform that makes job searching feel like a celebration. AI can help you with everything - just press Cmd+K (or Ctrl+K) from anywhere!',
     icon: <Sparkles className="w-12 h-12 text-[#e07a5f]" />,
     features: [
-      'Search jobs from multiple sources',
-      'Build your professional profile with AI',
+      'AI assistant available everywhere (Cmd+K)',
+      'Build your profile once, use it everywhere',
       'Create tailored resumes in seconds',
       'Generate compelling cover letters',
       'Track applications in one place',
@@ -48,9 +48,26 @@ const steps: OnboardingStep[] = [
     ],
   },
   {
+    id: 'profile',
+    title: '👤 Build Your Profile First',
+    description: '⚠️ Start here! Your profile is required and powers everything. Chat with AI, upload your resume, or paste URLs. This profile feeds your resumes, cover letters, and job matching.',
+    icon: <Briefcase className="w-12 h-12 text-[#e07a5f]" />,
+    action: {
+      label: 'Build Your Profile Now',
+      href: '/portfolio/builder',
+    },
+    features: [
+      '✨ AI chat to build your profile for you',
+      '📄 Upload resume/documents for instant extraction',
+      '🔗 Scrape LinkedIn, GitHub, or any URL',
+      '🎯 Single source of truth for everything',
+      '🚀 Powers resumes, cover letters & job matching',
+    ],
+  },
+  {
     id: 'find-jobs',
     title: '🔍 Find Your Dream Job',
-    description: 'Start here! Search jobs from multiple sources, get match scores based on your profile, and save interesting opportunities.',
+    description: 'Search jobs from multiple sources. Get AI-powered match scores based on your profile. AI can search for you with Cmd+K!',
     icon: <Search className="w-12 h-12 text-[#3b82f6]" />,
     action: {
       label: 'Start Job Search',
@@ -58,61 +75,44 @@ const steps: OnboardingStep[] = [
     },
     features: [
       'Multi-source job aggregation',
-      'Skills-based match scoring',
+      'AI match scoring using your profile',
       'Remote job filtering',
       'Save and track applications',
       'One-click apply workflow',
     ],
   },
   {
-    id: 'profile',
-    title: '👤 Build Your Profile',
-    description: 'Your single source of truth! Chat with AI, upload your resume, or paste URLs to build your professional profile.',
-    icon: <Briefcase className="w-12 h-12 text-[#e07a5f]" />,
-    action: {
-      label: 'Build Your Profile',
-      href: '/portfolio/builder',
-    },
-    features: [
-      'Natural conversation with AI',
-      'Upload resumes & documents',
-      'Scrape LinkedIn & GitHub',
-      'Multiple editing modes',
-      'Powers all your applications',
-    ],
-  },
-  {
     id: 'resume',
     title: '📄 Smart Resume Builder',
-    description: 'Generate job-specific resumes automatically from your portfolio. AI picks the most relevant experience for each job!',
+    description: 'Generate job-specific resumes automatically from your profile. AI picks the most relevant experience for each job and optimizes for ATS!',
     icon: <FileText className="w-12 h-12 text-[#3b82f6]" />,
     action: {
       label: 'Create Your First Resume',
       href: '/resume-builder',
     },
     features: [
-      'Portfolio-powered generation',
-      'AI content selection',
-      'Job-specific optimization',
-      'Multiple versions',
-      'ATS-friendly export',
+      '✅ Powered by your profile (build it first!)',
+      '🤖 AI selects relevant content automatically',
+      '🎯 Job-specific optimization',
+      '📑 Create multiple versions',
+      '📥 ATS-friendly PDF export',
     ],
   },
   {
     id: 'cover-letter',
     title: '✉️ Cover Letter Generator',
-    description: 'Generate compelling, job-specific cover letters that highlight your most relevant achievements.',
+    description: 'Generate compelling, job-specific cover letters from your profile. AI highlights your most relevant achievements automatically!',
     icon: <Mail className="w-12 h-12 text-[#10b981]" />,
     action: {
       label: 'Write a Cover Letter',
       href: '/cover-letters',
     },
     features: [
-      'AI-powered writing',
-      'Smart content selection',
-      'Professional structure',
-      'Full customization',
-      'Export to PDF',
+      '✅ Powered by your profile (build it first!)',
+      '🤖 AI-powered writing',
+      '💡 Smart content selection from profile',
+      '✍️ Professional structure',
+      '📥 Export to PDF',
     ],
   },
   {
@@ -134,19 +134,19 @@ const steps: OnboardingStep[] = [
   },
   {
     id: 'ai-coach',
-    title: '🤖 Your AI Career Coach',
-    description: 'Get personalized career advice, interview prep, and job search help whenever you need it.',
+    title: '🤖 AI Everywhere You Need It',
+    description: 'Press Cmd+K (or Ctrl+K) from anywhere to ask AI for help. It can search jobs, generate resumes, give career advice, and more!',
     icon: <MessageSquare className="w-12 h-12 text-[#e07a5f]" />,
     action: {
       label: 'Chat with AI Coach',
       href: '/assistant/chat',
     },
     features: [
-      'Career coaching',
-      'Interview preparation',
-      'Resume feedback',
-      'Job search strategies',
-      'Available 24/7',
+      '⌨️ Press Cmd+K anywhere in the app',
+      '🔍 "Find remote React jobs"',
+      '📄 "Generate a resume for this job"',
+      '✉️ "Write a cover letter"',
+      '💼 Career advice, interview prep, and more',
     ],
   },
 ];
@@ -265,7 +265,7 @@ export function OnboardingTour({ isOpen, onClose, autoStart = false }: Onboardin
                       </Dialog.Title>
 
                       <p className="text-white/95 text-center text-lg leading-relaxed">
-                        Your AI-powered career platform. How would you like to get started?
+                        Your AI-powered career platform. Press Cmd+K (Ctrl+K) anytime for AI help! How would you like to get started?
                       </p>
                     </div>
 
@@ -288,7 +288,7 @@ export function OnboardingTour({ isOpen, onClose, autoStart = false }: Onboardin
                                 </span>
                               </h3>
                               <p className="text-gray-600 leading-relaxed mb-3">
-                                Walk through the app step-by-step. I'll guide you page-by-page and highlight exactly where to click.
+                                Walk through the app step-by-step. Learn about profile building (required!), AI features, and how everything connects.
                               </p>
                               <div className="flex flex-wrap gap-2">
                                 <span className="text-xs px-2 py-1 bg-white border border-gray-200 rounded-full text-gray-700">
@@ -319,7 +319,7 @@ export function OnboardingTour({ isOpen, onClose, autoStart = false }: Onboardin
                                 Quick Overview
                               </h3>
                               <p className="text-gray-600 leading-relaxed mb-3">
-                                Read a brief summary of key features. Perfect if you prefer to explore on your own.
+                                Read a brief summary of key features. See how your profile powers everything and how AI helps across the app.
                               </p>
                               <div className="flex flex-wrap gap-2">
                                 <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-700">
