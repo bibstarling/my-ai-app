@@ -67,12 +67,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         {showMenu && !isAIAssistantOpen && !isPortfolioBuilder && (
           <button
             onClick={() => setIsAIAssistantOpen(true)}
-            className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-gradient-primary px-5 py-3 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all group"
+            className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-gradient-to-br from-[#e07a5f] to-[#3b82f6] px-5 py-3 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all group border-2 border-white/20"
             title="Open AI Assistant (Cmd+K)"
           >
             <Sparkles className="h-5 w-5" />
-            <span className="font-medium">Ask AI</span>
-            <kbd className="hidden group-hover:inline-block ml-1 px-1.5 py-0.5 bg-white/20 rounded text-xs font-mono">
+            <span className="font-medium drop-shadow-sm">Ask AI</span>
+            <kbd className="hidden group-hover:inline-block ml-1 px-1.5 py-0.5 bg-white/30 border border-white/40 rounded text-xs font-mono">
               ⌘K
             </kbd>
           </button>

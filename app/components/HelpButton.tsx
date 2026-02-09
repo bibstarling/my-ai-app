@@ -19,7 +19,7 @@ export function HelpButton({
   const [showTooltip, setShowTooltip] = useState(false);
 
   const positionClasses = position === 'fixed' 
-    ? 'fixed bottom-8 right-8 z-40' 
+    ? 'fixed top-24 right-6 z-40' 
     : 'absolute';
 
   return (
@@ -27,11 +27,11 @@ export function HelpButton({
       <div className="relative">
         {/* Tooltip */}
         {showTooltip && (
-          <div className="absolute bottom-full right-0 mb-2 pointer-events-none">
+          <div className="absolute top-full right-0 mt-2 pointer-events-none">
             <div className="bg-gray-900 text-white text-sm px-4 py-2 rounded-lg shadow-xl whitespace-nowrap max-w-xs">
               {tooltip}
-              <div className="absolute top-full right-6 -mt-1">
-                <div className="border-8 border-transparent border-t-gray-900" />
+              <div className="absolute bottom-full right-6 -mb-1">
+                <div className="border-8 border-transparent border-b-gray-900" />
               </div>
             </div>
           </div>
