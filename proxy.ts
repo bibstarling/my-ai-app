@@ -1,11 +1,7 @@
 import { clerkMiddleware } from '@clerk/nextjs/server';
 
-// Configure Clerk with custom domain for cookie handling
-export default clerkMiddleware({
-  // Clerk custom domain configuration
-  domain: 'clerk.applausejobs.com',
-  isSatellite: false,
-});
+// Simple proxy - Clerk domain is configured via environment variables
+export default clerkMiddleware();
 
 export const config = {
   matcher: [
