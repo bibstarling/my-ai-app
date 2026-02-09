@@ -18,6 +18,12 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { message, attachments, currentMarkdown } = body;
 
+    console.log('[Portfolio Chat] Received request:', {
+      messageLength: message?.length || 0,
+      attachmentsCount: attachments?.length || 0,
+      attachmentTypes: attachments?.map((a: any) => a.type) || [],
+    });
+
     if (!message && (!attachments || attachments.length === 0)) {
       return NextResponse.json(
         { error: 'Message or attachments required' },
@@ -34,7 +40,14 @@ export async function POST(request: Request) {
     if (attachments && attachments.length > 0) {
       userPrompt += '\n\n**ATTACHED MATERIALS (analyze and extract content from these):**\n';
       
-      attachments.forEach((att: any) => {
+      attachments.forEach((att: any, idx: number) => {
+        console.log(`[Portfolio Chat] Processing attachment ${idx + 1}:`, {
+          type: att.type,
+          name: att.name,
+          contentLength: att.content?.length || 0,
+          hasText: !!att.text,
+        });
+        
         if (att.type === 'url') {
           userPrompt += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
           userPrompt += `🌐 **WEBSITE DATA (ALREADY SCRAPED)**\n`;
@@ -68,55 +81,45 @@ export async function POST(request: Request) {
 
     userPrompt += `\n\nCurrent portfolio markdown:\n\`\`\`markdown\n${currentMarkdown}\n\`\`\``;
 
-    // Build the prompt
-    const promptText = `You are a professional portfolio assistant helping someone build their career portfolio in markdown format.
+    // Build the prompt - PUT CONTENT FIRST so AI can't miss it!
+    const promptText = `${userPrompt}
 
-**CRITICAL - READ THIS CAREFULLY:**
-🚨 YOU ALREADY HAVE THE WEBSITE CONTENT! 🚨
-- When you see "SCRAPED WEBSITE CONTENT" or "Website Content" in the materials below, that IS the actual data from the website
-- The scraping has ALREADY BEEN DONE for you
-- You DO NOT need to scrape anything - just process the content that's provided
-- NEVER say "I can't access websites" - the content is RIGHT THERE in the attachments
-- If website content appears below, EXTRACT THE INFORMATION FROM IT immediately
+════════════════════════════════════════════════════════════════
 
-**Your job:**
-1. Analyze any materials provided (resume, documents, screenshots, URLs, website content, etc.)
-2. Extract relevant professional information (experience, projects, skills, achievements, education)
-3. Update the portfolio markdown by ADDING or ENHANCING sections
-4. Provide a friendly response explaining what you did
+🚨 INSTRUCTIONS - READ CAREFULLY 🚨
 
-**Guidelines:**
-- ALWAYS return updated markdown when the user provides materials or asks to add content
-- When URL content is provided, extract ALL relevant professional information from it
-- Maintain proper markdown structure with clear heading hierarchy (# for title, ## for sections, ### for subsections)
-- Add content to existing sections or create new sections as needed
-- Keep existing content unless explicitly asked to remove it
-- Use professional, compelling language with concrete metrics when available
-- Format lists properly with bullet points (-)
-- Extract and organize ALL relevant information from provided materials (including scraped websites)
+You are a professional portfolio assistant. The content above (if any) has ALREADY been scraped/fetched for you.
 
-**Sections to include/update:**
-- ## About Me (professional summary)
-- ## Experience (job history with bullets for achievements)
-- ## Projects (project descriptions with outcomes)
-- ## Skills (categorized technical and soft skills)
-- ## Education (degrees, certifications)
-- ## Awards & Recognition (achievements, honors)
+**YOUR TASK:**
+1. Look at the content provided above (website data, files, etc.)
+2. Extract ALL professional information from it
+3. Update the portfolio markdown by adding the extracted information
+4. Return the COMPLETE updated markdown
 
-**Current request:**
-${userPrompt}
+**CRITICAL RULES:**
+✅ The website content above is REAL DATA - not a request to scrape
+✅ You HAVE the content - extract information from it NOW
+✅ NEVER say "I can't access websites" - the data is RIGHT THERE above
+✅ If you see "SCRAPED WEBSITE CONTENT" or "Website Content" above, process it immediately
+✅ Return updated markdown with all the new information added
 
-**CRITICAL:** 
-- If the user provided files, URLs, or information, you MUST extract content from them and update the markdown
-- Don't just acknowledge - actually add the content!
-- When website/URL content is provided, process it - you HAVE access to that data!
+**Markdown Structure:**
+- # Professional Profile (main title)
+- ## About Me
+- ## Experience  
+- ## Projects
+- ## Skills
+- ## Education
+- ## Awards & Recognition
 
-Respond in this JSON format:
+**Response Format (JSON):**
 {
-  "message": "Your friendly response to the user explaining what content you extracted and added",
-  "updatedMarkdown": "The COMPLETE updated markdown with new content added (return this whenever you add/update content)",
-  "changes": ["specific list of what you added/changed, e.g., 'Added 3 work experiences', 'Added 5 key skills', 'Updated About section']"
-}`;
+  "message": "Explain what you extracted and added",
+  "updatedMarkdown": "COMPLETE updated markdown with ALL new content",
+  "changes": ["List specific additions like 'Added 3 experiences', 'Added 5 skills'"]
+}
+
+**If you see website/file content above: EXTRACT IT AND ADD TO MARKDOWN NOW!**`;
 
     // Prepare content for API call - support multimodal (text + images)
     let finalContent;
