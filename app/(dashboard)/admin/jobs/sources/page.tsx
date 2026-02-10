@@ -368,7 +368,7 @@ function SourceCard({
   getSourceIcon: (source: SourceConfig) => React.ReactElement;
 }) {
   const needsConfig = source.source_type === 'api' && 
-    (source.source_key === 'adzuna' || source.source_key === 'getonboard') &&
+    source.source_key === 'adzuna' &&
     (!source.config.api_key || source.config.api_key === '');
 
   return (
@@ -783,17 +783,17 @@ function EditSourceModal({
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
                       <Key className="w-4 h-4" />
-                      GetOnBoard API Key *
+                      GetOnBoard API Key (Optional)
                     </label>
                     <input
                       type="password"
                       value={formData.config.api_key || ''}
                       onChange={(e) => updateConfig('api_key', e.target.value)}
-                      placeholder="Enter your GetOnBoard API key"
+                      placeholder="Optional - for higher rate limits"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Request API access from <a href="https://www.getonbrd.com/" target="_blank" className="text-blue-600 hover:underline">GetOnBoard</a>
+                      GetOnBoard is a public API. API key is optional but provides higher rate limits.
                     </p>
                   </div>
                 )}
