@@ -136,6 +136,14 @@ export default function JobDiscoveryPage() {
       });
       
       setHasProfile(hasValidProfile);
+      
+      // Cache the result for this session to avoid repeated checks
+      if (hasValidProfile) {
+        sessionStorage.setItem('hasJobProfile', 'true');
+      } else {
+        sessionStorage.removeItem('hasJobProfile');
+      }
+      
       setCheckingProfile(false);
       
       if (hasValidProfile) {
@@ -145,6 +153,7 @@ export default function JobDiscoveryPage() {
     } catch (err) {
       console.error('[Profile Check] Failed:', err);
       setHasProfile(false);
+      sessionStorage.removeItem('hasJobProfile');
       setCheckingProfile(false);
     }
   }
