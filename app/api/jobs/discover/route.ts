@@ -232,6 +232,7 @@ export async function POST(req: Request) {
     }
     
     // Merge job data with match scores and saved status
+    console.log(`[Discovery API] Returning ${Math.min(finalMatches.length - offset, limit)} of ${finalMatches.length} matches (limit: ${limit}, offset: ${offset})`);
     const rankedJobs = finalMatches.slice(offset, offset + limit).map(match => {
       const job = jobs.find(j => j.id === match.job_id);
       return {

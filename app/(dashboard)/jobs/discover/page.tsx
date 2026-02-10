@@ -212,6 +212,7 @@ export default function JobDiscoveryPage() {
           'error'
         );
       } else {
+        console.log('[Discovery] Received jobs:', data.jobs?.length || 0, 'Total available:', data.total);
         if (!data.jobs || data.jobs.length === 0) {
           showModal(
             'No Jobs Found',
