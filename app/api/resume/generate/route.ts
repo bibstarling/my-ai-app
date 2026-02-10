@@ -185,8 +185,27 @@ export async function POST(req: Request) {
     for (const expIndex of selection.experienceIndices) {
       const exp = portfolioInfo.experiences?.[expIndex];
       if (exp) {
-        // Extract bullet points from description
-        const bullets = exp.description.split('. ').filter(Boolean).map((b: string) => b.trim());
+        // Create comprehensive bullet points from description and highlights
+        const bullets = [];
+        
+        // Add highlights first (these are typically achievement-oriented)
+        if (exp.highlights && Array.isArray(exp.highlights) && exp.highlights.length > 0) {
+          bullets.push(...exp.highlights);
+        }
+        
+        // If we don't have enough bullets, extract from description
+        if (bullets.length < 3 && exp.description) {
+          const descriptionBullets = exp.description
+            .split(/[.!]\s+/)
+            .filter(Boolean)
+            .map((b: string) => b.trim())
+            .filter((b: string) => b.length > 20); // Only meaningful sentences
+          
+          bullets.push(...descriptionBullets);
+        }
+        
+        // Ensure we have at least 3 bullets for a strong resume
+        const finalBullets = bullets.slice(0, 6); // Cap at 6 bullets per experience
         
         sections.push({
           resume_id: resume.id,
@@ -198,8 +217,7 @@ export async function POST(req: Request) {
             location: exp.location,
             startDate: exp.period.split('—')[0]?.trim() || '',
             endDate: exp.period.split('—')[1]?.trim() || 'Present',
-            bullets: bullets,
-            highlights: exp.highlights,
+            bullets: finalBullets,
           },
         });
       }
@@ -209,6 +227,30 @@ export async function POST(req: Request) {
     for (const projectIndex of selection.projectIndices) {
       const project = portfolioInfo.projects?.[projectIndex];
       if (project) {
+        // Create detailed project bullets
+        const projectBullets = [];
+        
+        // Add outcome as first bullet
+        if (project.outcome) {
+          projectBullets.push(project.outcome);
+        }
+        
+        // Add description if available and different from outcome
+        if (project.cardTeaser && project.cardTeaser !== project.outcome) {
+          projectBullets.push(project.cardTeaser);
+        }
+        
+        // Add full description split into bullets if available
+        if (project.fullDescription) {
+          const descBullets = project.fullDescription
+            .split(/[.!]\s+/)
+            .filter(Boolean)
+            .map((b: string) => b.trim())
+            .filter((b: string) => b.length > 20)
+            .slice(0, 2); // Add up to 2 more bullets
+          projectBullets.push(...descBullets);
+        }
+        
         sections.push({
           resume_id: resume.id,
           section_type: 'projects' as SectionType,
@@ -216,7 +258,7 @@ export async function POST(req: Request) {
           content: {
             name: project.title,
             description: project.cardTeaser,
-            bullets: [project.outcome],
+            bullets: projectBullets.length > 0 ? projectBullets : [project.cardTeaser || project.title],
             technologies: project.tags,
           },
         });
@@ -478,7 +520,12 @@ ${Object.entries(portfolioInfo.skills || {}).map(([cat, items]) => `${cat}: ${Ar
 YOUR TASK:
 ${profileResumeText ? 'IMPORTANT: The candidate has provided their resume text above. Use this as your PRIMARY SOURCE for understanding their background, experience, and achievements. Extract relevant experiences and skills from their actual resume first, then supplement with portfolio data if needed.' : 'Select the most relevant experiences, projects, and skills for this specific job from the portfolio data.'} 
 
-Prioritize recent and highly relevant items. A strong resume should have 2-4 experiences, 2-3 projects, and focused skills.
+Prioritize recent and highly relevant items. Create a COMPREHENSIVE, DETAILED resume:
+- Select 3-5 most relevant experiences (prefer more if highly relevant)
+- Include 2-4 key projects that demonstrate capabilities
+- Each experience should showcase 4-6 achievement bullets with specific metrics and outcomes
+- Projects should have 2-3 detailed bullets explaining impact and technologies used
+- Skills section should be comprehensive but focused on job requirements
 
 CRITICAL REQUIREMENTS FOR SUMMARY (ATS-Optimized + Human-Written):
 
@@ -519,12 +566,12 @@ CRITICAL REQUIREMENTS FOR SUMMARY (ATS-Optimized + Human-Written):
 
 Return ONLY valid JSON in this exact format:
 {
-  "summary": "<2-3 sentence summary that is ATS-OPTIMIZED with 4-6 priority keywords AND sounds like THE CANDIDATE wrote it, not AI. Use contractions. Be specific using ACTUAL experiences and achievements from the portfolio. Sound like a real person. Vary sentence length. NO generic phrases or buzzwords. Match tone to ${jobTitle} at ${jobCompany} but keep it conversational and genuine. NO placeholders - use real data only. MUST include priority keywords naturally.>",
-  "experienceIndices": [<array of 2-4 most relevant experience indices from the list above>],
-  "projectIndices": [<array of 2-3 most relevant project indices from the list above>],
-  "skills": [<array of 10-15 actual skill keywords from the available skills list above - PRIORITIZE skills that match ATS priority keywords - use exact terms from candidate's portfolio>],
+  "summary": "<3-4 sentence summary that is ATS-OPTIMIZED with 4-6 priority keywords AND sounds like THE CANDIDATE wrote it, not AI. Use contractions. Be SPECIFIC using ACTUAL experiences and achievements with REAL METRICS from the portfolio. Sound like a real person. Vary sentence length. NO generic phrases or buzzwords. Match tone to ${jobTitle} at ${jobCompany} but keep it conversational and genuine. NO placeholders - use real data only. MUST include priority keywords naturally. Example: 'I've shipped 3 major AI products including ChatGPT App (500K+ users) and semantic search that increased engagement by 25%. Currently managing Creator Hub and CMS simultaneously—handling multiple behemoth initiatives is my baseline.'>",
+  "experienceIndices": [<array of 3-5 most relevant experience indices from the list above - prefer MORE experiences if they're relevant>],
+  "projectIndices": [<array of 2-4 most relevant project indices from the list above - include projects that demonstrate technical depth or impact>],
+  "skills": [<array of 12-20 actual skill keywords from the available skills list above - PRIORITIZE skills that match ATS priority keywords - use exact terms from candidate's portfolio - be comprehensive>],
   "includeCertifications": <true if certifications add value, false otherwise>,
-  "reasoning": "<brief explanation of why you selected this content, including ATS keyword strategy>"
+  "reasoning": "<detailed explanation of why you selected this content, how it aligns with job requirements, and your ATS keyword strategy for maximum impact>",
   "atsKeywordsUsed": [<array of priority keywords from ATS optimization that were successfully integrated into the summary>]
 }
 

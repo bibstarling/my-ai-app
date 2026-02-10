@@ -102,7 +102,7 @@ Return ONLY valid JSON in this exact format:
   "sections": [
     {
       "type": "summary",
-      "content": "Professional summary tailored to this role"
+      "content": "3-4 sentence ATS-optimized professional summary with 4-6 priority keywords, specific metrics, and conversational tone"
     },
     {
       "type": "experience",
@@ -111,14 +111,35 @@ Return ONLY valid JSON in this exact format:
           "title": "Job Title",
           "company": "Company Name",
           "period": "Start - End",
-          "description": "Achievements relevant to target role",
-          "highlights": ["Achievement 1", "Achievement 2"]
+          "location": "City, State",
+          "description": "Brief role overview",
+          "highlights": [
+            "Achievement-focused bullet with specific metric (e.g., 'Led product strategy resulting in 35% increase in user engagement')",
+            "Technical accomplishment with impact (e.g., 'Built semantic search infrastructure serving 500K+ users')",
+            "Leadership or collaboration highlight (e.g., 'Managed cross-functional team of 8 engineers and designers')",
+            "Strategic initiative with outcome (e.g., 'Launched 3 major features generating $2M ARR')",
+            "4-6 total bullets per experience - be comprehensive and specific"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "projects",
+      "items": [
+        {
+          "name": "Project Name",
+          "description": "Project overview",
+          "highlights": [
+            "Key impact or outcome with metrics",
+            "Technical implementation details",
+            "Technologies used or challenges solved"
+          ]
         }
       ]
     },
     {
       "type": "skills",
-      "items": ["Skill 1", "Skill 2", "Skill 3"]
+      "items": ["15-20 relevant skills matching job requirements - be comprehensive"]
     },
     {
       "type": "education",
@@ -133,7 +154,14 @@ Return ONLY valid JSON in this exact format:
   ]
 }
 
-🚨 REMINDER: All content must use ACTUAL data from the candidate's portfolio. Extract real names, companies, achievements, metrics, and skills. No [brackets], no placeholders, no made-up information. The resume must be 100% ready to use.`;
+🚨 CRITICAL REQUIREMENTS:
+- Each experience MUST have 4-6 detailed, achievement-focused bullets with specific metrics
+- Each project MUST have 2-3 detailed bullets explaining impact and technologies
+- Summary MUST be 3-4 sentences with real metrics and achievements
+- Include 3-5 experiences if available and relevant
+- NO placeholders, NO brackets, NO generic statements
+- Use ACTUAL data from portfolio with REAL metrics and outcomes
+- Be COMPREHENSIVE - detailed resumes perform better in ATS and with recruiters`;
 
     const response = await generateAICompletion(
       userId,
@@ -188,6 +216,21 @@ Return ONLY valid JSON in this exact format:
           // Experience - create separate section for each item
           for (const item of section.items) {
             const [startDate, endDate] = (item.period || '').split(/\s*[-–—:]\s*/);
+            
+            // Create comprehensive bullets from highlights and description
+            const bullets = [];
+            if (item.highlights && Array.isArray(item.highlights)) {
+              bullets.push(...item.highlights);
+            } else if (item.description) {
+              // Split description into bullets if highlights not provided
+              const descBullets = item.description
+                .split(/[.!]\s+/)
+                .filter(Boolean)
+                .map((b: string) => b.trim())
+                .filter((b: string) => b.length > 20);
+              bullets.push(...descBullets);
+            }
+            
             sectionsToInsert.push({
               resume_id: resume.id,
               section_type: 'experience',
@@ -198,7 +241,7 @@ Return ONLY valid JSON in this exact format:
                 location: item.location || '',
                 startDate: startDate?.trim() || '',
                 endDate: endDate?.trim() || '',
-                bullets: item.highlights || [item.description] || [],
+                bullets: bullets.length > 0 ? bullets : [item.description || ''],
               },
             });
           }
@@ -231,6 +274,22 @@ Return ONLY valid JSON in this exact format:
         } else if (section.type === 'projects' && section.items) {
           // Projects - create separate section for each item
           for (const item of section.items) {
+            // Create detailed project bullets
+            const projectBullets = [];
+            if (item.highlights && Array.isArray(item.highlights)) {
+              projectBullets.push(...item.highlights);
+            } else if (item.bullets && Array.isArray(item.bullets)) {
+              projectBullets.push(...item.bullets);
+            } else if (item.description) {
+              // Split description into bullets
+              const descBullets = item.description
+                .split(/[.!]\s+/)
+                .filter(Boolean)
+                .map((b: string) => b.trim())
+                .filter((b: string) => b.length > 20);
+              projectBullets.push(...descBullets);
+            }
+            
             sectionsToInsert.push({
               resume_id: resume.id,
               section_type: 'projects',
@@ -238,8 +297,9 @@ Return ONLY valid JSON in this exact format:
               content: {
                 name: item.name || item.title || '',
                 description: item.description || '',
-                bullets: item.highlights || item.bullets || [],
+                bullets: projectBullets.length > 0 ? projectBullets : [item.description || ''],
                 url: item.url || '',
+                technologies: item.technologies || [],
               },
             });
           }
