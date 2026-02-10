@@ -75,8 +75,15 @@ export async function POST(req: Request) {
       } as AdaptResumeResponse);
     }
 
+    // Get user's portfolio for additional context
+    const { data: userPortfolio } = await supabase
+      .from('user_portfolios')
+      .select('portfolio_data, markdown')
+      .eq('clerk_id', userId)
+      .maybeSingle();
+
     // Call AI to adapt the resume
-    const aiResult = await adaptResumeWithAI(resume, sections || [], job, userId);
+    const aiResult = await adaptResumeWithAI(resume, sections || [], job, userId, userPortfolio);
 
     // Save adaptation
     const { data: adaptation, error: adaptError } = await supabase
@@ -130,23 +137,39 @@ async function adaptResumeWithAI(
   resume: Record<string, unknown>,
   sections: ResumeSection[],
   job: Record<string, unknown>,
-  userId: string
+  userId: string,
+  userPortfolio?: { portfolio_data?: any; markdown?: string } | null
 ): Promise<AIAdaptationResult> {
 
+  // Extract awards and other context from portfolio if available
+  let candidateContext = '';
+  if (userPortfolio?.portfolio_data?.awards && Array.isArray(userPortfolio.portfolio_data.awards) && userPortfolio.portfolio_data.awards.length > 0) {
+    candidateContext = '\nCANDIDATE AWARDS & RECOGNITION:\n';
+    candidateContext += userPortfolio.portfolio_data.awards
+      .map((award: any) => `🏆 ${award.title} (${award.quarter}): ${award.description}`)
+      .join('\n');
+    candidateContext += '\n';
+  }
+  
+  if (userPortfolio?.portfolio_data?.tagline) {
+    candidateContext += `\nPROFESSIONAL TAGLINE: ${userPortfolio.portfolio_data.tagline}\n`;
+  }
+
   const prompt = `You are an expert resume writer and career coach. Analyze the following job posting and resume, then provide an adapted version optimized for this specific job.
+
+🚨 CRITICAL REQUIREMENT - NO PLACEHOLDERS ALLOWED:
+- NEVER use placeholders like [Company Name], [Metric], [Achievement], [Skill], etc.
+- ALWAYS use actual data from the candidate's resume and portfolio provided below
+- The adapted resume must be 100% ready to use without any edits or replacements needed
+- Every detail must be filled in with real information from the provided data
+- If specific information is missing, write around it naturally - don't leave brackets or placeholders
 
 JOB POSTING:
 Title: ${job.title}
 Company: ${job.company_name}
 Description: ${String(job.description_text || '').slice(0, 3000)}
 Required Skills: ${JSON.stringify(job.skills_json || [])}
-
-CANDIDATE POSITIONING (USE THIS CONTEXT):
-🏆 Agility Award Q1 2025: "Living example of making the most of resources—creative right-sized solutions, scrappy experimentation"
-🔬 Curiosity Award Q2 2024: AI pioneering on IAT project
-
-PM Archetype: Scrappy High-Agency Builder who ships 0-to-1 products fast, thrives in ambiguity, and turns constraints into creative solutions.
-
+${candidateContext}
 CURRENT RESUME:
 Name: ${resume.full_name || 'N/A'}
 ${sections.map(s => `\n${s.section_type.toUpperCase()}: ${JSON.stringify(s.content, null, 2)}`).join('\n')}
@@ -169,18 +192,20 @@ Please provide your response in the following JSON format:
 }
 
 IMPORTANT INSTRUCTIONS:
-1. For each section, rewrite bullets/descriptions to emphasize relevant experience
-2. Incorporate keywords from the job description naturally
-3. Quantify achievements where possible
+1. For each section, rewrite bullets/descriptions to emphasize relevant experience using ACTUAL details from the resume
+2. Incorporate keywords from the job description naturally without forcing them
+3. Quantify achievements where possible using REAL metrics from the resume (never make up numbers)
 4. Reorder sections to highlight most relevant experience first
-5. In the summary section, tailor it directly to this job posting
-6. **CRITICAL**: Include relevant award(s) in summary if they align with job:
-   - Agility Award for startup/scrappy/execution-focused roles
-   - Curiosity Award for AI/innovation roles
-   - Use phrases like "Recognized for," "Award-winning," "Cited for"
-7. Emphasize PM archetype if relevant to job: "scrappy," "0-to-1," "ships fast," "thrives in ambiguity"
+5. In the summary section, tailor it directly to this job posting using ACTUAL achievements from the resume
+6. **CRITICAL**: Include relevant awards from the CANDIDATE AWARDS section above in the summary if they align with the job
+   - Use phrases like "Recognized for," "Award-winning," "Cited for" with the ACTUAL award names and descriptions
+   - Only include awards if they're actually provided in the candidate context above
+7. Use the candidate's actual professional tagline and positioning from their portfolio data
 8. Ensure all adapted_sections maintain the same structure as the original but with optimized content
-9. Return ONLY valid JSON, no additional text`;
+9. NO placeholders - every field must contain real data from the resume provided
+10. Return ONLY valid JSON, no additional text
+
+🚨 REMINDER: Output must be 100% ready to use. Use actual data from the resume sections above. No [brackets], no placeholders, no made-up metrics.
 
   try {
     const aiResponse = await generateAICompletion(

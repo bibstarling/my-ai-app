@@ -23,6 +23,9 @@ import {
   Save,
   Info,
   Sparkles,
+  Target,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -48,6 +51,8 @@ export default function PortfolioBuilderPage() {
   const [username, setUsername] = useState('');
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [showJobSettings, setShowJobSettings] = useState(false);
+  const [jobProfile, setJobProfile] = useState<any>(null);
   
   // Markdown editor state
   const [markdown, setMarkdown] = useState('');
@@ -70,9 +75,22 @@ export default function PortfolioBuilderPage() {
   useEffect(() => {
     if (isLoaded && user) {
       initializePortfolio();
+      loadJobProfile();
     }
   }, [isLoaded, user]);
 
+
+  const loadJobProfile = async () => {
+    try {
+      const res = await fetch('/api/job-profile', { credentials: 'include' });
+      const data = await res.json();
+      if (data.profile) {
+        setJobProfile(data.profile);
+      }
+    } catch (err) {
+      console.error('Failed to load job profile:', err);
+    }
+  };
 
   const initializePortfolio = async () => {
     try {
@@ -123,6 +141,7 @@ export default function PortfolioBuilderPage() {
     
     setIsSaving(true);
     try {
+      // Save portfolio markdown
       const res = await fetch('/api/portfolio/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -141,6 +160,26 @@ export default function PortfolioBuilderPage() {
           ...prev,
           portfolio_data: { ...prev.portfolio_data, markdown },
         }));
+        
+        // Auto-sync job search profile from portfolio content
+        try {
+          const syncRes = await fetch('/api/portfolio/sync-job-profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ markdown }),
+          });
+          
+          const syncData = await syncRes.json();
+          if (syncData.success) {
+            console.log('✅ Job profile auto-synced:', syncData.extracted);
+            // Reload job profile to show updated data
+            await loadJobProfile();
+          }
+        } catch (syncError) {
+          console.error('Job profile sync failed (non-critical):', syncError);
+          // Don't fail the save if job profile sync fails
+        }
       } else {
         throw new Error(data.error || 'Failed to save');
       }
@@ -729,6 +768,90 @@ export default function PortfolioBuilderPage() {
       {/* Main Content - Notion-like Editor */}
       <div className="flex-1 overflow-y-auto bg-gray-50">
         <div className="mx-auto max-w-5xl px-6 py-8">
+          
+          {/* Job Search Settings Section */}
+          <div className="mb-6 rounded-lg bg-white shadow-sm border border-gray-200 overflow-hidden">
+            <button
+              onClick={() => setShowJobSettings(!showJobSettings)}
+              className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Target className="w-5 h-5 text-blue-600" />
+                <div className="text-left">
+                  <h2 className="text-base font-semibold text-gray-900">Job Search Settings</h2>
+                  <p className="text-xs text-gray-500">
+                    {jobProfile ? 
+                      `${jobProfile.target_titles?.length || 0} target roles • ${jobProfile.skills_json?.length || 0} skills • ${jobProfile.seniority || 'No'} seniority` 
+                      : 'Auto-extracted from your profile'
+                    }
+                  </p>
+                </div>
+              </div>
+              {showJobSettings ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+            </button>
+            
+            {showJobSettings && jobProfile && (
+              <div className="px-6 pb-6 border-t border-gray-200 space-y-4">
+                {/* Target Titles */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Target Job Titles</label>
+                  <div className="flex flex-wrap gap-2">
+                    {(jobProfile.target_titles || []).map((title: string, idx: number) => (
+                      <span key={idx} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                        {title}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Seniority */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Seniority Level</label>
+                  <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                    {jobProfile.seniority || 'Not set'}
+                  </span>
+                </div>
+                
+                {/* Skills */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Key Skills ({(jobProfile.skills_json || []).length})
+                  </label>
+                  <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                    {(jobProfile.skills_json || []).slice(0, 20).map((skill: string, idx: number) => (
+                      <span key={idx} className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Context */}
+                {jobProfile.profile_context_text && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Career Context</label>
+                    <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">
+                      {jobProfile.profile_context_text}
+                    </p>
+                  </div>
+                )}
+                
+                {/* Edit Link */}
+                <div className="pt-3 border-t border-gray-200">
+                  <p className="text-xs text-gray-600 mb-2">
+                    ✨ These settings are automatically extracted from your profile. Save your profile to update them.
+                  </p>
+                  <a
+                    href="/job-profile"
+                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    → Manual settings editor
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+          
           {/* Editor Container */}
           <div className="rounded-lg bg-white shadow-sm border border-gray-200 overflow-hidden">
             <MDEditor

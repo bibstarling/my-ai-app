@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/admin/jobs/sync",
+      "path": "/api/cron/daily-job-ingestion",
       "schedule": "0 0 * * *"
     }
   ],
@@ -9,6 +9,14 @@
     "app/api/portfolio/scrape/route.ts": {
       "maxDuration": 60,
       "memory": 3008
+    },
+    "app/api/cron/daily-job-ingestion/route.ts": {
+      "maxDuration": 300,
+      "memory": 1024
+    },
+    "app/api/admin/jobs/pipeline/route.ts": {
+      "maxDuration": 300,
+      "memory": 1024
     }
   }
 }

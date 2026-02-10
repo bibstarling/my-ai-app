@@ -20,6 +20,8 @@ import {
   HelpCircle,
   Sparkles,
   LogIn,
+  Database,
+  ExternalLink,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuthSafe } from '@/app/hooks/useAuthSafe';
@@ -68,30 +70,50 @@ function Tooltip({ content, children, show }: TooltipProps) {
   );
 }
 
-const getMenuItems = (isAdmin: boolean): MenuItem[] => {
-  const items: MenuItem[] = [
-    // Dashboard
-    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, href: '/dashboard' },
-    
-    // Job Search
-    { id: 'job-search', label: 'Find Jobs', icon: <Search className="w-5 h-5" />, href: '/assistant/job-search' },
-    { id: 'my-jobs', label: 'My Applications', icon: <Kanban className="w-5 h-5" />, href: '/assistant/my-jobs' },
-    
-    // Career Tools
-    { id: 'portfolio-builder', label: 'Profile', icon: <Briefcase className="w-5 h-5" />, href: '/portfolio/builder' },
-    { id: 'resume', label: 'Resumes', icon: <FileText className="w-5 h-5" />, href: '/resume-builder' },
-    { id: 'cover-letter', label: 'Cover Letters', icon: <Mail className="w-5 h-5" />, href: '/cover-letters' },
-    
-    // AI Assistant
-    { id: 'chat', label: 'AI Coach', icon: <MessageSquare className="w-5 h-5" />, href: '/assistant/chat' },
+type MenuSection = {
+  title: string;
+  items: MenuItem[];
+};
+
+const getMenuSections = (isAdmin: boolean): MenuSection[] => {
+  const sections: MenuSection[] = [
+    {
+      title: 'Main',
+      items: [
+        { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, href: '/dashboard' },
+        { id: 'profile', label: 'Profile', icon: <User className="w-5 h-5" />, href: '/portfolio/builder' },
+      ]
+    },
+    {
+      title: 'Job Search',
+      items: [
+        { id: 'job-search', label: 'Find Jobs', icon: <Search className="w-5 h-5" />, href: '/jobs/discover' },
+        { id: 'my-jobs', label: 'My Applications', icon: <Kanban className="w-5 h-5" />, href: '/assistant/my-jobs' },
+      ]
+    },
+    {
+      title: 'Career Tools',
+      items: [
+        { id: 'resume', label: 'Resumes', icon: <FileText className="w-5 h-5" />, href: '/resume-builder' },
+        { id: 'cover-letter', label: 'Cover Letters', icon: <Mail className="w-5 h-5" />, href: '/cover-letters' },
+        { id: 'chat', label: 'AI Coach', icon: <MessageSquare className="w-5 h-5" />, href: '/assistant/chat' },
+      ]
+    },
   ];
   
-  // Add admin menu item if user is admin
+  // Add admin section if user is admin
   if (isAdmin) {
-    items.push({ id: 'admin', label: 'Admin', icon: <Shield className="w-5 h-5" />, href: '/admin' });
+    sections.push({
+      title: 'Admin Tools',
+      items: [
+        { id: 'admin-users', label: 'Users', icon: <Shield className="w-5 h-5" />, href: '/admin' },
+        { id: 'admin-jobs', label: 'Jobs Pipeline', icon: <Database className="w-5 h-5" />, href: '/admin/jobs' },
+        { id: 'admin-sources', label: 'Job Sources', icon: <ExternalLink className="w-5 h-5" />, href: '/admin/jobs/sources' },
+      ]
+    });
   }
   
-  return items;
+  return sections;
 };
 
 type AppMenuProps = {
@@ -104,13 +126,28 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
   const router = useRouter();
   const { user, isEmbedMode, isSignedIn, isLoaded } = useAuthSafe();
   const { isAdmin } = useIsAdmin();
-  const menuItems = getMenuItems(isAdmin);
+  const menuSections = getMenuSections(isAdmin);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const isActive = (href: string) => {
     if (href === '/') {
       return pathname === '/';
     }
+    
+    // Exact match for specific routes
+    if (href === '/admin') {
+      return pathname === '/admin';
+    }
+    
+    if (href === '/admin/jobs') {
+      return pathname === '/admin/jobs';
+    }
+    
+    if (href === '/admin/jobs/sources') {
+      return pathname === '/admin/jobs/sources';
+    }
+    
+    // For all other routes, use startsWith
     return pathname.startsWith(href);
   };
 
@@ -178,27 +215,46 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
               )}
             </div>
           ) : (
-            // Show menu items for authenticated users
-            menuItems.map((item) => {
-              const active = isActive(item.href);
-              return (
-                <Tooltip key={item.id} content={item.label} show={isCollapsed}>
-                  <Link
-                    href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
-                      active
-                        ? 'gradient-primary text-white shadow-lg'
-                        : 'text-gray-700 hover:bg-accent/5 hover:text-accent'
-                    } ${isCollapsed ? 'justify-center' : ''}`}
-                  >
-                    {item.icon}
-                    {!isCollapsed && (
-                      <span className="text-sm font-medium">{item.label}</span>
-                    )}
-                  </Link>
-                </Tooltip>
-              );
-            })
+            // Show menu sections for authenticated users
+            menuSections.map((section, sectionIdx) => (
+              <div key={section.title} className={sectionIdx > 0 ? 'mt-6' : ''}>
+                {/* Section Header */}
+                {!isCollapsed && (
+                  <div className="px-3 mb-2">
+                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      {section.title}
+                    </h3>
+                  </div>
+                )}
+                
+                {/* Section Items */}
+                {section.items.map((item) => {
+                  const active = isActive(item.href);
+                  return (
+                    <Tooltip key={item.id} content={item.label} show={isCollapsed}>
+                      <Link
+                        href={item.href}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                          active
+                            ? 'gradient-primary text-white shadow-lg'
+                            : 'text-gray-700 hover:bg-accent/5 hover:text-accent'
+                        } ${isCollapsed ? 'justify-center' : ''}`}
+                      >
+                        {item.icon}
+                        {!isCollapsed && (
+                          <span className="text-sm font-medium">{item.label}</span>
+                        )}
+                      </Link>
+                    </Tooltip>
+                  );
+                })}
+                
+                {/* Divider between sections (except last) */}
+                {!isCollapsed && sectionIdx < menuSections.length - 1 && (
+                  <div className="mx-3 my-3 border-t border-gray-200"></div>
+                )}
+              </div>
+            ))
           )}
         </nav>
 

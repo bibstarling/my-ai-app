@@ -16,6 +16,7 @@ import {
   Search,
   ChevronDown,
   ChevronUp,
+  ChevronRight,
 } from 'lucide-react';
 import { ConfirmDialog } from '@/app/components/ConfirmDialog';
 import { TableSkeleton } from '@/app/components/TableSkeleton';
@@ -442,14 +443,41 @@ function AdminContent() {
                   <ArrowLeft className="h-4 w-4" />
                   Back to assistant
                 </Link>
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-                    Admin Dashboard
-                  </h1>
-                  <p className="text-sm text-muted mt-1">
-                    Manage user approvals and access
-                  </p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+                      Admin Dashboard
+                    </h1>
+                    <p className="text-sm text-muted mt-1">
+                      Manage user approvals and access
+                    </p>
+                  </div>
+                  
+                  {/* Admin Quick Links */}
+                  <div className="hidden sm:flex items-center gap-2">
+                    <Link
+                      href="/admin/jobs"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm"
+                    >
+                      <Briefcase className="h-4 w-4" />
+                      Jobs Pipeline
+                    </Link>
+                  </div>
                 </div>
+              </div>
+              
+              {/* Mobile Admin Links */}
+              <div className="sm:hidden mb-6 bg-white rounded-xl border-2 border-border p-4">
+                <Link
+                  href="/admin/jobs"
+                  className="flex items-center justify-between px-4 py-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <Briefcase className="h-5 w-5 text-blue-600" />
+                    <span className="font-medium text-blue-900">Jobs Pipeline</span>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-blue-600" />
+                </Link>
               </div>
 
               {error && (
