@@ -59,6 +59,40 @@ export async function POST(request: Request) {
       );
     }
 
+    // Extract contact information from markdown if not in portfolio_data
+    function extractFromMarkdown(markdown: string, pattern: RegExp): string | null {
+      const match = markdown.match(pattern);
+      return match ? match[1].trim() : null;
+    }
+
+    let extractedName = null;
+    let extractedEmail = null;
+    let extractedPortfolioUrl = null;
+
+    if (portfolioMarkdown) {
+      extractedName = extractFromMarkdown(portfolioMarkdown, /^#\s+(.+?)$/m);
+      extractedEmail = extractFromMarkdown(portfolioMarkdown, /(?:email|e-mail|contact)[\s:]*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
+      
+      const urlPatterns = [
+        /(?:portfolio|website|site|url)[\s:]*(?:https?:\/\/)?([a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.(?:com|net|org|dev|io|co|me|info)[^\s,;)]*)/i,
+        /(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.(?:com|net|org|dev|io|co|me|info))/i,
+      ];
+      
+      for (const pattern of urlPatterns) {
+        const url = extractFromMarkdown(portfolioMarkdown, pattern);
+        if (url) {
+          extractedPortfolioUrl = url.startsWith('http') ? url : `https://${url}`;
+          break;
+        }
+      }
+    }
+
+    const fullName = portfolio?.fullName || portfolio?.name || extractedName || '';
+    const email = portfolio?.email || extractedEmail || '';
+    const portfolioUrl = userInfo?.is_super_admin 
+      ? 'www.biancastarling.com'
+      : (portfolio?.websiteUrl || portfolio?.website || extractedPortfolioUrl || '');
+
     // Generate ATS optimization strategy
     const atsOptimization = generateATSOptimization(jobTitle, jobDescription, company);
     console.log('[Tailor Resume] ATS Optimization Generated:', {
@@ -96,6 +130,14 @@ Description: ${jobDescription}
 
 CANDIDATE PORTFOLIO:
 ${portfolioMarkdown || JSON.stringify(portfolio, null, 2)}
+
+📌 CONTACT INFORMATION - ALREADY HANDLED:
+- DO NOT include contact information in your response
+- Contact information is AUTOMATICALLY populated in the resume header
+- Candidate's full name: ${fullName}
+- Candidate's email: ${email}
+- Portfolio URL: ${portfolioUrl || 'Will be included if available'}
+- Focus ONLY on generating content sections (summary, experience, projects, skills, education)
 
 Return ONLY valid JSON in this exact format:
 {
@@ -185,12 +227,12 @@ Return ONLY valid JSON in this exact format:
       .insert({
         clerk_id: userId,
         title: `${jobTitle} at ${company}`,
-        full_name: portfolio.fullName || portfolio.name || '',
-        email: portfolio.email || '',
+        full_name: fullName,
+        email: email,
         phone: portfolio.phone || null,
         location: portfolio.location || '',
         linkedin_url: portfolio.linkedinUrl || portfolio.linkedin || '',
-        portfolio_url: portfolio.websiteUrl || portfolio.website || '',
+        portfolio_url: portfolioUrl,
         status: 'draft',
       })
       .select()

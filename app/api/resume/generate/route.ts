@@ -93,8 +93,40 @@ export async function POST(req: Request) {
       console.log('[Resume Generate] Using platform profile (portfolio) as resume source');
     }
 
+    // Extract contact information from markdown if not in portfolio_data
+    function extractFromMarkdown(markdown: string, pattern: RegExp): string | null {
+      const match = markdown.match(pattern);
+      return match ? match[1].trim() : null;
+    }
+
+    // Parse contact info from markdown if needed
+    let extractedName = null;
+    let extractedEmail = null;
+    let extractedPortfolioUrl = null;
+
+    if (portfolioMarkdown) {
+      // Extract name from first heading
+      extractedName = extractFromMarkdown(portfolioMarkdown, /^#\s+(.+?)$/m);
+      
+      // Extract email
+      extractedEmail = extractFromMarkdown(portfolioMarkdown, /(?:email|e-mail|contact)[\s:]*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
+      
+      // Extract portfolio URL - look for common patterns
+      const urlPatterns = [
+        /(?:portfolio|website|site|url)[\s:]*(?:https?:\/\/)?([a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.(?:com|net|org|dev|io|co|me|info)[^\s,;)]*)/i,
+        /(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.(?:com|net|org|dev|io|co|me|info))/i,
+      ];
+      
+      for (const pattern of urlPatterns) {
+        const url = extractFromMarkdown(portfolioMarkdown, pattern);
+        if (url) {
+          extractedPortfolioUrl = url.startsWith('http') ? url : `https://${url}`;
+          break;
+        }
+      }
+    }
+
     // ALWAYS include portfolio URL if available (non-negotiable)
-    // Check multiple possible field names and locations
     let portfolioUrl = null;
     if (userInfo?.is_super_admin) {
       portfolioUrl = 'www.biancastarling.com';
@@ -108,14 +140,20 @@ export async function POST(req: Request) {
         userPortfolio?.portfolio_data?.website ||
         userPortfolio?.portfolio_data?.portfolio_url ||
         userPortfolio?.portfolio_data?.portfolioUrl ||
+        extractedPortfolioUrl ||
         null;
     }
+
+    // Use extracted values as fallback if portfolio_data is empty
+    const fullName = portfolioInfo?.fullName || extractedName || portfolioData.fullName;
+    const email = portfolioInfo?.email || extractedEmail || portfolioData.email;
     
-    console.log('[Resume Generate] Portfolio URL extracted:', {
+    console.log('[Resume Generate] Contact info extracted:', {
+      fullName,
+      email,
       portfolioUrl,
-      hasPortfolioInfo: !!portfolioInfo,
-      portfolioInfoKeys: portfolioInfo ? Object.keys(portfolioInfo) : [],
-      hasUserPortfolio: !!userPortfolio,
+      fromPortfolioData: !!(portfolioInfo?.fullName),
+      fromMarkdown: !!(extractedName || extractedEmail || extractedPortfolioUrl),
     });
 
     // Generate ATS optimization strategy
@@ -135,7 +173,10 @@ export async function POST(req: Request) {
       portfolioMarkdown,
       profileResumeText,
       jobProfile,
-      atsOptimization
+      atsOptimization,
+      fullName,
+      email,
+      portfolioUrl
     );
 
     // Create resume
@@ -147,8 +188,8 @@ export async function POST(req: Request) {
         title: resumeTitle,
         is_primary: false,
         status: 'draft',
-        full_name: portfolioInfo.fullName || portfolioData.fullName,
-        email: portfolioInfo.email || portfolioData.email,
+        full_name: fullName,
+        email: email,
         location: portfolioInfo.location || portfolioData.location,
         linkedin_url: portfolioInfo.linkedinUrl || portfolioData.linkedinUrl,
         portfolio_url: portfolioUrl,
@@ -443,7 +484,10 @@ async function selectRelevantContent(
   portfolioMarkdown: string,
   profileResumeText: string = '',
   jobProfile: any = null,
-  atsOptimization: any = null
+  atsOptimization: any = null,
+  fullName: string = '',
+  email: string = '',
+  portfolioUrl: string | null = null
 ): Promise<ContentSelection> {
 
     const awardsText = portfolioInfo.awards?.map((a: any, i: number) => 
@@ -480,16 +524,21 @@ ${atsInstructions}
 
 🚨 CRITICAL REQUIREMENT - NO PLACEHOLDERS ALLOWED:
 - NEVER use placeholders like [Company Name], [Your Name], [Skills], [Metric], etc.
+- NEVER generate generic text like "Your Name", "Your Email", or placeholder contact information
 - ALWAYS use actual data from the candidate's portfolio and profile provided below
 - Extract real experiences, projects, skills, and achievements from the candidate's actual data
 - The resume summary must be 100% ready to use without any edits or replacements needed
 - Every detail must be filled in with real information from the provided data
 - If specific metrics are missing, describe achievements qualitatively - don't leave brackets or placeholders
 
-📌 MANDATORY - PORTFOLIO URL:
-- The candidate's portfolio URL will be AUTOMATICALLY included in the resume header
-- Contact information (name, email, location, LinkedIn, portfolio) is handled separately - focus on content
-- Portfolio URL is NON-NEGOTIABLE and will ALWAYS be displayed if available
+📌 CONTACT INFORMATION - ALREADY HANDLED:
+- DO NOT include contact information (name, email, phone, location, LinkedIn, portfolio) in your response
+- Contact information is AUTOMATICALLY extracted and populated in the resume header
+- Candidate's full name: ${fullName}
+- Candidate's email: ${email}
+- Portfolio URL: ${portfolioUrl || 'Will be included if available'}
+- Your job is ONLY to generate the content sections (summary, experience, projects, skills, education)
+- Focus on creating compelling content - contact details are handled separately
 
 JOB POSTING:
 Title: ${jobTitle}
