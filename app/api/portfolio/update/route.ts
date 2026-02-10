@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     // Get portfolio
     const { data: portfolio } = await supabase
       .from('user_portfolios')
-      .select('id')
+      .select('id, portfolio_data, markdown')
       .eq('clerk_id', userId)
       .single();
 
@@ -52,9 +52,43 @@ export async function POST(request: Request) {
       );
     }
 
+    // If markdown is being updated, automatically parse it to extract structured data
+    let finalPortfolioData = portfolioData;
+    if (markdown && markdown !== portfolio.markdown) {
+      try {
+        console.log('[Portfolio Update] Markdown changed, parsing to extract structured data...');
+        const parseRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/portfolio/parse-markdown`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cookie': request.headers.get('cookie') || '',
+          },
+          body: JSON.stringify({ markdown }),
+        });
+
+        if (parseRes.ok) {
+          const parseData = await parseRes.json();
+          if (parseData.success && parseData.portfolioData) {
+            // Merge parsed data with existing portfolio data, prioritizing parsed data
+            finalPortfolioData = {
+              ...portfolioData,
+              ...parseData.portfolioData,
+              markdown, // Keep the markdown
+            };
+            console.log('[Portfolio Update] Successfully parsed markdown. Extracted fields:', Object.keys(parseData.portfolioData));
+          }
+        } else {
+          console.warn('[Portfolio Update] Failed to parse markdown, using data as-is');
+        }
+      } catch (parseError) {
+        console.error('[Portfolio Update] Error parsing markdown:', parseError);
+        // Continue with original data if parsing fails
+      }
+    }
+
     // Update portfolio data in database
     const updateData: any = { 
-      portfolio_data: portfolioData,
+      portfolio_data: finalPortfolioData,
       updated_at: new Date().toISOString(),
     };
     
@@ -85,7 +119,7 @@ export async function POST(request: Request) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ 
-            portfolioData,
+            portfolioData: finalPortfolioData,
             userId, // Pass userId for auth
           }),
         });

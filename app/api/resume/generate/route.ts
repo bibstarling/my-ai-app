@@ -94,9 +94,29 @@ export async function POST(req: Request) {
     }
 
     // ALWAYS include portfolio URL if available (non-negotiable)
-    const portfolioUrl = userInfo?.is_super_admin
-      ? 'www.biancastarling.com'
-      : portfolioInfo.websiteUrl || portfolioInfo.website || userPortfolio?.portfolio_data?.websiteUrl || null;
+    // Check multiple possible field names and locations
+    let portfolioUrl = null;
+    if (userInfo?.is_super_admin) {
+      portfolioUrl = 'www.biancastarling.com';
+    } else {
+      portfolioUrl = 
+        portfolioInfo?.websiteUrl || 
+        portfolioInfo?.website || 
+        portfolioInfo?.portfolio_url ||
+        portfolioInfo?.portfolioUrl ||
+        userPortfolio?.portfolio_data?.websiteUrl || 
+        userPortfolio?.portfolio_data?.website ||
+        userPortfolio?.portfolio_data?.portfolio_url ||
+        userPortfolio?.portfolio_data?.portfolioUrl ||
+        null;
+    }
+    
+    console.log('[Resume Generate] Portfolio URL extracted:', {
+      portfolioUrl,
+      hasPortfolioInfo: !!portfolioInfo,
+      portfolioInfoKeys: portfolioInfo ? Object.keys(portfolioInfo) : [],
+      hasUserPortfolio: !!userPortfolio,
+    });
 
     // Generate ATS optimization strategy
     const atsOptimization = generateATSOptimization(jobTitle, jobDescription, jobCompany);
@@ -140,6 +160,12 @@ export async function POST(req: Request) {
       console.error('Error creating resume:', resumeError);
       return NextResponse.json({ error: 'Failed to create resume' }, { status: 500 });
     }
+    
+    console.log('[Resume Generate] Resume created successfully:', {
+      resumeId: resume.id,
+      portfolioUrlSaved: resume.portfolio_url,
+      portfolioUrlInput: portfolioUrl,
+    });
 
     // Add sections based on AI selection
     const sections = [];
