@@ -354,7 +354,7 @@ export default function JobDiscoveryPage() {
   // Show loading while checking profile
   if (checkingProfile) {
     return (
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto p-4 md:p-6 overflow-hidden">
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -368,7 +368,7 @@ export default function JobDiscoveryPage() {
   // Show profile setup required only after checking
   if (!hasProfile) {
     return (
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto p-4 md:p-6 overflow-hidden">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
           <h2 className="text-xl font-semibold text-yellow-900 mb-2">
             Profile Setup Required
@@ -388,11 +388,11 @@ export default function JobDiscoveryPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Discover Jobs</h1>
+    <div className="max-w-6xl mx-auto p-4 md:p-6 overflow-x-hidden">
+      <h1 className="text-2xl md:text-3xl font-bold mb-6 break-words">Discover Jobs</h1>
       
       {/* Mode Selector */}
-      <div className="mb-6 bg-white rounded-lg shadow p-6">
+      <div className="mb-6 bg-white rounded-lg shadow p-4 md:p-6 overflow-hidden">
         <div className="flex items-center gap-6 mb-4">
           <label className="flex items-center gap-2 cursor-pointer">
             <input
@@ -735,18 +735,18 @@ export default function JobDiscoveryPage() {
           <p className="mt-4 text-gray-600">Finding the best jobs for you...</p>
         </div>
       ) : jobs.length > 0 ? (
-        <div className="space-y-4">
+        <div className="space-y-4 max-w-full overflow-hidden">
           {getSortedJobs().map((job) => (
             <div
               key={job.id}
               className="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-6"
             >
-              <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-3">
-                <div className="flex-1 min-w-0 w-full">
-                  <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-1 break-words">
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-3 overflow-hidden">
+                <div className="flex-1 min-w-0 max-w-full">
+                  <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-1 break-words overflow-wrap-anywhere">
                     {job.normalized_title || job.title}
                   </h3>
-                  <p className="text-gray-600 truncate">{job.company_name}</p>
+                  <p className="text-gray-600 truncate overflow-hidden text-ellipsis">{job.company_name}</p>
                 </div>
                 
                 {job.match_percentage !== undefined && (
@@ -795,11 +795,11 @@ export default function JobDiscoveryPage() {
               </p>
 
               {job.skills_json && job.skills_json.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 md:gap-2 mb-4 overflow-hidden">
+                <div className="flex flex-wrap gap-1.5 md:gap-2 mb-4 max-w-full overflow-hidden">
                   {job.skills_json.slice(0, 8).map((skill, idx) => (
                     <span
                       key={idx}
-                      className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded whitespace-nowrap"
+                      className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded whitespace-nowrap shrink-0"
                     >
                       {skill}
                     </span>
