@@ -148,8 +148,15 @@ export class SourcesService {
    */
   private createScraperWorker(source: SourceConfig): BaseJobWorker | null {
     const url = source.config.url;
-    const sourceType = source.config.source_type || 'rss';
-    const scraperConfig = source.config.config || {};
+    // Check both config.type (new format) and config.source_type (old format)
+    const sourceType = source.config.type || source.config.source_type || 'rss';
+    const scraperConfig = source.config.config || source.config || {};
+    
+    console.log(`[SourcesService] Creating scraper for ${source.name}:`, {
+      url,
+      sourceType,
+      hasConfig: !!scraperConfig
+    });
     
     if (!url) {
       console.warn(`[SourcesService] Custom source ${source.source_key} has no URL`);

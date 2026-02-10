@@ -58,15 +58,20 @@ export class CustomScraperWorker extends BaseJobWorker {
   protected async fetchJobs(): Promise<RawJobPosting[]> {
     console.log(`[CustomScraper:${this.customSource.name}] Starting scrape...`);
     
-    switch (this.customSource.source_type) {
-      case 'rss':
-        return this.scrapeRSS();
-      case 'html_list':
-        return this.scrapeHTMLList();
-      case 'json_api':
-        return this.scrapeJSONAPI();
-      default:
-        throw new Error(`Unsupported source type: ${this.customSource.source_type}`);
+    try {
+      switch (this.customSource.source_type) {
+        case 'rss':
+          return await this.scrapeRSS();
+        case 'html_list':
+          return await this.scrapeHTMLList();
+        case 'json_api':
+          return await this.scrapeJSONAPI();
+        default:
+          throw new Error(`Unsupported source type: ${this.customSource.source_type}`);
+      }
+    } catch (error) {
+      console.error(`[CustomScraper:${this.customSource.name}] Scrape failed:`, error);
+      throw error; // Re-throw to update sync status
     }
   }
   
@@ -77,6 +82,7 @@ export class CustomScraperWorker extends BaseJobWorker {
     const jobs: RawJobPosting[] = [];
     
     try {
+      console.log(`[CustomScraper:${this.customSource.name}] Fetching RSS from ${this.customSource.url}`);
       const response = await fetch(this.customSource.url, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (compatible; JobAggregator/1.0)',
@@ -84,16 +90,32 @@ export class CustomScraperWorker extends BaseJobWorker {
       });
       
       if (!response.ok) {
+        console.error(`[CustomScraper:${this.customSource.name}] HTTP error: ${response.status}`);
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
       const xml = await response.text();
+      console.log(`[CustomScraper:${this.customSource.name}] Fetched ${xml.length} bytes of XML`);
+      
+      if (xml.length < 100) {
+        console.error(`[CustomScraper:${this.customSource.name}] Response too short, likely not valid RSS`);
+        throw new Error('Invalid RSS feed - response too short');
+      }
+      
       const $ = cheerio.load(xml, { xmlMode: true });
       
       const config = this.customSource.config;
       const itemTag = config.rssItemTag || 'item';
       
-      $(itemTag).each((_, element) => {
+      const items = $(itemTag);
+      console.log(`[CustomScraper:${this.customSource.name}] Found ${items.length} <${itemTag}> items`);
+      
+      if (items.length === 0) {
+        console.warn(`[CustomScraper:${this.customSource.name}] No items found with selector '${itemTag}'`);
+        return jobs; // Return empty array, not an error
+      }
+      
+      items.each((_, element) => {
         const $item = $(element);
         
         const title = $item.find(config.rssTitleTag || 'title').text().trim();
@@ -121,6 +143,8 @@ export class CustomScraperWorker extends BaseJobWorker {
           fetched_at: new Date().toISOString(),
         });
       });
+      
+      console.log(`[CustomScraper:${this.customSource.name}] Successfully parsed ${jobs.length} jobs from RSS`);
       
     } catch (error) {
       console.error(`[CustomScraper:${this.customSource.name}] RSS scrape failed:`, error);
