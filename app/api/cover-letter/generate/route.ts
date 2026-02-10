@@ -4,6 +4,7 @@ import { getSupabaseServiceRole } from '@/lib/supabase-server';
 import { generateAICompletion } from '@/lib/ai-provider';
 import type { GenerateCoverLetterRequest, GenerateCoverLetterResponse } from '@/lib/types/cover-letter';
 import { sendDocumentReadyEmail } from '@/lib/email';
+import { generateATSOptimization, getATSCoverLetterPromptInstructions } from '@/lib/ats-optimizer';
 
 /**
  * POST /api/cover-letter/generate - Auto-generate cover letter from portfolio markdown
@@ -84,7 +85,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // Generate cover letter using AI with portfolio markdown
+    // Generate ATS optimization strategy
+    const atsOptimization = generateATSOptimization(jobTitle, jobDescription, jobCompany);
+    console.log('[Cover Letter Generate] ATS Optimization Generated:', {
+      priorityTerms: atsOptimization.priorityTerms.length,
+      industryContext: atsOptimization.industryContext,
+    });
+
+    // Generate cover letter using AI with portfolio markdown and ATS optimization
     const result = await generateCoverLetter({
       jobTitle,
       jobCompany,
@@ -94,6 +102,7 @@ export async function POST(req: Request) {
       recipientTitle: body.recipient_title,
       portfolioMarkdown,
       userId,
+      atsOptimization,
     });
 
     // Save cover letter
@@ -227,13 +236,21 @@ async function generateCoverLetter(params: {
   recipientTitle?: string;
   portfolioMarkdown: string;
   userId: string;
+  atsOptimization?: any;
 }): Promise<CoverLetterGeneration> {
 
   const recipientAddress = params.recipientName 
     ? `Dear ${params.recipientName},`
     : `Dear Hiring Manager,`;
 
-  const prompt = `You are an expert career coach writing a compelling cover letter. Analyze the job posting and candidate's portfolio markdown to create a persuasive, specific cover letter.
+  // Get ATS-optimized prompt instructions
+  const atsInstructions = params.atsOptimization
+    ? getATSCoverLetterPromptInstructions(params.atsOptimization)
+    : '';
+
+  const prompt = `You are an expert career coach with deep knowledge of modern ATS (Applicant Tracking Systems) writing a compelling cover letter. Analyze the job posting and candidate's portfolio markdown to create a persuasive, specific cover letter that passes ATS screening and engages human recruiters.
+
+${atsInstructions}
 
 JOB POSTING:
 Title: ${params.jobTitle}
@@ -242,6 +259,14 @@ Description: ${params.jobDescription.slice(0, 3000)}
 
 CANDIDATE PORTFOLIO (Markdown):
 ${params.portfolioMarkdown}
+
+🚨 CRITICAL REQUIREMENT - NO PLACEHOLDERS ALLOWED:
+- NEVER use placeholders like [Company Name], [Your Name], [Position], [Skills], etc.
+- ALWAYS use actual data from the candidate's portfolio and the job posting provided above
+- Extract the candidate's name, experiences, projects, and skills from the portfolio markdown
+- The cover letter must be 100% ready to send without any edits or replacements needed
+- Every detail must be filled in with real information from the provided data
+- If specific information is missing, write around it naturally - don't leave brackets or placeholders
 
 INSTRUCTIONS:
 Write a compelling cover letter with this structure:
@@ -294,18 +319,20 @@ CRITICAL REQUIREMENTS - MUST SOUND HUMAN-WRITTEN (people will read this and cann
 
 Return ONLY valid JSON in this exact format:
 {
-  "openingParagraph": "<Hook that sounds like BIANCA wrote it. Use contractions. Be specific about the company. Show genuine enthusiasm. NO generic openings. Vary sentence length. Sound conversational.>",
+  "openingParagraph": "<Hook that sounds like THE CANDIDATE wrote it. Use contractions. Be specific about ${params.jobCompany}. Show genuine enthusiasm. NO generic openings. NO placeholders. Vary sentence length. Sound conversational. Use actual details from portfolio.>",
   "bodyParagraphs": [
-    "<Tell a mini-story about relevant experience. Be specific. Use contractions. Sound like a real person talking about their work. Include concrete details and outcomes.>",
-    "<Describe a key project with specifics only someone who did it would know. Use metrics. Connect to their needs. Keep it conversational and energetic.>",
-    "<Optional: Show cultural fit or address unique needs. Sound genuine, not researched. Make the connection feel natural.>"
+    "<Tell a mini-story about relevant experience from the portfolio. Be specific. Use contractions. Sound like a real person talking about their work. Include concrete details and outcomes from their actual experience. NO placeholders.>",
+    "<Describe a key project from the portfolio with specifics only someone who did it would know. Use metrics from their portfolio. Connect to ${params.jobCompany}'s needs. Keep it conversational and energetic. NO placeholders.>",
+    "<Optional: Show cultural fit or address unique needs. Sound genuine, not researched. Make the connection feel natural. Use actual skills/experience from portfolio. NO placeholders.>"
   ],
-  "closingParagraph": "<Close with real enthusiasm and confidence. NO formulaic 'I look forward to hearing from you.' Sound like you actually want this role. Clear but human call to action.>",
-  "selectedExperiences": ["<experience title 1>", "<experience title 2>"],
-  "selectedProjects": ["<project title 1>", "<project title 2>"],
-  "keyPoints": ["<key selling point 1>", "<key selling point 2>", "<key selling point 3>"],
+  "closingParagraph": "<Close with real enthusiasm and confidence. NO formulaic 'I look forward to hearing from you.' Sound like you actually want the ${params.jobTitle} role at ${params.jobCompany}. Clear but human call to action. NO placeholders.>",
+  "selectedExperiences": ["<exact experience title from portfolio>", "<exact experience title from portfolio>"],
+  "selectedProjects": ["<exact project title from portfolio>", "<exact project title from portfolio>"],
+  "keyPoints": ["<actual key selling point from portfolio>", "<actual key selling point from portfolio>", "<actual key selling point from portfolio>"],
   "reasoning": "<brief explanation of content selection and strategy>"
-}`;
+}
+
+🚨 REMINDER: The output must be 100% ready to send. Extract the candidate's name and all details from the portfolio markdown. No [brackets], no placeholders, no TODO items. Use real data only.`;
 
   try {
     const aiResponse = await generateAICompletion(
@@ -339,18 +366,35 @@ Return ONLY valid JSON in this exact format:
   } catch (error) {
     console.error('Error generating cover letter:', error);
     
-    // Fallback
+    // Create a basic fallback from portfolio markdown
+    const portfolioLines = params.portfolioMarkdown.split('\n').filter(line => line.trim());
+    const name = portfolioLines[0]?.replace(/^#\s*/, '') || 'Candidate';
+    const title = portfolioLines[1]?.replace(/^##\s*/, '') || 'Professional';
+    
+    // Extract first experience from markdown
+    const expMatch = params.portfolioMarkdown.match(/###\s*(.+?)\s+at\s+(.+?)(?:\n|$)/);
+    const firstExperience = expMatch ? `${expMatch[1]} at ${expMatch[2]}` : 'my professional experience';
+    
+    // Extract first project from markdown
+    const projectMatch = params.portfolioMarkdown.match(/##\s*Projects[\s\S]*?###\s*(.+?)(?:\n|$)/);
+    const firstProject = projectMatch ? projectMatch[1] : 'key projects';
+    
+    // Extract skills
+    const skillsMatch = params.portfolioMarkdown.match(/##\s*Skills[\s\S]*?\*\*(.+?):\*\*\s*(.+?)(?:\n|$)/);
+    const skills = skillsMatch ? `${skillsMatch[1]} including ${skillsMatch[2].split(',').slice(0, 3).join(',')}` : 'relevant technical skills';
+    
+    // Fallback with actual user data
     return {
-      openingParagraph: `I am writing to express my strong interest in the ${params.jobTitle} position at ${params.jobCompany}. With my background in product management and proven track record of delivering impactful results, I am excited about the opportunity to contribute to your team.`,
+      openingParagraph: `I'm excited about the ${params.jobTitle} position at ${params.jobCompany}. With my background in ${title.toLowerCase()} and hands-on experience in ${skills}, I believe I can contribute meaningfully to your team.`,
       bodyParagraphs: [
-        `In my current role as Lead Product Manager at Skillshare, I have driven company-wide AI strategy and delivered a 25% increase in daily engagement. My experience in building AI-powered products and community-driven platforms aligns closely with the requirements of this role.`,
-        `I am particularly proud of leading the ChatGPT App and AI-Native Discovery Platform project, which established the foundation for semantic search and personalized discovery. This work demonstrates my ability to translate technical capabilities into user-facing products that drive measurable business outcomes.`,
+        `My experience in ${firstExperience} has equipped me with the skills needed for this role. I've successfully delivered projects that align with ${params.jobCompany}'s focus, demonstrating my ability to execute effectively and drive results.`,
+        `I'm particularly proud of my work on ${firstProject}, which showcases my capability to tackle complex challenges and deliver tangible outcomes. This experience has prepared me well for the responsibilities outlined in your job description.`,
       ],
-      closingParagraph: `I would welcome the opportunity to discuss how my experience in product management, AI strategy, and community growth can contribute to ${params.jobCompany}'s success. Thank you for considering my application, and I look forward to speaking with you soon.`,
-      selectedExperiences: ['Lead Product Manager at Skillshare'],
-      selectedProjects: ['ChatGPT App and AI-Native Discovery Platform'],
-      keyPoints: ['AI Strategy', 'Product Leadership', 'Measurable Impact'],
-      reasoning: 'Using default content due to AI error',
+      closingParagraph: `I'd welcome the opportunity to discuss how my experience and skills can contribute to ${params.jobCompany}'s continued success. I'm enthusiastic about this role and look forward to the possibility of joining your team.`,
+      selectedExperiences: [firstExperience],
+      selectedProjects: [firstProject],
+      keyPoints: [skills, 'Problem-solving', 'Results-driven execution'],
+      reasoning: 'Fallback content generated from portfolio markdown due to AI error',
     };
   }
 }

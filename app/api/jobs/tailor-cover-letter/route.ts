@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { generateAICompletion } from '@/lib/ai-provider';
 import { createClient } from '@supabase/supabase-js';
 import { portfolioData, getPMPositioning } from '@/lib/portfolio-data';
+import { generateATSOptimization, getATSCoverLetterPromptInstructions, analyzeATSCompatibility } from '@/lib/ats-optimizer';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,12 +31,62 @@ export async function POST(request: Request) {
       );
     }
 
-    // Get portfolio data
-    const portfolio = portfolioData;
-    const positioning = getPMPositioning();
+    // Get user's portfolio data
+    const { data: userPortfolio } = await supabase
+      .from('user_portfolios')
+      .select('portfolio_data, markdown')
+      .eq('clerk_id', userId)
+      .maybeSingle();
+
+    const { data: userInfo } = await supabase
+      .from('users')
+      .select('is_super_admin')
+      .eq('clerk_id', userId)
+      .maybeSingle();
+
+    // Use user's portfolio or fallback to main portfolio for super admin
+    let portfolio = userPortfolio?.portfolio_data || portfolioData;
+    let portfolioMarkdown = userPortfolio?.markdown || '';
+    let positioning = '';
+
+    if (userInfo?.is_super_admin && !userPortfolio) {
+      portfolio = portfolioData;
+      positioning = getPMPositioning();
+    } else if (userPortfolio?.markdown) {
+      // Extract positioning from user's portfolio
+      portfolioMarkdown = userPortfolio.markdown;
+      positioning = portfolioMarkdown.slice(0, 3000);
+    }
+
+    if (!portfolioMarkdown && !positioning) {
+      return NextResponse.json(
+        { error: 'Please create your portfolio first before generating cover letters' },
+        { status: 400 }
+      );
+    }
+
+    // Generate ATS optimization strategy
+    const atsOptimization = generateATSOptimization(jobTitle, jobDescription, company);
+    console.log('[Tailor Cover Letter] ATS Optimization Generated:', {
+      priorityTerms: atsOptimization.priorityTerms.length,
+      industryContext: atsOptimization.industryContext,
+    });
+
+    // Get ATS-optimized prompt instructions
+    const atsInstructions = getATSCoverLetterPromptInstructions(atsOptimization);
 
     // Generate tailored cover letter optimized for ATS and recruiters
-    const prompt = `You are an expert cover letter writer who understands both ATS systems and recruiter psychology. Create a cover letter that passes ATS screening while engaging human readers.
+    const prompt = `You are an expert cover letter writer with deep knowledge of state-of-the-art 2026 ATS systems and recruiter psychology. Create a cover letter that passes ATS screening (targeting high keyword coverage and semantic alignment) while engaging human readers.
+
+${atsInstructions}
+
+🚨 CRITICAL REQUIREMENT - NO PLACEHOLDERS ALLOWED:
+- NEVER use placeholders like [Company Name], [Your Name], [Position], [Skills], [Achievement], etc.
+- ALWAYS use actual data from the candidate's portfolio provided below
+- Extract the candidate's name, experiences, projects, and skills from their portfolio
+- The cover letter must be 100% ready to send without any edits or replacements needed
+- Every detail must be filled in with real information from the provided data
+- If specific information is missing, write around it naturally - don't leave brackets or placeholders
 
 JOB INFORMATION:
 Title: ${jobTitle}
@@ -46,61 +97,10 @@ CANDIDATE INFORMATION:
 ${positioning}
 
 Portfolio Details:
-${JSON.stringify(portfolio, null, 2)}
+${portfolioMarkdown || JSON.stringify(portfolio, null, 2)}
 
-CRITICAL ATS + RECRUITER OPTIMIZATION:
-
-1. ATS KEYWORD STRATEGY:
-   - Include job title (${jobTitle}) within first paragraph
-   - Incorporate 8-12 important keywords from job description naturally
-   - Use exact phrases from job posting (not paraphrased)
-   - Mirror technical terminology from job description
-   - Include company name (${company}) multiple times
-   - Reference specific skills/tools mentioned in posting
-
-2. STRUCTURE FOR ATS PARSING:
-   - Clear introduction stating position applying for
-   - Body paragraphs with specific, keyword-rich examples
-   - Quantifiable achievements with metrics
-   - Explicit connection to requirements
-   - Professional closing
-
-3. RECRUITER ENGAGEMENT:
-   - Strong opening hook (show you researched company/role)
-   - Highlight 2-3 most impressive, relevant achievements
-   - Tell a story, not just list qualifications
-   - Show enthusiasm and cultural alignment
-   - Demonstrate understanding of company challenges
-   - Clear value proposition (what you'll bring)
-
-4. KEYWORD INTEGRATION (Natural Flow):
-   - Don't just list keywords - weave into compelling narratives
-   - Example: "My experience leading semantic search implementations..."
-   - Use keywords in context of achievements
-   - Vary keyword usage (don't repeat robotically)
-
-5. AUTHENTICITY FOR HUMANS:
-   - Sound genuinely human (use "I'm" not "I am", natural contractions)
-   - Vary sentence structure and length
-   - Show personality while staying professional
-   - Avoid AI clichés ("I am writing to express my interest")
-   - Use confident, direct language
-
-6. CONTENT STRATEGY:
-   - Paragraph 1: Hook + position + top qualification match
-   - Paragraph 2: Relevant achievement #1 with keywords + impact
-   - Paragraph 3: Relevant achievement #2 with keywords + connection to company
-   - Paragraph 4: Why this company/role + call to action
-
-7. LENGTH & TONE:
-   - 3-4 concise paragraphs
-   - Professional yet conversational
-   - Confident without arrogance
-   - Specific, not generic
-
-CRITICAL: Write in first person as if you ARE the candidate. Use their authentic PM voice and style while strategically incorporating ATS keywords.
-
-Return the complete cover letter text (no JSON, just the letter).`;
+Return the complete cover letter text (no JSON, just the letter). 
+🚨 REMINDER: No [brackets], no placeholders, no TODO items. Use real data from portfolio only.`;
 
     const response = await generateAICompletion(
       userId,

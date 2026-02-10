@@ -5,6 +5,7 @@ import { portfolioData, getPortfolioSummary } from '@/lib/portfolio-data';
 import type { SectionType } from '@/lib/types/resume';
 import { sendDocumentReadyEmail } from '@/lib/email';
 import { generateAICompletion } from '@/lib/ai-provider';
+import { generateATSOptimization, getATSResumePromptInstructions } from '@/lib/ats-optimizer';
 
 type GenerateRequest = {
   job_id?: string;
@@ -52,6 +53,13 @@ export async function POST(req: Request) {
       );
     }
 
+    // Get user's job profile (from job intelligence platform)
+    const { data: jobProfile } = await supabase
+      .from('user_job_profiles')
+      .select('*')
+      .eq('clerk_id', userId)
+      .maybeSingle();
+
     // Get user's portfolio data and markdown
     const { data: userPortfolio } = await supabase
       .from('user_portfolios')
@@ -77,6 +85,14 @@ export async function POST(req: Request) {
       portfolioMarkdown = convertPortfolioDataToMarkdown(portfolioData);
     }
 
+    // Use platform profile (portfolio) as primary source for resume generation
+    // Job profile only contains preferences (skills, titles, etc.), not resume text
+    let profileResumeText = '';
+    if (portfolioMarkdown) {
+      profileResumeText = portfolioMarkdown;
+      console.log('[Resume Generate] Using platform profile (portfolio) as resume source');
+    }
+
     const includePortfolioLink = userPortfolio?.include_portfolio_link ?? false;
     const portfolioUrl = includePortfolioLink
       ? userInfo?.is_super_admin
@@ -84,8 +100,25 @@ export async function POST(req: Request) {
         : portfolioInfo.websiteUrl || null
       : portfolioInfo.websiteUrl || null;
 
-    // Use AI to select most relevant content from user's portfolio
-    const selection = await selectRelevantContent(jobTitle, jobDescription, jobCompany, userId, portfolioInfo, portfolioMarkdown);
+    // Generate ATS optimization strategy
+    const atsOptimization = generateATSOptimization(jobTitle, jobDescription, jobCompany);
+    console.log('[Resume Generate] ATS Optimization Generated:', {
+      priorityTerms: atsOptimization.priorityTerms.length,
+      industryContext: atsOptimization.industryContext,
+    });
+
+    // Use AI to select most relevant content from user's portfolio and job profile
+    const selection = await selectRelevantContent(
+      jobTitle, 
+      jobDescription, 
+      jobCompany, 
+      userId, 
+      portfolioInfo, 
+      portfolioMarkdown,
+      profileResumeText,
+      jobProfile,
+      atsOptimization
+    );
 
     // Create resume
     const resumeTitle = body.resume_title || `${jobTitle} Resume`;
@@ -341,24 +374,58 @@ async function selectRelevantContent(
   jobCompany: string,
   userId: string,
   portfolioInfo: any,
-  portfolioMarkdown: string
+  portfolioMarkdown: string,
+  profileResumeText: string = '',
+  jobProfile: any = null,
+  atsOptimization: any = null
 ): Promise<ContentSelection> {
 
     const awardsText = portfolioInfo.awards?.map((a: any, i: number) => 
       `${i+1}. ${a.title} ${a.quarter}: ${a.description}`
     ).join('\n') || '';
 
-    const prompt = `You are an expert resume writer. Analyze the job posting and select the most relevant content from this candidate's portfolio.
+    // Build comprehensive candidate info
+    let candidateProfileSection = '';
+    
+    if (profileResumeText) {
+      candidateProfileSection = `CANDIDATE RESUME (Primary Source - Use This First):
+${profileResumeText.slice(0, 5000)}
+
+${jobProfile?.skills?.length > 0 ? `\n🔧 KEY SKILLS FROM PROFILE:\n${jobProfile.skills.join(', ')}\n` : ''}
+${jobProfile?.target_titles?.length > 0 ? `\n🎯 TARGET ROLES:\n${jobProfile.target_titles.join(', ')}\n` : ''}
+${jobProfile?.seniority ? `\n📊 SENIORITY LEVEL: ${jobProfile.seniority}\n` : ''}
+
+`;
+    }
+
+    candidateProfileSection += `CANDIDATE PROFESSIONAL PROFILE (Markdown):
+${portfolioMarkdown}
+
+${awardsText ? `🏆 AWARDS & RECOGNITION:\n${awardsText}\n` : ''}`;
+
+    // Get ATS-optimized prompt instructions
+    const atsInstructions = atsOptimization 
+      ? getATSResumePromptInstructions(atsOptimization)
+      : '';
+
+    const prompt = `You are an expert resume writer with deep knowledge of modern ATS (Applicant Tracking Systems). Analyze the job posting and select the most relevant content from this candidate's profile and portfolio.
+
+${atsInstructions}
+
+🚨 CRITICAL REQUIREMENT - NO PLACEHOLDERS ALLOWED:
+- NEVER use placeholders like [Company Name], [Your Name], [Skills], [Metric], etc.
+- ALWAYS use actual data from the candidate's portfolio and profile provided below
+- Extract real experiences, projects, skills, and achievements from the candidate's actual data
+- The resume summary must be 100% ready to use without any edits or replacements needed
+- Every detail must be filled in with real information from the provided data
+- If specific metrics are missing, describe achievements qualitatively - don't leave brackets or placeholders
 
 JOB POSTING:
 Title: ${jobTitle}
 Company: ${jobCompany}
 Description: ${jobDescription.slice(0, 2000)}
 
-CANDIDATE PROFESSIONAL PROFILE (Markdown):
-${portfolioMarkdown}
-
-${awardsText ? `🏆 AWARDS & RECOGNITION:\n${awardsText}\n` : ''}
+${candidateProfileSection}
 
 CANDIDATE PORTFOLIO (Structured Data for Selection):
 
@@ -380,11 +447,20 @@ AVAILABLE SKILLS:
 ${Object.entries(portfolioInfo.skills || {}).map(([cat, items]) => `${cat}: ${Array.isArray(items) ? items.join(', ') : ''}`).join('\n')}
 
 YOUR TASK:
-Select the most relevant experiences, projects, and skills for this specific job. Prioritize recent and highly relevant items. A strong resume should have 2-4 experiences, 2-3 projects, and focused skills.
+${profileResumeText ? 'IMPORTANT: The candidate has provided their resume text above. Use this as your PRIMARY SOURCE for understanding their background, experience, and achievements. Extract relevant experiences and skills from their actual resume first, then supplement with portfolio data if needed.' : 'Select the most relevant experiences, projects, and skills for this specific job from the portfolio data.'} 
 
-CRITICAL REQUIREMENTS FOR SUMMARY (must sound genuinely human-written):
+Prioritize recent and highly relevant items. A strong resume should have 2-4 experiences, 2-3 projects, and focused skills.
 
-**AVOID AI DETECTION - This MUST sound like Bianca wrote it herself:**
+CRITICAL REQUIREMENTS FOR SUMMARY (ATS-Optimized + Human-Written):
+
+**ATS OPTIMIZATION FOR SUMMARY (HIGHEST PRIORITY):**
+- MUST include 4-6 priority keywords from the ATS optimization above naturally
+- Use EXACT terminology from job description (not paraphrased)
+- Include both spelled-out terms AND acronyms when relevant
+- First 2 sentences are CRITICAL for ATS scanning - pack with relevant keywords
+- Balance keyword density with natural flow - aim for 0.76+ semantic alignment score
+
+**AVOID AI DETECTION - This MUST sound like the candidate wrote it:**
 - NO generic resume phrases ("results-driven professional," "proven track record," "dynamic leader")
 - NO overly polished or corporate-speak language
 - Use contractions naturally (I've, I'm, that's) - real people use them
@@ -414,13 +490,16 @@ CRITICAL REQUIREMENTS FOR SUMMARY (must sound genuinely human-written):
 
 Return ONLY valid JSON in this exact format:
 {
-  "summary": "<2-3 sentence summary that sounds like BIANCA wrote it, not AI. Use contractions. Be specific. Sound like a real person. Vary sentence length. NO generic phrases or buzzwords. Match tone to job type but keep it conversational and genuine.>",
-  "experienceIndices": [<array of 2-4 most relevant experience indices>],
-  "projectIndices": [<array of 2-3 most relevant project indices>],
-  "skills": [<array of 10-15 most relevant skill keywords from available skills>],
+  "summary": "<2-3 sentence summary that is ATS-OPTIMIZED with 4-6 priority keywords AND sounds like THE CANDIDATE wrote it, not AI. Use contractions. Be specific using ACTUAL experiences and achievements from the portfolio. Sound like a real person. Vary sentence length. NO generic phrases or buzzwords. Match tone to ${jobTitle} at ${jobCompany} but keep it conversational and genuine. NO placeholders - use real data only. MUST include priority keywords naturally.>",
+  "experienceIndices": [<array of 2-4 most relevant experience indices from the list above>],
+  "projectIndices": [<array of 2-3 most relevant project indices from the list above>],
+  "skills": [<array of 10-15 actual skill keywords from the available skills list above - PRIORITIZE skills that match ATS priority keywords - use exact terms from candidate's portfolio>],
   "includeCertifications": <true if certifications add value, false otherwise>,
-  "reasoning": "<brief explanation of why you selected this content>"
-}`;
+  "reasoning": "<brief explanation of why you selected this content, including ATS keyword strategy>"
+  "atsKeywordsUsed": [<array of priority keywords from ATS optimization that were successfully integrated into the summary>]
+}
+
+🚨 REMINDER: The summary must be 100% ready to use. Extract real experiences, projects, and skills from the candidate's portfolio. No [brackets], no placeholders, no generic statements. Use actual achievements with real specifics from the portfolio data provided above.`;
 
   try {
     const response = await generateAICompletion(

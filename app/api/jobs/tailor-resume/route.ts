@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { generateAICompletion } from '@/lib/ai-provider';
 import { createClient } from '@supabase/supabase-js';
 import { portfolioData } from '@/lib/portfolio-data';
+import { generateATSOptimization, getATSResumePromptInstructions, analyzeATSCompatibility } from '@/lib/ats-optimizer';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,11 +31,57 @@ export async function POST(request: Request) {
       );
     }
 
-    // Get portfolio data
-    const portfolio = portfolioData;
+    // Get user's portfolio data
+    const { data: userPortfolio } = await supabase
+      .from('user_portfolios')
+      .select('portfolio_data, markdown')
+      .eq('clerk_id', userId)
+      .maybeSingle();
+
+    const { data: userInfo } = await supabase
+      .from('users')
+      .select('is_super_admin')
+      .eq('clerk_id', userId)
+      .maybeSingle();
+
+    // Use user's portfolio or fallback to main portfolio for super admin
+    let portfolio = userPortfolio?.portfolio_data || portfolioData;
+    let portfolioMarkdown = userPortfolio?.markdown || '';
+
+    if (userInfo?.is_super_admin && !userPortfolio) {
+      portfolio = portfolioData;
+    }
+
+    if (!userPortfolio && !userInfo?.is_super_admin) {
+      return NextResponse.json(
+        { error: 'Please create your portfolio first before generating resumes' },
+        { status: 400 }
+      );
+    }
+
+    // Generate ATS optimization strategy
+    const atsOptimization = generateATSOptimization(jobTitle, jobDescription, company);
+    console.log('[Tailor Resume] ATS Optimization Generated:', {
+      priorityTerms: atsOptimization.priorityTerms.length,
+      industryContext: atsOptimization.industryContext,
+      recommendedStructure: atsOptimization.recommendedStructure,
+    });
+
+    // Get ATS-optimized prompt instructions
+    const atsInstructions = getATSResumePromptInstructions(atsOptimization);
 
     // Generate tailored resume with AI optimized for ATS systems
-    const prompt = `You are an ATS-optimized resume writer. Create a tailored resume that will score highly in Applicant Tracking Systems while appealing to human recruiters.
+    const prompt = `You are an ATS-optimized resume writer with expertise in state-of-the-art 2026 ATS systems. Create a tailored resume that will score highly in Applicant Tracking Systems (targeting 0.76+ semantic alignment) while appealing to human recruiters.
+
+${atsInstructions}
+
+🚨 CRITICAL REQUIREMENT - NO PLACEHOLDERS ALLOWED:
+- NEVER use placeholders like [Company Name], [Your Name], [Metric], [Achievement], [Skill], etc.
+- ALWAYS use actual data from the candidate's portfolio provided below
+- Extract real experiences, projects, skills, and achievements from the candidate's actual data
+- The resume must be 100% ready to use without any edits or replacements needed
+- Every detail must be filled in with real information from the provided data
+- If specific metrics are missing, describe achievements qualitatively - don't leave brackets or placeholders
 
 JOB INFORMATION:
 Title: ${jobTitle}
@@ -42,52 +89,7 @@ Company: ${company}
 Description: ${jobDescription}
 
 CANDIDATE PORTFOLIO:
-${JSON.stringify(portfolio, null, 2)}
-
-CRITICAL ATS OPTIMIZATION REQUIREMENTS:
-
-1. KEYWORD OPTIMIZATION (Highest Priority):
-   - Extract ALL important keywords from job description (tools, technologies, methodologies, skills)
-   - Use EXACT phrases from job description where possible (e.g., if job says "machine learning", use "machine learning" not "ML")
-   - Include both spelled-out terms AND acronyms (e.g., "Product Management (PM)")
-   - Repeat critical keywords naturally across multiple sections (summary, experience, skills)
-   - Use industry-standard terminology, not creative variations
-
-2. REQUIRED QUALIFICATIONS (Must Pass):
-   - Address EVERY required qualification explicitly
-   - Match years of experience exactly as stated
-   - Include required education/certifications prominently
-   - Use phrases like "5+ years of experience in [exact requirement]"
-
-3. ATS-FRIENDLY FORMATTING:
-   - Use standard section headers: "Professional Summary", "Experience", "Skills", "Education"
-   - Start experience bullets with strong action verbs
-   - Include quantifiable metrics and achievements (numbers, percentages, scale)
-   - Keep consistent date formats
-   - Use simple, parseable structure (no tables, columns, graphics)
-
-4. KEYWORD DENSITY & PLACEMENT:
-   - Summary: Pack with relevant keywords and value proposition
-   - Experience: Weave keywords naturally into achievement bullets
-   - Skills: List all relevant keywords explicitly
-   - Include technical skills, soft skills, and domain expertise
-
-5. STRATEGIC CONTENT:
-   - Tailor job titles if similar (e.g., "Senior Product Manager" if applying for similar role)
-   - Highlight relevant projects that match job requirements
-   - Quantify impact wherever possible (users, revenue, efficiency gains)
-   - Mirror language and tone from job description
-
-6. PORTFOLIO URL REQUIREMENT:
-   - MUST include ${portfolio.websiteUrl} in contact information
-   - Place prominently with email, phone, LinkedIn
-
-CRITICAL FOR RECRUITERS:
-- Keep authentic and honest (no fabrication)
-- Tell compelling story of relevant experience
-- Show clear progression and growth
-- Demonstrate impact and results
-- Make it easy to see "why this person fits"
+${portfolioMarkdown || JSON.stringify(portfolio, null, 2)}
 
 Return ONLY valid JSON in this exact format:
 {
@@ -123,7 +125,9 @@ Return ONLY valid JSON in this exact format:
       ]
     }
   ]
-}`;
+}
+
+🚨 REMINDER: All content must use ACTUAL data from the candidate's portfolio. Extract real names, companies, achievements, metrics, and skills. No [brackets], no placeholders, no made-up information. The resume must be 100% ready to use.`;
 
     const response = await generateAICompletion(
       userId,
@@ -147,12 +151,12 @@ Return ONLY valid JSON in this exact format:
       .insert({
         clerk_id: userId,
         title: `${jobTitle} at ${company}`,
-        full_name: portfolioData.fullName,
-        email: portfolioData.email,
-        phone: null,
-        location: portfolioData.location,
-        linkedin_url: portfolioData.linkedinUrl,
-        portfolio_url: portfolioData.websiteUrl,
+        full_name: portfolio.fullName || portfolio.name || '',
+        email: portfolio.email || '',
+        phone: portfolio.phone || null,
+        location: portfolio.location || '',
+        linkedin_url: portfolio.linkedinUrl || portfolio.linkedin || '',
+        portfolio_url: portfolio.websiteUrl || portfolio.website || '',
         status: 'draft',
       })
       .select()
