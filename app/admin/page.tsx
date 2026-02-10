@@ -17,6 +17,7 @@ import {
   ChevronDown,
   ChevronUp,
   ChevronRight,
+  Briefcase,
 } from 'lucide-react';
 import { ConfirmDialog } from '@/app/components/ConfirmDialog';
 import { TableSkeleton } from '@/app/components/TableSkeleton';

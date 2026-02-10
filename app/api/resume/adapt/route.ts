@@ -155,6 +155,11 @@ async function adaptResumeWithAI(
     candidateContext += `\nPROFESSIONAL TAGLINE: ${userPortfolio.portfolio_data.tagline}\n`;
   }
 
+  // Format sections for the prompt (avoid nested template literals)
+  const sectionsText = sections.map(s => {
+    return '\n' + s.section_type.toUpperCase() + ': ' + JSON.stringify(s.content, null, 2);
+  }).join('\n');
+
   const prompt = `You are an expert resume writer and career coach. Analyze the following job posting and resume, then provide an adapted version optimized for this specific job.
 
 🚨 CRITICAL REQUIREMENT - NO PLACEHOLDERS ALLOWED:
@@ -178,7 +183,7 @@ Required Skills: ${JSON.stringify(job.skills_json || [])}
 ${candidateContext}
 CURRENT RESUME:
 Name: ${resume.full_name || 'N/A'}
-${sections.map(s => `\n${s.section_type.toUpperCase()}: ${JSON.stringify(s.content, null, 2)}`).join('\n')}
+${sectionsText}
 
 Please provide your response in the following JSON format:
 {
@@ -211,7 +216,7 @@ IMPORTANT INSTRUCTIONS:
 9. NO placeholders - every field must contain real data from the resume provided
 10. Return ONLY valid JSON, no additional text
 
-🚨 REMINDER: Output must be 100% ready to use. Use actual data from the resume sections above. No [brackets], no placeholders, no made-up metrics.
+🚨 REMINDER: Output must be 100% ready to use. Use actual data from the resume sections above. No [brackets], no placeholders, no made-up metrics.`;
 
   try {
     const aiResponse = await generateAICompletion(
@@ -226,10 +231,13 @@ IMPORTANT INSTRUCTIONS:
     
     // Parse JSON from the response (handle markdown code blocks if present)
     let jsonText = resultText.trim();
-    if (jsonText.startsWith('```json')) {
-      jsonText = jsonText.replace(/^```json\n?/, '').replace(/\n?```$/, '');
-    } else if (jsonText.startsWith('```')) {
-      jsonText = jsonText.replace(/^```\n?/, '').replace(/\n?```$/, '');
+    // Remove markdown code blocks if present (using template literal to avoid parser issues)
+    const backtick = String.fromCharCode(96); // backtick character
+    const codeBlock = backtick.repeat(3);
+    if (jsonText.startsWith(codeBlock + 'json')) {
+      jsonText = jsonText.slice(codeBlock.length + 4).replace(new RegExp(codeBlock + '$'), '').trim();
+    } else if (jsonText.startsWith(codeBlock)) {
+      jsonText = jsonText.slice(codeBlock.length).replace(new RegExp(codeBlock + '$'), '').trim();
     }
     
     const result = JSON.parse(jsonText);

@@ -445,7 +445,7 @@ ${atsInstructions}
 - If specific metrics are missing, describe achievements qualitatively - don't leave brackets or placeholders
 
 📌 MANDATORY - PORTFOLIO URL:
-- The candidate's portfolio URL ${portfolioUrl ? `(${portfolioUrl})` : ''} will be AUTOMATICALLY included in the resume header
+- The candidate's portfolio URL will be AUTOMATICALLY included in the resume header
 - Contact information (name, email, location, LinkedIn, portfolio) is handled separately - focus on content
 - Portfolio URL is NON-NEGOTIABLE and will ALWAYS be displayed if available
 
