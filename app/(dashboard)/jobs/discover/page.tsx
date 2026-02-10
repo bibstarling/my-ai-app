@@ -81,11 +81,18 @@ export default function JobDiscoveryPage() {
   
 
   useEffect(() => {
-    checkProfile();
+    // Check if we already know the profile status from this session
+    const cachedStatus = sessionStorage.getItem('hasJobProfile');
+    if (cachedStatus === 'true') {
+      setHasProfile(true);
+      setCheckingProfile(false);
+    } else {
+      checkProfile();
+    }
   }, []);
 
   async function checkProfile() {
-    // Don't check again if we already have profile
+    // Don't check again if we already have profile (unless forced)
     if (hasProfile) {
       setCheckingProfile(false);
       return;
@@ -95,7 +102,7 @@ export default function JobDiscoveryPage() {
     try {
       const res = await fetch('/api/job-profile', {
         credentials: 'include',
-        cache: 'no-store',
+        cache: 'no-cache', // Changed from no-store to no-cache for better performance
       });
       
       if (!res.ok) {
@@ -160,13 +167,17 @@ export default function JobDiscoveryPage() {
   };
 
   async function discoverJobs() {
+    // Re-check profile in case it was just created
     if (!hasProfile) {
-      showModal(
-        'Profile Setup Required',
-        'Please set up your job profile to discover personalized opportunities tailored to your skills and experience.',
-        'warning'
-      );
-      return;
+      await checkProfile();
+      if (!hasProfile) {
+        showModal(
+          'Profile Setup Required',
+          'Please set up your job profile to discover personalized opportunities tailored to your skills and experience.',
+          'warning'
+        );
+        return;
+      }
     }
     
     if (mode === 'manual_query' && !query.trim()) {
@@ -365,8 +376,8 @@ export default function JobDiscoveryPage() {
     );
   }
 
-  // Show profile setup required only after checking
-  if (!hasProfile) {
+  // Show profile setup required only after checking (and profile not found)
+  if (!checkingProfile && !hasProfile) {
     return (
       <div className="max-w-6xl mx-auto p-4 md:p-6 overflow-hidden">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
