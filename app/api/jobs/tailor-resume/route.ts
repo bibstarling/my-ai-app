@@ -79,9 +79,15 @@ ${atsInstructions}
 - NEVER use placeholders like [Company Name], [Your Name], [Metric], [Achievement], [Skill], etc.
 - ALWAYS use actual data from the candidate's portfolio provided below
 - Extract real experiences, projects, skills, and achievements from the candidate's actual data
-- The resume must be 100% ready to use without any edits or replacements needed
+- The resume must be 100% ready to use without any edits or replaceholders needed
 - Every detail must be filled in with real information from the provided data
 - If specific metrics are missing, describe achievements qualitatively - don't leave brackets or placeholders
+
+📌 MANDATORY - PORTFOLIO URL:
+- The candidate's portfolio URL will be AUTOMATICALLY included in the resume header
+- Contact information (name, email, phone, location, LinkedIn, portfolio) is handled separately
+- Portfolio URL is NON-NEGOTIABLE and will ALWAYS be displayed if available
+- Focus your content generation on the resume sections (summary, experience, skills, education)
 
 JOB INFORMATION:
 Title: ${jobTitle}

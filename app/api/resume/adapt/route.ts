@@ -164,6 +164,12 @@ async function adaptResumeWithAI(
 - Every detail must be filled in with real information from the provided data
 - If specific information is missing, write around it naturally - don't leave brackets or placeholders
 
+📌 MANDATORY - PORTFOLIO URL:
+- The candidate's portfolio URL is AUTOMATICALLY included in the resume header
+- Contact information (name, email, location, LinkedIn, portfolio) is preserved from the original resume
+- Portfolio URL is NON-NEGOTIABLE and will ALWAYS be displayed if available
+- Focus on adapting the resume sections (summary, experience, skills, education) for this specific job
+
 JOB POSTING:
 Title: ${job.title}
 Company: ${job.company_name}

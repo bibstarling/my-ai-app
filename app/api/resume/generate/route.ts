@@ -93,12 +93,10 @@ export async function POST(req: Request) {
       console.log('[Resume Generate] Using platform profile (portfolio) as resume source');
     }
 
-    const includePortfolioLink = userPortfolio?.include_portfolio_link ?? false;
-    const portfolioUrl = includePortfolioLink
-      ? userInfo?.is_super_admin
-        ? 'www.biancastarling.com'
-        : portfolioInfo.websiteUrl || null
-      : portfolioInfo.websiteUrl || null;
+    // ALWAYS include portfolio URL if available (non-negotiable)
+    const portfolioUrl = userInfo?.is_super_admin
+      ? 'www.biancastarling.com'
+      : portfolioInfo.websiteUrl || portfolioInfo.website || userPortfolio?.portfolio_data?.websiteUrl || null;
 
     // Generate ATS optimization strategy
     const atsOptimization = generateATSOptimization(jobTitle, jobDescription, jobCompany);
@@ -419,6 +417,11 @@ ${atsInstructions}
 - The resume summary must be 100% ready to use without any edits or replacements needed
 - Every detail must be filled in with real information from the provided data
 - If specific metrics are missing, describe achievements qualitatively - don't leave brackets or placeholders
+
+📌 MANDATORY - PORTFOLIO URL:
+- The candidate's portfolio URL ${portfolioUrl ? `(${portfolioUrl})` : ''} will be AUTOMATICALLY included in the resume header
+- Contact information (name, email, location, LinkedIn, portfolio) is handled separately - focus on content
+- Portfolio URL is NON-NEGOTIABLE and will ALWAYS be displayed if available
 
 JOB POSTING:
 Title: ${jobTitle}
