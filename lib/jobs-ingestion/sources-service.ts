@@ -8,7 +8,6 @@ import { getSupabaseServiceRole } from '@/lib/supabase-server';
 import { BaseJobWorker, IngestionResult } from './base-worker';
 import { RemoteOKWorker } from './remoteok-worker';
 import { RemotiveWorker } from './remotive-worker';
-import { AdzunaWorker } from './adzuna-worker';
 import { GetOnBoardWorker } from './getonboard-worker';
 import { CustomScraperWorker } from './custom-scraper-worker';
 
@@ -115,17 +114,6 @@ export class SourcesService {
       
       case 'remotive':
         return new RemotiveWorker();
-      
-      case 'adzuna':
-        const apiKey = source.config.api_key || process.env.ADZUNA_API_KEY;
-        const appId = source.config.app_id || process.env.ADZUNA_APP_ID;
-        
-        if (!apiKey || !appId) {
-          console.warn('[SourcesService] Adzuna API key/app ID not configured');
-          return null;
-        }
-        
-        return new AdzunaWorker(apiKey, appId);
       
       case 'getonboard':
         // GetOnBoard is a public API - API key is optional for higher rate limits

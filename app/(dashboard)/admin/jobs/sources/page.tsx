@@ -132,17 +132,7 @@ export default function JobSourcesPage() {
   }
 
   async function deleteSource(source: SourceConfig) {
-    if (source.is_built_in) {
-      setModal({
-        isOpen: true,
-        title: 'Cannot Delete',
-        message: 'Built-in sources cannot be deleted. You can disable them instead.',
-        variant: 'warning',
-      });
-      return;
-    }
-    
-    if (!confirm(`Are you sure you want to delete "${source.name}"?`)) return;
+    if (!confirm(`Are you sure you want to delete "${source.name}"? This action cannot be undone.`)) return;
     
     try {
       const res = await fetch(`/api/admin/jobs/sources/${source.source_key}`, {
@@ -367,9 +357,7 @@ function SourceCard({
   getStatusIcon: (status?: string) => React.ReactElement;
   getSourceIcon: (source: SourceConfig) => React.ReactElement;
 }) {
-  const needsConfig = source.source_type === 'api' && 
-    source.source_key === 'adzuna' &&
-    (!source.config.api_key || source.config.api_key === '');
+  const needsConfig = false; // No sources require config anymore
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
@@ -498,15 +486,13 @@ function SourceCard({
             )}
           </button>
           
-          {!source.is_built_in && (
-            <button
-              onClick={() => onDelete(source)}
-              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-              title="Delete source"
-            >
-              <Trash2 className="w-5 h-5" />
-            </button>
-          )}
+          <button
+            onClick={() => onDelete(source)}
+            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            title="Delete source"
+          >
+            <Trash2 className="w-5 h-5" />
+          </button>
         </div>
       </div>
     </div>
@@ -703,7 +689,7 @@ function EditSourceModal({
   }
 
   const isApiSource = source.source_type === 'api';
-  const requiresApiKey = source.source_key === 'adzuna' || source.source_key === 'getonboard';
+  const requiresApiKey = source.source_key === 'getonboard';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
@@ -717,20 +703,18 @@ function EditSourceModal({
           </div>
 
           <div className="px-6 py-4 space-y-4 max-h-[60vh] overflow-y-auto">
-            {!source.is_built_in && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Source Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            )}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Source Name
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -744,42 +728,7 @@ function EditSourceModal({
               />
             </div>
 
-            {isApiSource && requiresApiKey && (
-              <>
-                {source.source_key === 'adzuna' && (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-                        <Key className="w-4 h-4" />
-                        Adzuna API Key *
-                      </label>
-                      <input
-                        type="password"
-                        value={formData.config.api_key || ''}
-                        onChange={(e) => updateConfig('api_key', e.target.value)}
-                        placeholder="Enter your Adzuna API key"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        Get your API key from <a href="https://developer.adzuna.com/" target="_blank" className="text-blue-600 hover:underline">Adzuna Developer Portal</a>
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Adzuna App ID *
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.config.app_id || ''}
-                        onChange={(e) => updateConfig('app_id', e.target.value)}
-                        placeholder="Enter your Adzuna App ID"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                  </>
-                )}
-                
-                {source.source_key === 'getonboard' && (
+            {isApiSource && requiresApiKey && source.source_key === 'getonboard' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
                       <Key className="w-4 h-4" />
@@ -796,8 +745,6 @@ function EditSourceModal({
                       GetOnBoard is a public API. API key is optional but provides higher rate limits.
                     </p>
                   </div>
-                )}
-              </>
             )}
           </div>
 
