@@ -37,11 +37,31 @@ export class DeduplicationService {
    * Check if a job is a duplicate and find canonical job
    */
   async checkDuplicate(job: NormalizedJob): Promise<DeduplicationResult> {
-    const dedupeKey = this.generateDedupeKey(job);
-    
     const supabase = getSupabaseServiceRole();
     
-    // Check for exact dedupe key match
+    // FIRST: Check for exact URL match (most reliable)
+    if (job.apply_url) {
+      const { data: urlMatch, error: urlError } = await supabase
+        .from('jobs')
+        .select('id')
+        .eq('apply_url', job.apply_url)
+        .eq('status', 'active')
+        .limit(1)
+        .single();
+      
+      if (!urlError && urlMatch) {
+        console.log(`[Dedup] URL match found for ${job.title}`);
+        return {
+          is_duplicate: true,
+          canonical_job_id: urlMatch.id,
+          similarity_score: 1.0,
+          merge_reason: 'same_url',
+        };
+      }
+    }
+    
+    // SECOND: Check for exact dedupe key match
+    const dedupeKey = this.generateDedupeKey(job);
     const { data: exactMatch, error } = await supabase
       .from('jobs')
       .select('id')
@@ -59,7 +79,7 @@ export class DeduplicationService {
       };
     }
     
-    // Check for fuzzy matches
+    // THIRD: Check for fuzzy matches
     const fuzzyMatch = await this.findFuzzyMatch(job);
     
     if (fuzzyMatch) {
