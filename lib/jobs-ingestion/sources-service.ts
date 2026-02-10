@@ -128,13 +128,8 @@ export class SourcesService {
         return new AdzunaWorker(apiKey, appId);
       
       case 'getonboard':
+        // GetOnBoard is a public API - API key is optional for higher rate limits
         const apiKeyGOB = source.config.api_key || process.env.GETONBOARD_API_KEY;
-        
-        if (!apiKeyGOB) {
-          console.warn('[SourcesService] GetOnBoard API key not configured');
-          return null;
-        }
-        
         return new GetOnBoardWorker(apiKeyGOB);
       
       default:
