@@ -151,7 +151,7 @@ export class SourcesService {
       id: source.id,
       name: source.name,
       url: url,
-      source_type: sourceType as 'rss' | 'html_list' | 'json_api' | 'custom',
+      source_type: sourceType as 'rss' | 'html' | 'html_list' | 'json' | 'json_api' | 'custom',
       config: scraperConfig,
     };
     

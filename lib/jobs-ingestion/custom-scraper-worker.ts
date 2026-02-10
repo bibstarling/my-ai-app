@@ -12,7 +12,7 @@ export interface CustomSourceConfig {
   id: string;
   name: string;
   url: string;
-  source_type: 'rss' | 'html_list' | 'json_api' | 'custom';
+  source_type: 'rss' | 'html' | 'html_list' | 'json' | 'json_api' | 'custom';
   config: {
     // HTML List selectors
     jobSelector?: string;
@@ -62,8 +62,10 @@ export class CustomScraperWorker extends BaseJobWorker {
       switch (this.customSource.source_type) {
         case 'rss':
           return await this.scrapeRSS();
+        case 'html':
         case 'html_list':
           return await this.scrapeHTMLList();
+        case 'json':
         case 'json_api':
           return await this.scrapeJSONAPI();
         default:
