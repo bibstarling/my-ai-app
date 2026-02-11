@@ -187,7 +187,17 @@ export async function POST(request: Request) {
 
 ${atsInstructions}
 
-🚨 CRITICAL REQUIREMENT - NO PLACEHOLDERS ALLOWED:
+🚨 CRITICAL REQUIREMENT #1 - NEVER FABRICATE OR INVENT CONTENT:
+- ONLY use information that EXISTS in the candidate's portfolio provided below
+- NEVER invent experiences, companies, projects, skills, or achievements that aren't in the provided data
+- NEVER make up metrics, outcomes, or details that aren't explicitly stated in the source material
+- If information about something doesn't exist in the provided data, DO NOT write about it
+- Better to write LESS content than to fabricate ANYTHING
+- Every single claim must be directly traceable to the provided portfolio data
+- When in doubt, DON'T include it - accuracy is more important than volume
+- If the candidate hasn't mentioned experience with a topic, DO NOT claim they have it
+
+🚨 CRITICAL REQUIREMENT #2 - NO PLACEHOLDERS ALLOWED:
 - NEVER use placeholders like [Company Name], [Your Name], [Metric], [Achievement], [Skill], etc.
 - ALWAYS use actual data from the candidate's portfolio provided below
 - Extract real experiences, projects, skills, and achievements from the candidate's actual data

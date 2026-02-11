@@ -80,7 +80,16 @@ export async function POST(request: Request) {
 
 ${atsInstructions}
 
-🚨 CRITICAL REQUIREMENT - NO PLACEHOLDERS ALLOWED:
+🚨 CRITICAL REQUIREMENT #1 - NEVER FABRICATE OR INVENT CONTENT:
+- ONLY use experiences, projects, companies, and achievements that EXIST in the candidate's portfolio below
+- NEVER invent or make up experiences, skills, projects, or accomplishments that aren't in the provided portfolio
+- NEVER fabricate metrics, outcomes, or details that aren't explicitly stated in the source material
+- If the candidate hasn't mentioned experience with something, DO NOT claim they have it
+- Better to write a shorter, accurate cover letter than to invent false claims
+- Every single claim must be directly traceable to information in the provided portfolio
+- When in doubt about whether something is true, DON'T include it - accuracy trumps everything
+
+🚨 CRITICAL REQUIREMENT #2 - NO PLACEHOLDERS ALLOWED:
 - NEVER use placeholders like [Company Name], [Your Name], [Position], [Skills], [Achievement], etc.
 - ALWAYS use actual data from the candidate's portfolio provided below
 - Extract the candidate's name, experiences, projects, and skills from their portfolio

@@ -603,7 +603,16 @@ ${awardsText ? `🏆 AWARDS & RECOGNITION:\n${awardsText}\n` : ''}`;
 
 ${atsInstructions}
 
-🚨 CRITICAL REQUIREMENT - NO PLACEHOLDERS ALLOWED:
+🚨 CRITICAL REQUIREMENT #1 - NEVER FABRICATE OR INVENT CONTENT:
+- ONLY use information that EXISTS in the candidate's portfolio/profile/resume provided below
+- NEVER invent experiences, companies, projects, skills, or achievements that aren't in the provided data
+- NEVER make up metrics, outcomes, or details that aren't explicitly stated in the source material
+- If information about something doesn't exist in the provided data, DO NOT write about it
+- Better to write LESS content than to fabricate ANYTHING
+- Every single claim must be directly traceable to the provided portfolio/profile data
+- When in doubt, DON'T include it - accuracy is more important than volume
+
+🚨 CRITICAL REQUIREMENT #2 - NO PLACEHOLDERS ALLOWED:
 - NEVER use placeholders like [Company Name], [Your Name], [Skills], [Metric], etc.
 - NEVER generate generic text like "Your Name", "Your Email", or placeholder contact information
 - ALWAYS use actual data from the candidate's portfolio and profile provided below
