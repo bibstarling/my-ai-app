@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { portfolioData } = body;
+    const { portfolioData, fullName, email, linkedinUrl, portfolioUrl } = body;
 
     if (!portfolioData) {
       return NextResponse.json(
@@ -95,6 +95,20 @@ export async function POST(request: Request) {
     // Add markdown if present
     if (markdown !== null) {
       updateData.markdown = markdown;
+    }
+    
+    // Add structured contact fields (hybrid approach - take priority over markdown)
+    if (fullName !== undefined) {
+      updateData.full_name = fullName;
+    }
+    if (email !== undefined) {
+      updateData.email = email;
+    }
+    if (linkedinUrl !== undefined) {
+      updateData.linkedin_url = linkedinUrl;
+    }
+    if (portfolioUrl !== undefined) {
+      updateData.portfolio_url = portfolioUrl;
     }
     
     const { error: updateError } = await supabase

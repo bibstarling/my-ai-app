@@ -60,10 +60,10 @@ export async function POST(req: Request) {
       .eq('clerk_id', userId)
       .maybeSingle();
 
-    // Get user's portfolio data and markdown
+    // Get user's portfolio data and markdown including structured contact fields
     const { data: userPortfolio } = await supabase
       .from('user_portfolios')
-      .select('portfolio_data, markdown, include_portfolio_link')
+      .select('portfolio_data, markdown, include_portfolio_link, full_name, email, linkedin_url, portfolio_url')
       .eq('clerk_id', userId)
       .maybeSingle();
 
@@ -99,7 +99,13 @@ export async function POST(req: Request) {
       return match ? match[1].trim() : null;
     }
 
-    // Parse contact info from markdown if needed
+    // Structured contact fields (optional, take priority over markdown extraction)
+    const structuredFullName = userPortfolio?.full_name || null;
+    const structuredEmail = userPortfolio?.email || null;
+    const structuredLinkedIn = userPortfolio?.linkedin_url || null;
+    const structuredPortfolioUrl = userPortfolio?.portfolio_url || null;
+    
+    // Parse contact info from markdown (used as fallback if structured fields not set)
     let extractedName = null;
     let extractedEmail = null;
     let extractedLinkedIn = null;
@@ -176,11 +182,14 @@ export async function POST(req: Request) {
     }
 
     // ALWAYS include portfolio URL if available (non-negotiable)
+    // HYBRID approach - structured field takes priority
     let portfolioUrl = null;
     if (userInfo?.is_super_admin) {
       portfolioUrl = 'www.biancastarling.com';
     } else {
       portfolioUrl = 
+        structuredPortfolioUrl ||  // ✅ Structured field (highest priority)
+        extractedPortfolioUrl ||    // ✅ Markdown extraction (second priority)
         portfolioInfo?.websiteUrl || 
         portfolioInfo?.website || 
         portfolioInfo?.portfolio_url ||
@@ -189,7 +198,6 @@ export async function POST(req: Request) {
         userPortfolio?.portfolio_data?.website ||
         userPortfolio?.portfolio_data?.portfolio_url ||
         userPortfolio?.portfolio_data?.portfolioUrl ||
-        extractedPortfolioUrl ||
         null;
     }
     
@@ -212,18 +220,19 @@ export async function POST(req: Request) {
       }
     }
 
-    // Use extracted values as fallback if portfolio_data is empty
-    const fullName = portfolioInfo?.fullName || extractedName || portfolioData.fullName;
-    const email = portfolioInfo?.email || extractedEmail || portfolioData.email;
-    const linkedInUrl = portfolioInfo?.linkedinUrl || portfolioInfo?.linkedInUrl || extractedLinkedIn || portfolioData.linkedinUrl || null;
+    // HYBRID APPROACH - structured fields take priority, then markdown extraction, then portfolio_data
+    const fullName = structuredFullName || extractedName || portfolioInfo?.fullName || portfolioData.fullName;
+    const email = structuredEmail || extractedEmail || portfolioInfo?.email || portfolioData.email;
+    const linkedInUrl = structuredLinkedIn || extractedLinkedIn || portfolioInfo?.linkedinUrl || portfolioInfo?.linkedInUrl || portfolioData.linkedinUrl || null;
     
-    console.log('[Resume Generate] Contact info extracted:', {
+    console.log('[Resume Generate] Contact info extracted (HYBRID approach):', {
       fullName,
       email,
       linkedInUrl,
       portfolioUrl,
-      fromPortfolioData: !!(portfolioInfo?.fullName),
+      fromStructuredFields: !!(structuredFullName || structuredEmail || structuredLinkedIn || structuredPortfolioUrl),
       fromMarkdown: !!(extractedName || extractedEmail || extractedLinkedIn || extractedPortfolioUrl),
+      fromPortfolioData: !!(portfolioInfo?.fullName),
     });
 
     // Generate ATS optimization strategy

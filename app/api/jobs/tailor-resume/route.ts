@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     // Get user's portfolio data
     const { data: userPortfolio } = await supabase
       .from('user_portfolios')
-      .select('portfolio_data, markdown')
+      .select('portfolio_data, markdown, full_name, email, linkedin_url, portfolio_url')
       .eq('clerk_id', userId)
       .maybeSingle();
 
@@ -65,6 +65,12 @@ export async function POST(request: Request) {
       return match ? match[1].trim() : null;
     }
 
+    // Structured contact fields (optional, take priority over markdown extraction)
+    const structuredFullName = userPortfolio?.full_name || null;
+    const structuredEmail = userPortfolio?.email || null;
+    const structuredLinkedIn = userPortfolio?.linkedin_url || null;
+    const structuredPortfolioUrl = userPortfolio?.portfolio_url || null;
+    
     let extractedName = null;
     let extractedEmail = null;
     let extractedLinkedIn = null;
@@ -138,12 +144,13 @@ export async function POST(request: Request) {
       }
     }
 
-    const fullName = portfolio?.fullName || portfolio?.name || extractedName || '';
-    const email = portfolio?.email || extractedEmail || '';
-    const linkedInUrl = portfolio?.linkedinUrl || portfolio?.linkedInUrl || extractedLinkedIn || '';
+    // HYBRID APPROACH - structured fields take priority, then markdown extraction, then portfolio_data
+    const fullName = structuredFullName || extractedName || portfolio?.fullName || portfolio?.name || '';
+    const email = structuredEmail || extractedEmail || portfolio?.email || '';
+    const linkedInUrl = structuredLinkedIn || extractedLinkedIn || portfolio?.linkedinUrl || portfolio?.linkedInUrl || '';
     let portfolioUrl = userInfo?.is_super_admin 
       ? 'www.biancastarling.com'
-      : (portfolio?.websiteUrl || portfolio?.website || extractedPortfolioUrl || '');
+      : (structuredPortfolioUrl || extractedPortfolioUrl || portfolio?.websiteUrl || portfolio?.website || '');
     
     // CRITICAL VALIDATION: Prevent email domains from being used as portfolio URLs
     if (portfolioUrl) {
