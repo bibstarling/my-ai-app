@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
+import { useNotification } from '@/app/hooks/useNotification';
 import {
   Loader2,
   Eye,
@@ -45,6 +46,7 @@ import './editor.css';
 export default function PortfolioBuilderPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
+  const { showSuccess, showError, showInfo } = useNotification();
   
   const [portfolio, setPortfolio] = useState<any>(null);
   const [initializing, setInitializing] = useState(true);
@@ -212,7 +214,7 @@ export default function PortfolioBuilderPage() {
       }
     } catch (error) {
       console.error('Save error:', error);
-      alert('Failed to save markdown');
+      showError('Failed to save markdown');
     } finally {
       setIsSaving(false);
     }
@@ -584,10 +586,10 @@ export default function PortfolioBuilderPage() {
           },
         ]);
       } else {
-        alert(`Upload failed: ${data.error}`);
+        showError(`Upload failed: ${data.error}`);
       }
     } catch (error) {
-      alert('Failed to upload file');
+      showError('Failed to upload file');
     } finally {
       setUploadProgress(false);
       if (fileInputRef.current) {
@@ -674,7 +676,7 @@ export default function PortfolioBuilderPage() {
 
     // Regular users need a username, super admin doesn't
     if (!isSuperAdmin && !username) {
-      alert('Please set a username in settings before publishing');
+      showError('Please set a username in settings before publishing');
       router.push('/settings/portfolio');
       return;
     }
@@ -693,12 +695,12 @@ export default function PortfolioBuilderPage() {
 
       if (data.success) {
         setPortfolio((prev: any) => ({ ...prev, status: data.status }));
-        alert(shouldPublish ? 'Portfolio published!' : 'Portfolio unpublished');
+        showSuccess(shouldPublish ? 'Portfolio published!' : 'Portfolio unpublished');
       } else {
-        alert(`Failed: ${data.error}`);
+        showError(`Failed: ${data.error}`);
       }
     } catch (error) {
-      alert('Failed to update portfolio status');
+      showError('Failed to update portfolio status');
     }
   };
 
@@ -718,10 +720,10 @@ export default function PortfolioBuilderPage() {
       if (data.success) {
         setPortfolio((prev: any) => ({ ...prev, is_public: !prev.is_public }));
       } else {
-        alert(`Failed: ${data.error}`);
+        showError(`Failed: ${data.error}`);
       }
     } catch (error) {
-      alert('Failed to update privacy settings');
+      showError('Failed to update privacy settings');
     }
   };
 

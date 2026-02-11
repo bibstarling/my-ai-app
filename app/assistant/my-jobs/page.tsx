@@ -10,6 +10,7 @@ import { supabase } from '@/lib/supabase';
 import { HelpButton } from '@/app/components/HelpButton';
 import { PageTour } from '@/app/components/PageTour';
 import { getPageTour } from '@/lib/page-tours';
+import { useNotification } from '@/app/hooks/useNotification';
 import {
   Loader2,
   FileText,
@@ -90,6 +91,7 @@ type ApplicationQuestion = {
 
 export default function MyJobsPage() {
   const { user, isLoaded } = useUser();
+  const { showSuccess, showError, showInfo, confirm } = useNotification();
 
   const [jobs, setJobs] = useState<TrackedJob[]>([]);
   const [loading, setLoading] = useState(true);
@@ -221,12 +223,12 @@ export default function MyJobsPage() {
         // Revert on error
         console.error('Error updating job status:', updateError);
         loadJobs();
-        alert('Failed to update job status');
+        showError('Failed to update job status');
       }
     } catch (err) {
       console.error('Error updating job status:', err);
       loadJobs();
-      alert('Failed to update job status');
+      showError('Failed to update job status');
     }
   }, [jobs, selectedJob]);
 
@@ -241,7 +243,7 @@ export default function MyJobsPage() {
   }) => {
     try {
       if (!user) {
-        alert('Please sign in to add jobs');
+        showError('Please sign in to add jobs');
         return;
       }
 
@@ -305,10 +307,10 @@ export default function MyJobsPage() {
       // Reload jobs to show the new one
       await loadJobs();
       setShowAddJobModal(false);
-      alert('Job added successfully!');
+      showSuccess('Job added successfully!');
     } catch (err) {
       console.error('Error adding job:', err);
-      alert('Failed to add job. Please try again.');
+      showError('Failed to add job. Please try again.');
     } finally {
       setAddingJob(false);
     }
@@ -324,7 +326,7 @@ export default function MyJobsPage() {
       }
       
       if (!job.tailored_resume_id && !job.tailored_cover_letter_id) {
-        alert('Please generate tailored content first before calculating match');
+        showInfo('Please generate tailored content first before calculating match');
         setCalculatingMatch(null);
         return;
       }
@@ -387,10 +389,10 @@ export default function MyJobsPage() {
         }
       }
 
-      alert(`Match calculated: ${matchData.percentage}% - ${getMatchLabel(matchData.percentage)}`);
+      showSuccess(`Match calculated: ${matchData.percentage}% - ${getMatchLabel(matchData.percentage)}`);
     } catch (err) {
       console.error('Error calculating match:', err);
-      alert(`Failed to calculate match: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      showError(`Failed to calculate match: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setCalculatingMatch(null);
     }
@@ -427,17 +429,17 @@ export default function MyJobsPage() {
         const data = await response.json();
         setQuestions(data.questions || []);
         if (data.questions && data.questions.length > 0) {
-          alert(`Found ${data.questions.length} application question(s)`);
+          showSuccess(`Found ${data.questions.length} application question(s)`);
         } else {
-          alert('No application questions found in the job posting');
+          showInfo('No application questions found in the job posting');
         }
       } else {
         const error = await response.json();
-        alert(`Failed to detect questions: ${error.error || 'Unknown error'}`);
+        showError(`Failed to detect questions: ${error.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error auto-detecting questions:', error);
-      alert('Failed to detect questions');
+      showError('Failed to detect questions');
     } finally {
       setLoadingQuestions(false);
     }
@@ -461,11 +463,11 @@ export default function MyJobsPage() {
         setShowAddQuestion(false);
       } else {
         const error = await response.json();
-        alert(`Failed to add question: ${error.error || 'Unknown error'}`);
+        showError(`Failed to add question: ${error.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error adding question:', error);
-      alert('Failed to add question');
+      showError('Failed to add question');
     }
   };
 
@@ -486,11 +488,11 @@ export default function MyJobsPage() {
         ));
       } else {
         const error = await response.json();
-        alert(`Failed to generate answer: ${error.error || 'Unknown error'}`);
+        showError(`Failed to generate answer: ${error.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error generating answer:', error);
-      alert('Failed to generate answer');
+      showError('Failed to generate answer');
     } finally {
       setGeneratingAnswer(null);
     }
@@ -514,17 +516,25 @@ export default function MyJobsPage() {
         ));
       } else {
         const error = await response.json();
-        alert(`Failed to save answer: ${error.error || 'Unknown error'}`);
+        showError(`Failed to save answer: ${error.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error saving answer:', error);
-      alert('Failed to save answer');
+      showError('Failed to save answer');
     }
   };
 
   const handleDeleteQuestion = async (questionId: string) => {
     if (!selectedJob) return;
-    if (!confirm('Are you sure you want to delete this question?')) return;
+    
+    const confirmed = await confirm('Are you sure you want to delete this question?', {
+      title: 'Delete Question',
+      type: 'danger',
+      confirmText: 'Delete',
+      cancelText: 'Cancel'
+    });
+    
+    if (!confirmed) return;
     
     try {
       const response = await fetch(`/api/jobs/${selectedJob.id}/questions/${questionId}`, {
@@ -536,11 +546,11 @@ export default function MyJobsPage() {
         setQuestions(questions.filter(q => q.id !== questionId));
       } else {
         const error = await response.json();
-        alert(`Failed to delete question: ${error.error || 'Unknown error'}`);
+        showError(`Failed to delete question: ${error.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error deleting question:', error);
-      alert('Failed to delete question');
+      showError('Failed to delete question');
     }
   };
 
@@ -551,7 +561,7 @@ export default function MyJobsPage() {
   ) => {
     try {
       if (!user) {
-        alert('Please sign in to generate content');
+        showError('Please sign in to generate content');
         return;
       }
 
@@ -700,10 +710,10 @@ export default function MyJobsPage() {
       const message = matchCalculated 
         ? 'Tailored content generated and match calculated successfully!'
         : 'Tailored content generated! (Match calculation pending - try the Calculate Match button)';
-      alert(message);
+      showSuccess(message);
     } catch (err) {
       console.error('Error generating tailored content:', err);
-      alert('Failed to generate tailored content. Please try again.');
+      showError('Failed to generate tailored content. Please try again.');
     } finally {
       setTailoringJob(null);
     }
@@ -1446,7 +1456,7 @@ function AddJobModal({
 
   const handleFetchDetails = async () => {
     if (!jobUrl.trim()) {
-      alert('Please enter a job posting URL');
+      showError('Please enter a job posting URL');
       return;
     }
 
@@ -1490,7 +1500,7 @@ function AddJobModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title || !formData.company || !formData.location || !formData.apply_url || !formData.description) {
-      alert('Please fill in all required fields');
+      showError('Please fill in all required fields');
       return;
     }
     onSubmit(formData);
@@ -1734,7 +1744,7 @@ function TailorOptionsModal({
 
   const handleSubmit = () => {
     if (!generateResume && !generateCoverLetter) {
-      alert('Please select at least one option');
+      showInfo('Please select at least one option');
       return;
     }
     onSubmit(generateResume, generateCoverLetter);
@@ -2036,7 +2046,7 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
         content: content ? 'Content exists' : 'No content',
         type: type
       });
-      alert(`Failed to generate PDF: ${error?.message || 'Unknown error'}. Please try again or check the console for details.`);
+      showError(`Failed to generate PDF: ${error?.message || 'Unknown error'}. Please try again or check the console for details.`);
     } finally {
       setDownloading(false);
     }
