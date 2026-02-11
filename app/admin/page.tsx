@@ -19,7 +19,7 @@ import {
   ChevronRight,
   Briefcase,
 } from 'lucide-react';
-import { ConfirmDialog } from '@/app/components/ConfirmDialog';
+import { useNotification } from '@/app/hooks/useNotification';
 import { TableSkeleton } from '@/app/components/TableSkeleton';
 
 type UserRow = {
