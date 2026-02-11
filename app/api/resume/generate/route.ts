@@ -146,16 +146,31 @@ export async function POST(req: Request) {
       }
       
       // Extract portfolio URL - look for common patterns
-      const urlPatterns = [
-        /(?:portfolio|website|site|url)[\s:]*(?:https?:\/\/)?([a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.(?:com|net|org|dev|io|co|me|info)[^\s,;)]*)/i,
-        /(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.(?:com|net|org|dev|io|co|me|info))/i,
-      ];
+      // Pattern 1: Explicit labels (Portfolio:, Website:, etc.)
+      const labeledUrlPattern = /(?:portfolio|website|site|url)[\s:]+(?:https?:\/\/)?([a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.(?:com|net|org|dev|io|co|me|info)[^\s,;)]*)/i;
+      const labeledMatch = portfolioMarkdown.match(labeledUrlPattern);
       
-      for (const pattern of urlPatterns) {
-        const url = extractFromMarkdown(portfolioMarkdown, pattern);
-        if (url) {
-          extractedPortfolioUrl = url.startsWith('http') ? url : `https://${url}`;
-          break;
+      if (labeledMatch && labeledMatch[1]) {
+        const url = labeledMatch[1];
+        extractedPortfolioUrl = url.startsWith('http') ? url : `https://${url}`;
+        console.log('[Resume Generate] Extracted portfolio URL (labeled):', extractedPortfolioUrl);
+      } else {
+        // Pattern 2: Standalone URLs with protocol (must start with http/https)
+        const standaloneUrlPattern = /(https?:\/\/(?:www\.)?[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.(?:com|net|org|dev|io|co|me|info)[^\s,;)]*)/i;
+        const standaloneMatch = portfolioMarkdown.match(standaloneUrlPattern);
+        
+        if (standaloneMatch && standaloneMatch[1]) {
+          const url = standaloneMatch[1];
+          // Exclude URLs that are part of email addresses or common services
+          const excludedDomains = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com', 'linkedin.com', 'github.com'];
+          const urlDomain = url.toLowerCase().match(/(?:https?:\/\/)?(?:www\.)?([^\/]+)/)?.[1] || '';
+          
+          if (!excludedDomains.some(domain => urlDomain.includes(domain))) {
+            extractedPortfolioUrl = url;
+            console.log('[Resume Generate] Extracted portfolio URL (standalone):', extractedPortfolioUrl);
+          } else {
+            console.log('[Resume Generate] Skipping excluded domain:', urlDomain);
+          }
         }
       }
     }
@@ -176,6 +191,25 @@ export async function POST(req: Request) {
         userPortfolio?.portfolio_data?.portfolioUrl ||
         extractedPortfolioUrl ||
         null;
+    }
+    
+    // CRITICAL VALIDATION: Prevent email domains from being used as portfolio URLs
+    if (portfolioUrl) {
+      const emailDomains = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com', 'icloud.com', 'protonmail.com', 'aol.com'];
+      const urlLower = portfolioUrl.toLowerCase();
+      
+      // Check if the portfolio URL is just an email domain
+      for (const emailDomain of emailDomains) {
+        if (urlLower === emailDomain || 
+            urlLower === `https://${emailDomain}` || 
+            urlLower === `http://${emailDomain}` ||
+            urlLower === `www.${emailDomain}` ||
+            urlLower === `https://www.${emailDomain}`) {
+          console.error('[Resume Generate] REJECTED portfolio URL - email domain detected:', portfolioUrl);
+          portfolioUrl = null;
+          break;
+        }
+      }
     }
 
     // Use extracted values as fallback if portfolio_data is empty
