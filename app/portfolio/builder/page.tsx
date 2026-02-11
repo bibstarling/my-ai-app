@@ -126,14 +126,14 @@ export default function PortfolioBuilderPage() {
         
         // Initialize markdown content
         const portfolioData = currentData.portfolio.portfolio_data || {};
-        setMarkdown(portfolioData.markdown || '# Professional Profile\n\nStart documenting your experience, skills, and achievements here...\n\n## About Me\n\n## Experience\n\n## Projects\n\n## Skills');
+        setMarkdown(portfolioData.markdown || '# Your Full Name\n\nStart documenting your experience, skills, and achievements here...\n\n## About Me\n\n## Experience\n\n## Projects\n\n## Skills');
         
         // Add welcome message if no messages
         if ((!currentData.portfolio.messages || currentData.portfolio.messages.length === 0) && initData.isNew) {
           setMessages([
             {
               role: 'assistant',
-              content: `👋 Hi! I'm your **Profile Context Assistant**.\n\nI'm here to help you build a comprehensive professional profile that will power all your AI-generated content—resumes, cover letters, and more.\n\n**What I can do:**\n• Extract information from your resume, certificates, or documents (PDF, Word, text)\n• Scrape and analyze URLs (LinkedIn, GitHub, personal website, projects)\n• Intelligently integrate new content into your existing profile\n• Enhance and expand sections with more detail\n• Maintain a well-organized, comprehensive profile\n\n**How it works:**\n• Paste any URL → I'll scrape it and intelligently integrate the content\n• Upload files (PDF, Word, images) → I'll extract and merge the information\n• Say "paste it directly" if you want raw content added without AI integration\n• Use Ctrl+V to paste images\n\n**The more detailed your profile, the better your tailored content will be!**\n\nWhat would you like to add first?`,
+              content: `👋 Hi! I'm your **Profile Context Assistant**.\n\nI'm here to help you build a comprehensive professional profile that will power all your AI-generated content—resumes, cover letters, and more.\n\n**Important:** Start by replacing "Your Full Name" in the editor with your actual name. This will be used as the title in all your generated resumes.\n\n**What I can do:**\n• Extract information from your resume, certificates, or documents (PDF, Word, text)\n• Scrape and analyze URLs (LinkedIn, GitHub, personal website, projects)\n• Intelligently integrate new content into your existing profile\n• Enhance and expand sections with more detail\n• Maintain a well-organized, comprehensive profile\n\n**How it works:**\n• Paste any URL → I'll scrape it and intelligently integrate the content\n• Upload files (PDF, Word, images) → I'll extract and merge the information\n• Say "paste it directly" if you want raw content added without AI integration\n• Use Ctrl+V to paste images\n\n**The more detailed your profile, the better your tailored content will be!**\n\nWhat would you like to add first?`,
             },
           ]);
         }
@@ -896,7 +896,7 @@ export default function PortfolioBuilderPage() {
                 background: 'white',
               }}
               textareaProps={{
-                placeholder: 'Start writing your professional profile...\n\nTips:\n- Use # for headings\n- Use ** for bold\n- Use - for bullet lists\n- Paste images directly',
+                placeholder: 'Start writing your professional profile...\n\nIMPORTANT: Begin with # Your Full Name (this will be used in your resumes)\n\nTips:\n- Use # for headings (your name should be the first heading)\n- Use ** for bold\n- Use - for bullet lists\n- Paste images directly',
               }}
               previewOptions={{
                 rehypePlugins: [],

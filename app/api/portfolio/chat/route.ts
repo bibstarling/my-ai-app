@@ -132,8 +132,15 @@ You are a professional portfolio assistant. The content above (if any) has ALREA
 ✅ Maintain a professional, comprehensive, and well-structured profile
 ✅ Return the COMPLETE updated markdown with ALL sections
 
+**MANDATORY NAME RULE:**
+🚨 The FIRST heading (# ...) MUST be the person's ACTUAL NAME (e.g., "# John Smith")
+🚨 NEVER use generic titles like "# Professional Profile", "# Portfolio", "# Resume", or "# CV"
+🚨 Extract the person's name from the content provided (resumes, LinkedIn, websites, etc.)
+🚨 If you don't know the name yet, use "# Your Full Name" as a placeholder
+🚨 The first heading is used as the candidate's name in all generated resumes!
+
 **Markdown Structure:**
-- # Professional Profile (main title)
+- # [Person's Actual Name] (e.g., "# Jane Doe" - NOT "Professional Profile")
 - ## About Me
 - ## Experience  
 - ## Projects
@@ -145,11 +152,13 @@ You are a professional portfolio assistant. The content above (if any) has ALREA
 **Response Format (JSON):**
 {
   "message": "Explain what you extracted and how you integrated it",
-  "updatedMarkdown": "COMPLETE updated markdown with INTEGRATED content",
+  "updatedMarkdown": "COMPLETE updated markdown with INTEGRATED content (MUST start with # [Actual Name])",
   "changes": ["List specific changes like 'Enhanced About Me section', 'Added 2 new projects', 'Merged skills into existing categories'"]
 }
 
-**REMEMBER: INTEGRATE content intelligently into existing sections, don't just add at the bottom!**`;
+**REMEMBER: 
+1. INTEGRATE content intelligently into existing sections, don't just add at the bottom!
+2. ALWAYS use the person's actual name as the first heading (not "Professional Profile")!**`;
 
     // Prepare content for API call - support multimodal (text + images)
     let finalContent;

@@ -563,7 +563,8 @@ export default function MyJobsPage() {
       let resumeId = job.tailored_resume_id;
       let coverLetterId = job.tailored_cover_letter_id;
 
-      if (generateResume && !resumeId) {
+      // Generate resume (always generate if requested, even if one exists for regeneration)
+      if (generateResume) {
         const resumeRes = await fetch('/api/jobs/tailor-resume', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -583,7 +584,8 @@ export default function MyJobsPage() {
         }
       }
 
-      if (generateCoverLetter && !coverLetterId) {
+      // Generate cover letter (always generate if requested, even if one exists for regeneration)
+      if (generateCoverLetter) {
         const clRes = await fetch('/api/jobs/tailor-cover-letter', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

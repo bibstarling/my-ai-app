@@ -71,6 +71,26 @@ export async function POST(request: Request) {
 
     if (portfolioMarkdown) {
       extractedName = extractFromMarkdown(portfolioMarkdown, /^#\s+(.+?)$/m);
+      
+      // Filter out generic placeholders that shouldn't be used as names
+      if (extractedName) {
+        const genericPlaceholders = [
+          'Professional Profile',
+          'Your Name',
+          'Your Full Name',
+          'Portfolio',
+          'Resume',
+          'CV',
+          'Profile'
+        ];
+        if (genericPlaceholders.some(placeholder => 
+          extractedName!.toLowerCase() === placeholder.toLowerCase()
+        )) {
+          console.log('[Tailor Resume] Ignoring generic placeholder name:', extractedName);
+          extractedName = null;
+        }
+      }
+      
       extractedEmail = extractFromMarkdown(portfolioMarkdown, /(?:email|e-mail|contact)[\s:]*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
       
       const urlPatterns = [
