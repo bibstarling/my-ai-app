@@ -89,21 +89,11 @@ function AdminContent() {
   const [syncingEmails, setSyncingEmails] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const { showSuccess, showError, confirm } = useNotification();
+  
   const [filterStatus, setFilterStatus] = useState<'all' | 'approved' | 'pending'>('all');
   const [sortField, setSortField] = useState<SortField>('created_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-  const [confirmDialog, setConfirmDialog] = useState<{
-    isOpen: boolean;
-    title: string;
-    message: string;
-    onConfirm: () => void;
-    variant?: 'danger' | 'warning' | 'info';
-  }>({
-    isOpen: false,
-    title: '',
-    message: '',
-    onConfirm: () => {},
-  });
 
   const checkAdmin = async () => {
     if (!user) return;
@@ -850,15 +840,6 @@ function AdminContent() {
               )}
             </div>
 
-            {/* Confirmation Dialog */}
-            <ConfirmDialog
-              isOpen={confirmDialog.isOpen}
-              onClose={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
-              onConfirm={confirmDialog.onConfirm}
-              title={confirmDialog.title}
-              message={confirmDialog.message}
-              variant={confirmDialog.variant}
-            />
           </main>
         )}
       </SignedIn>
