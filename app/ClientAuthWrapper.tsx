@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { ClerkProvider } from '@clerk/nextjs';
+import { ToastProvider } from './components/ToastContainer';
+import { ConfirmProvider } from './components/ConfirmDialog';
 
 const EmbedModeContext = createContext(false);
 
@@ -41,7 +43,11 @@ export function ClientAuthWrapper({
   if (embed) {
     return (
       <EmbedModeContext.Provider value={true}>
-        {children}
+        <ToastProvider>
+          <ConfirmProvider>
+            {children}
+          </ConfirmProvider>
+        </ToastProvider>
       </EmbedModeContext.Provider>
     );
   }
@@ -50,7 +56,11 @@ export function ClientAuthWrapper({
   return (
     <ClerkProvider publishableKey={publishableKey}>
       <EmbedModeContext.Provider value={false}>
-        {children}
+        <ToastProvider>
+          <ConfirmProvider>
+            {children}
+          </ConfirmProvider>
+        </ToastProvider>
       </EmbedModeContext.Provider>
     </ClerkProvider>
   );
