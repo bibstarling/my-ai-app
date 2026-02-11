@@ -30,6 +30,7 @@ import {
   Trash2,
   Save,
   Wand2,
+  Edit2,
 } from 'lucide-react';
 import { pdf } from '@react-pdf/renderer';
 import { ResumePDF } from './ResumePDF';
@@ -128,6 +129,8 @@ export default function MyJobsPage() {
   const [generatingAnswer, setGeneratingAnswer] = useState<string | null>(null);
   const [showAddQuestion, setShowAddQuestion] = useState(false);
   const [newQuestionText, setNewQuestionText] = useState('');
+  const [showEditJobModal, setShowEditJobModal] = useState(false);
+  const [editingJob, setEditingJob] = useState(false);
 
   const statuses = useMemo<Array<{ id: TrackedJob['status']; label: string; color: string }>>(
     () => [
@@ -231,6 +234,72 @@ export default function MyJobsPage() {
       showError('Failed to update job status');
     }
   }, [jobs, selectedJob]);
+
+  const handleUpdateJob = async (jobData: {
+    title: string;
+    company: string;
+    location: string;
+    apply_url: string;
+    description: string;
+    job_type?: string;
+    salary?: string;
+  }) => {
+    if (!selectedJob) return;
+    
+    try {
+      if (!user) {
+        showError('Please sign in to update jobs');
+        return;
+      }
+
+      setEditingJob(true);
+
+      const updateData = {
+        title: jobData.title.trim(),
+        company: jobData.company.trim(),
+        location: jobData.location.trim(),
+        apply_url: jobData.apply_url.trim(),
+        description: jobData.description.trim(),
+        job_type: jobData.job_type?.trim() || null,
+        salary: jobData.salary?.trim() || null,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error: updateError } = await supabase
+        .from('tracked_jobs')
+        .update(updateData)
+        .eq('id', selectedJob.id)
+        .eq('clerk_id', user.id);
+
+      if (updateError) {
+        console.error('Error updating job:', updateError);
+        showError('Failed to update job. Please try again.');
+        return;
+      }
+
+      // Reload jobs to show the updated one
+      await loadJobs();
+      
+      // Update selected job with new data
+      const { data: updatedJobData } = await supabase
+        .from('tracked_jobs')
+        .select('*')
+        .eq('id', selectedJob.id)
+        .single();
+      
+      if (updatedJobData) {
+        setSelectedJob(updatedJobData);
+      }
+      
+      setShowEditJobModal(false);
+      showSuccess('Job updated successfully!');
+    } catch (err) {
+      console.error('Error updating job:', err);
+      showError('Failed to update job. Please try again.');
+    } finally {
+      setEditingJob(false);
+    }
+  };
 
   const handleAddJob = async (jobData: {
     title: string;
@@ -962,6 +1031,13 @@ export default function MyJobsPage() {
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                <button
+                  onClick={() => setShowEditJobModal(true)}
+                  className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:border-accent hover:bg-accent/5 transition-colors"
+                >
+                  <Edit2 className="h-4 w-4" />
+                  Edit
+                </button>
                 {selectedJob.tailored_resume_id && (
                   <button
                     onClick={() => setPreviewModal({ type: 'resume', id: selectedJob.tailored_resume_id! })}
@@ -1393,6 +1469,16 @@ export default function MyJobsPage() {
         />
       )}
 
+      {/* Edit Job Modal */}
+      {showEditJobModal && selectedJob && (
+        <EditJobModal
+          job={selectedJob}
+          onClose={() => setShowEditJobModal(false)}
+          onSubmit={handleUpdateJob}
+          isLoading={editingJob}
+        />
+      )}
+
       {/* Tailor Options Modal */}
       {tailorOptions && (
         <TailorOptionsModal
@@ -1714,6 +1800,215 @@ function AddJobModal({
                 <>
                   <Plus className="h-4 w-4" />
                   Add Job
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// Edit Job Modal Component
+function EditJobModal({
+  job,
+  onClose,
+  onSubmit,
+  isLoading,
+}: {
+  job: TrackedJob;
+  onClose: () => void;
+  onSubmit: (data: {
+    title: string;
+    company: string;
+    location: string;
+    apply_url: string;
+    description: string;
+    job_type?: string;
+    salary?: string;
+  }) => void;
+  isLoading: boolean;
+}) {
+  const { showError } = useNotification();
+  const [formData, setFormData] = useState({
+    title: job.title || '',
+    company: job.company || '',
+    location: job.location || '',
+    apply_url: job.apply_url || '',
+    description: job.description || '',
+    job_type: job.job_type || 'Full-time',
+    salary: job.salary || '',
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.title || !formData.company || !formData.location || !formData.apply_url || !formData.description) {
+      showError('Please fill in all required fields');
+      return;
+    }
+    onSubmit(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div
+        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-6 flex items-start justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">Edit Job Details</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Update job information for better tracking
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-2 text-muted hover:bg-muted/50 hover:text-foreground transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Title */}
+          <div>
+            <label htmlFor="edit_title" className="block text-sm font-medium text-foreground mb-1">
+              Job Title <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="edit_title"
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              placeholder="e.g. Senior Software Engineer"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+              required
+            />
+          </div>
+
+          {/* Company */}
+          <div>
+            <label htmlFor="edit_company" className="block text-sm font-medium text-foreground mb-1">
+              Company <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="edit_company"
+              type="text"
+              value={formData.company}
+              onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+              placeholder="e.g. Google"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+              required
+            />
+          </div>
+
+          {/* Location */}
+          <div>
+            <label htmlFor="edit_location" className="block text-sm font-medium text-foreground mb-1">
+              Location <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="edit_location"
+              type="text"
+              value={formData.location}
+              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+              placeholder="e.g. San Francisco, CA (Remote)"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+              required
+            />
+          </div>
+
+          {/* Apply URL */}
+          <div>
+            <label htmlFor="edit_apply_url" className="block text-sm font-medium text-foreground mb-1">
+              Application URL <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="edit_apply_url"
+              type="url"
+              value={formData.apply_url}
+              onChange={(e) => setFormData({ ...formData, apply_url: e.target.value })}
+              placeholder="https://..."
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+              required
+            />
+          </div>
+
+          {/* Job Type and Salary */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="edit_job_type" className="block text-sm font-medium text-foreground mb-1">
+                Job Type
+              </label>
+              <select
+                id="edit_job_type"
+                value={formData.job_type}
+                onChange={(e) => setFormData({ ...formData, job_type: e.target.value })}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+              >
+                <option value="Full-time">Full-time</option>
+                <option value="Part-time">Part-time</option>
+                <option value="Contract">Contract</option>
+                <option value="Freelance">Freelance</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="edit_salary" className="block text-sm font-medium text-foreground mb-1">
+                Salary (optional)
+              </label>
+              <input
+                id="edit_salary"
+                type="text"
+                value={formData.salary}
+                onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
+                placeholder="e.g. $120k - $150k"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+              />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label htmlFor="edit_description" className="block text-sm font-medium text-foreground mb-1">
+              Job Description <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              id="edit_description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Paste the full job description here..."
+              rows={8}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+              required
+            />
+          </div>
+
+          {/* Submit Buttons */}
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Save Changes
                 </>
               )}
             </button>
