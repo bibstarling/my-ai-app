@@ -1441,6 +1441,7 @@ function AddJobModal({
   }) => void;
   isLoading: boolean;
 }) {
+  const { showError } = useNotification();
   const [jobUrl, setJobUrl] = useState('');
   const [fetchingDetails, setFetchingDetails] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -1739,6 +1740,7 @@ function TailorOptionsModal({
   onClose: () => void;
   onSubmit: (generateResume: boolean, generateCoverLetter: boolean) => void;
 }) {
+  const { showInfo } = useNotification();
   const [generateResume, setGenerateResume] = useState(initialResume);
   const [generateCoverLetter, setGenerateCoverLetter] = useState(initialCoverLetter);
 
@@ -1974,6 +1976,7 @@ const DraggableJobCard = memo(function DraggableJobCard({
 });
 
 function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; id: string; onClose: () => void }) {
+  const { showError } = useNotification();
   const [content, setContent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);

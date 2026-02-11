@@ -382,6 +382,7 @@ function GenerateCoverLetterModal({
   onClose: () => void;
   onSuccess: (coverLetterId: string) => void;
 }) {
+  const { showError } = useNotification();
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string>('');
   const [selectedJob, setSelectedJob] = useState<JobListing | null>(null);

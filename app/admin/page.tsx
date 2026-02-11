@@ -736,14 +736,20 @@ function AdminContent() {
                                 {u.approved && !u.is_admin && (
                                   <button
                                     className="rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 transition-opacity"
-                                    onClick={() =>
-                                      showConfirmation(
-                                        'Grant Admin Access',
+                                    onClick={async () => {
+                                      const confirmed = await confirm(
                                         `Are you sure you want to make ${u.email ?? 'this user'} an admin? They will have full access to manage other users.`,
-                                        () => updateUser(u.id, { is_admin: true }),
-                                        'warning'
-                                      )
-                                    }
+                                        {
+                                          title: 'Grant Admin Access',
+                                          type: 'warning',
+                                          confirmText: 'Grant Access',
+                                          cancelText: 'Cancel'
+                                        }
+                                      );
+                                      if (confirmed) {
+                                        await updateUser(u.id, { is_admin: true });
+                                      }
+                                    }}
                                   >
                                     Make Admin
                                   </button>
@@ -801,14 +807,20 @@ function AdminContent() {
                             {!u.approved && (
                               <button
                                 className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700 transition-colors"
-                                onClick={() =>
-                                  showConfirmation(
-                                    'Approve User',
+                                onClick={async () => {
+                                  const confirmed = await confirm(
                                     `Are you sure you want to approve ${u.email ?? 'this user'}?`,
-                                    () => updateUser(u.id, { approved: true }),
-                                    'info'
-                                  )
-                                }
+                                    {
+                                      title: 'Approve User',
+                                      type: 'info',
+                                      confirmText: 'Approve',
+                                      cancelText: 'Cancel'
+                                    }
+                                  );
+                                  if (confirmed) {
+                                    await updateUser(u.id, { approved: true });
+                                  }
+                                }}
                               >
                                 Approve
                               </button>
@@ -816,14 +828,20 @@ function AdminContent() {
                             {u.approved && !u.is_admin && (
                               <button
                                 className="rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 transition-opacity"
-                                onClick={() =>
-                                  showConfirmation(
-                                    'Grant Admin Access',
+                                onClick={async () => {
+                                  const confirmed = await confirm(
                                     `Are you sure you want to make ${u.email ?? 'this user'} an admin?`,
-                                    () => updateUser(u.id, { is_admin: true }),
-                                    'warning'
-                                  )
-                                }
+                                    {
+                                      title: 'Grant Admin Access',
+                                      type: 'warning',
+                                      confirmText: 'Grant Access',
+                                      cancelText: 'Cancel'
+                                    }
+                                  );
+                                  if (confirmed) {
+                                    await updateUser(u.id, { is_admin: true });
+                                  }
+                                }}
                               >
                                 Make Admin
                               </button>

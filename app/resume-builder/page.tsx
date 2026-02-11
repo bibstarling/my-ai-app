@@ -308,6 +308,7 @@ function GenerateFromJobModal({
   onClose: () => void;
   onSuccess: (resumeId: string) => void;
 }) {
+  const { showError } = useNotification();
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string>('');
   const [selectedJob, setSelectedJob] = useState<JobListing | null>(null);
@@ -581,6 +582,7 @@ function CreateResumeModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const { showError } = useNotification();
   const [formData, setFormData] = useState({
     title: '',
     full_name: '',
