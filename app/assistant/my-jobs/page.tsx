@@ -2162,7 +2162,7 @@ const DroppableColumn = memo(function DroppableColumn({
         <span className="text-xs sm:text-sm font-bold">{jobs.length}</span>
       </div>
 
-      <div className="flex flex-1 flex-col gap-2.5 sm:gap-3 rounded-lg bg-muted/30 p-2.5 sm:p-3 min-h-[200px]">
+      <div className="flex flex-1 flex-col gap-2.5 sm:gap-3 rounded-lg bg-muted/30 p-2.5 sm:p-3 min-h-[200px] max-h-[calc(100vh-280px)] overflow-y-auto">
         {jobs.map((job) => (
           <DraggableJobCard
             key={job.id}
