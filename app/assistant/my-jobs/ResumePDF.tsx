@@ -116,8 +116,8 @@ export const ResumePDF = ({ resume }: any) => {
             {resume.email && <Text style={styles.contactItem}>{resume.email}</Text>}
             {resume.phone && <Text style={styles.contactItem}>| {resume.phone}</Text>}
             {resume.location && <Text style={styles.contactItem}>| {resume.location}</Text>}
+            {resume.linkedin_url && <Text style={styles.contactItem}>| {resume.linkedin_url.replace(/^https?:\/\//, '')}</Text>}
             {resume.portfolio_url && <Text style={styles.contactItem}>| {resume.portfolio_url.replace(/^https?:\/\//, '')}</Text>}
-            {resume.linkedin_url && <Text style={styles.contactItem}>| LinkedIn</Text>}
           </View>
         </View>
 
