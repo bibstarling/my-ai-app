@@ -5,7 +5,7 @@ import { getSupabaseServiceRole } from '@/lib/supabase-server';
 // GET - Load messages for a conversation
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -14,7 +14,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const conversationId = params.id;
+    const { id: conversationId } = await params;
     const supabase = getSupabaseServiceRole();
     
     // Verify conversation ownership
