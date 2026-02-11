@@ -170,8 +170,8 @@ export function AIAssistantPanel({ markdown, onMarkdownUpdate }: AIAssistantPane
                   message.role === 'user'
                     ? 'bg-accent text-white'
                     : message.role === 'system'
-                    ? 'bg-muted text-muted-foreground text-sm'
-                    : 'bg-muted text-foreground'
+                    ? 'bg-blue-50 border border-blue-200 text-blue-900 text-sm'
+                    : 'bg-gray-100 text-gray-900'
                 }`}
               >
                 <div className="whitespace-pre-wrap break-words text-sm">
@@ -182,7 +182,7 @@ export function AIAssistantPanel({ markdown, onMarkdownUpdate }: AIAssistantPane
           ))}
           {loading && (
             <div className="flex justify-start">
-              <div className="rounded-lg bg-muted px-4 py-3">
+              <div className="rounded-lg bg-gray-100 px-4 py-3">
                 <Loader2 className="h-5 w-5 animate-spin text-accent" />
               </div>
             </div>

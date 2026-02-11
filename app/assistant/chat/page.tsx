@@ -179,7 +179,7 @@ export default function ChatPage() {
                       className={`max-w-[80%] rounded-lg px-4 py-3 shadow-md transition-all hover-lift ${
                         message.role === 'user'
                           ? 'bg-accent text-accent-foreground'
-                          : 'bg-muted text-foreground'
+                          : 'bg-gray-100 text-gray-900'
                       }`}
                     >
                       <p className="whitespace-pre-wrap">{message.content}</p>
@@ -188,8 +188,8 @@ export default function ChatPage() {
                 ))}
                 {loading && (
                   <div className="flex justify-start">
-                    <div className="max-w-[80%] rounded-lg px-4 py-3 bg-muted">
-                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    <div className="max-w-[80%] rounded-lg px-4 py-3 bg-gray-100">
+                      <Loader2 className="h-5 w-5 animate-spin text-accent" />
                     </div>
                   </div>
                 )}
