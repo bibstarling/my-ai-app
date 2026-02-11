@@ -2117,18 +2117,14 @@ function ResumePreview({ resume }: { resume: any }) {
           {resume.email && <span>{resume.email}</span>}
           {resume.phone && <span>• {resume.phone}</span>}
           {resume.location && <span>• {resume.location}</span>}
-          {resume.portfolio_url && (
-            <span>
-              • <a href={resume.portfolio_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                {resume.portfolio_url.replace(/^https?:\/\//, '')}
-              </a>
-            </span>
-          )}
           {resume.linkedin_url && (
             <span>
-              • <a href={resume.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                LinkedIn
-              </a>
+              • {resume.linkedin_url.replace(/^https?:\/\//, '')}
+            </span>
+          )}
+          {resume.portfolio_url && (
+            <span>
+              • {resume.portfolio_url.replace(/^https?:\/\//, '')}
             </span>
           )}
         </div>
