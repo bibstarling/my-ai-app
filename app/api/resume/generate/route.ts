@@ -212,6 +212,7 @@ export async function POST(req: Request) {
       atsOptimization,
       fullName,
       email,
+      linkedInUrl,
       portfolioUrl
     );
 
@@ -523,6 +524,7 @@ async function selectRelevantContent(
   atsOptimization: any = null,
   fullName: string = '',
   email: string = '',
+  linkedInUrl: string | null = null,
   portfolioUrl: string | null = null
 ): Promise<ContentSelection> {
 
