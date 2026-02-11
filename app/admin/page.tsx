@@ -291,21 +291,6 @@ function AdminContent() {
     }
   };
 
-  const showConfirmation = (
-    title: string,
-    message: string,
-    onConfirm: () => void,
-    variant: 'danger' | 'warning' | 'info' = 'info'
-  ) => {
-    setConfirmDialog({
-      isOpen: true,
-      title,
-      message,
-      onConfirm,
-      variant,
-    });
-  };
-
   const syncEmails = async () => {
     setSyncingEmails(true);
     setSyncMessage(null);
