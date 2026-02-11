@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { Modal } from '@/app/components/Modal';
+import { useNotification } from '@/app/hooks/useNotification';
 import { 
   Plus, 
   Trash2, 
@@ -37,6 +38,7 @@ interface SourceConfig {
 }
 
 export default function JobSourcesPage() {
+  const { showSuccess, confirm } = useNotification();
   const [sources, setSources] = useState<SourceConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -132,7 +134,13 @@ export default function JobSourcesPage() {
   }
 
   async function deleteSource(source: SourceConfig) {
-    if (!confirm(`Are you sure you want to delete "${source.name}"? This action cannot be undone.`)) return;
+    const confirmed = await confirm(`Are you sure you want to delete "${source.name}"? This action cannot be undone.`, {
+      title: 'Delete Source',
+      type: 'danger',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+    });
+    if (!confirmed) return;
     
     try {
       const res = await fetch(`/api/admin/jobs/sources/${source.source_key}`, {
@@ -141,12 +149,7 @@ export default function JobSourcesPage() {
       
       if (res.ok) {
         await loadSources();
-        setModal({
-          isOpen: true,
-          title: 'Source Deleted',
-          message: 'The job source has been removed.',
-          variant: 'success',
-        });
+        showSuccess('The job source has been removed.');
       }
     } catch (error) {
       console.error('Failed to delete source:', error);
@@ -507,6 +510,7 @@ function AddSourceModal({
   onClose: () => void; 
   onSuccess: () => void;
 }) {
+  const { showError, showSuccess } = useNotification();
   const [formData, setFormData] = useState({
     name: '',
     url: '',
@@ -527,13 +531,14 @@ function AddSourceModal({
       });
 
       if (res.ok) {
+        showSuccess('Source added successfully!');
         onSuccess();
       } else {
         const data = await res.json();
-        alert(data.error || 'Failed to add source');
+        showError(data.error || 'Failed to add source');
       }
     } catch (error) {
-      alert('Failed to add source');
+      showError('Failed to add source');
     } finally {
       setSaving(false);
     }
@@ -647,6 +652,7 @@ function EditSourceModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const { showError, showSuccess } = useNotification();
   const [formData, setFormData] = useState({
     name: source.name,
     description: source.description || '',
@@ -666,13 +672,14 @@ function EditSourceModal({
       });
 
       if (res.ok) {
+        showSuccess('Source updated successfully!');
         onSuccess();
       } else {
         const data = await res.json();
-        alert(data.error || 'Failed to update source');
+        showError(data.error || 'Failed to update source');
       }
     } catch (error) {
-      alert('Failed to update source');
+      showError('Failed to update source');
     } finally {
       setSaving(false);
     }

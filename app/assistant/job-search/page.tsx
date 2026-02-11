@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useUser, SignInButton } from '@clerk/nextjs';
 import { supabase } from '@/lib/supabase';
+import { useNotification } from '@/app/hooks/useNotification';
 import {
   Loader2,
   Briefcase,
@@ -77,6 +78,7 @@ async function extractTextFromFile(file: File): Promise<string> {
 
 export default function JobSearchPage() {
   const { user, isLoaded } = useUser();
+  const { showSuccess, showError } = useNotification();
   
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(false);
@@ -371,13 +373,13 @@ export default function JobSearchPage() {
       const message = matchCalculated
         ? '🎉 Awesome! Job saved with your tailored resume and match score!'
         : '✨ Great! Job saved with tailored content! Check My Jobs for your match score.';
-      alert(message);
+      showSuccess(message);
       setTailorModal(null);
       setGenerateResume(true);
       setGenerateCoverLetter(true);
     } catch (err) {
       console.error('Error creating tailored content:', err);
-      alert('Failed to create tailored content. Please try again.');
+      showError('Failed to create tailored content. Please try again.');
     } finally {
       setTailoring(false);
     }

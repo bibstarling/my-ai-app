@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
+import { useNotification } from '@/app/hooks/useNotification';
 import {
   Loader2,
   Check,
@@ -17,6 +18,7 @@ import {
 export default function PortfolioSettingsPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
+  const { showSuccess, showError, showInfo } = useNotification();
   
   const [portfolio, setPortfolio] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -68,11 +70,12 @@ export default function PortfolioSettingsPage() {
       if (data.success) {
         setPortfolio(data.portfolio);
         setIncludePortfolioLink(data.portfolio.include_portfolio_link);
+        showSuccess('Setting updated successfully!');
       } else {
-        alert(`Failed: ${data.error}`);
+        showError(`Failed: ${data.error}`);
       }
     } catch (error) {
-      alert('Failed to update setting');
+      showError('Failed to update setting');
     } finally {
       setSaving(false);
     }
@@ -80,7 +83,7 @@ export default function PortfolioSettingsPage() {
 
   const handleDeletePortfolio = async () => {
     // TODO: Implement portfolio deletion
-    alert('Portfolio deletion not yet implemented');
+    showInfo('Portfolio deletion not yet implemented');
     setShowDeleteConfirm(false);
   };
 

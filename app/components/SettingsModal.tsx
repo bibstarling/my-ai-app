@@ -3,6 +3,7 @@
 import { useState, useEffect, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { useUser, useAuth } from '@clerk/nextjs';
+import { useNotification } from '@/app/hooks/useNotification';
 import {
   X,
   User,
@@ -210,6 +211,7 @@ function AccountTab({ user }: { user: any }) {
 // API Configuration Tab
 function APITab() {
   const { getToken } = useAuth();
+  const { showSuccess, showError, showInfo, confirm } = useNotification();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [config, setConfig] = useState<APIConfig | null>(null);
@@ -251,7 +253,7 @@ function APITab() {
 
   const handleSaveConfig = async () => {
     if (!apiKey.trim()) {
-      alert('Please enter an API key');
+      showInfo('Please enter an API key');
       return;
     }
 
@@ -280,16 +282,16 @@ function APITab() {
       console.log('[APITab] Save response:', { status: res.status, data });
 
       if (res.status === 401) {
-        alert('Authentication failed. Please refresh the page and try again.');
+        showError('Authentication failed. Please refresh the page and try again.');
       } else if (data.success) {
         setConfig(data.config);
-        alert('API configuration saved successfully!');
+        showSuccess('API configuration saved successfully!');
       } else {
-        alert(`Failed: ${data.error}`);
+        showError(`Failed: ${data.error}`);
       }
     } catch (error) {
       console.error('[APITab] Save error:', error);
-      alert('Failed to save API configuration');
+      showError('Failed to save API configuration');
     } finally {
       setSaving(false);
     }
@@ -345,9 +347,13 @@ function APITab() {
   };
 
   const handleRemoveConfig = async () => {
-    if (!confirm('Are you sure you want to remove your API configuration? You will use the system API with usage limits.')) {
-      return;
-    }
+    const confirmed = await confirm('Are you sure you want to remove your API configuration? You will use the system API with usage limits.', {
+      title: 'Remove API Configuration',
+      type: 'warning',
+      confirmText: 'Remove',
+      cancelText: 'Cancel',
+    });
+    if (!confirmed) return;
 
     setSaving(true);
 
@@ -367,12 +373,12 @@ function APITab() {
       if (data.success) {
         setConfig(null);
         setApiKey('');
-        alert('API configuration removed. You are now using the system API.');
+        showSuccess('API configuration removed. You are now using the system API.');
       } else {
-        alert(`Failed: ${data.error}`);
+        showError(`Failed: ${data.error}`);
       }
     } catch (error) {
-      alert('Failed to remove API configuration');
+      showError('Failed to remove API configuration');
     } finally {
       setSaving(false);
     }

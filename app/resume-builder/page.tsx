@@ -9,6 +9,7 @@ import { HelpButton } from '@/app/components/HelpButton';
 import { PageTour } from '@/app/components/PageTour';
 import { getPageTour } from '@/lib/page-tours';
 import type { Locale } from '@/lib/language-detection';
+import { useNotification } from '@/app/hooks/useNotification';
 
 const locales: Locale[] = ['en', 'pt-BR'];
 const localeNames: Record<Locale, string> = {
@@ -17,6 +18,8 @@ const localeNames: Record<Locale, string> = {
 };
 
 export default function ResumeBuilderPage() {
+  const { showSuccess, showError, confirm } = useNotification();
+  
   const [resumes, setResumes] = useState<ResumeWithSections[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -46,14 +49,22 @@ export default function ResumeBuilderPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Are you sure you want to delete this resume? This cannot be undone.')) return;
+    const confirmed = await confirm('Are you sure you want to delete this resume? This cannot be undone.', {
+      title: 'Delete Resume',
+      type: 'danger',
+      confirmText: 'Delete',
+      cancelText: 'Cancel'
+    });
+    
+    if (!confirmed) return;
     
     try {
       await fetch(`/api/resume/${id}`, { method: 'DELETE', credentials: 'include' });
       setResumes(resumes.filter(r => r.id !== id));
+      showSuccess('Resume deleted');
     } catch (error) {
       console.error('Error deleting resume:', error);
-      alert('Failed to delete resume');
+      showError('Failed to delete resume');
     }
   }
 
@@ -93,9 +104,10 @@ export default function ResumeBuilderPage() {
       }
       
       fetchResumes();
+      showSuccess('Resume duplicated');
     } catch (error) {
       console.error('Error duplicating resume:', error);
-      alert('Failed to duplicate resume');
+      showError('Failed to duplicate resume');
     }
   }
 
@@ -396,11 +408,11 @@ function GenerateFromJobModal({
       if (data.resume) {
         onSuccess(data.resume.id);
       } else {
-        alert('Failed to generate resume');
+        showError('Failed to generate resume');
       }
     } catch (error) {
       console.error('Error generating resume:', error);
-      alert('Failed to generate resume');
+      showError('Failed to generate resume');
     } finally {
       setGenerating(false);
     }
@@ -595,11 +607,11 @@ function CreateResumeModal({
       if (response.ok) {
         onSuccess();
       } else {
-        alert('Failed to create resume');
+        showError('Failed to create resume');
       }
     } catch (error) {
       console.error('Error creating resume:', error);
-      alert('Failed to create resume');
+      showError('Failed to create resume');
     } finally {
       setCreating(false);
     }

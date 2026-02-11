@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Sparkles, HelpCircle } from 'lucide-react';
+import { useNotification } from '@/app/hooks/useNotification';
 
 interface MarkdownEditorProps {
   markdown: string;
@@ -132,6 +133,7 @@ Brief description or key takeaway...
 `;
 
 export function MarkdownEditor({ markdown, onChange, onSave, isSaving }: MarkdownEditorProps) {
+  const { confirm } = useNotification();
   const [showHelp, setShowHelp] = useState(false);
 
   return (
@@ -189,10 +191,14 @@ export function MarkdownEditor({ markdown, onChange, onSave, isSaving }: Markdow
               </p>
               <div className="mt-3 flex gap-2">
                 <button
-                  onClick={() => {
-                    if (confirm('This will replace your current content with a template. Continue?')) {
-                      onChange(MARKDOWN_TEMPLATE);
-                    }
+                  onClick={async () => {
+                    const confirmed = await confirm('This will replace your current content with a template. Continue?', {
+                      title: 'Load Template',
+                      type: 'warning',
+                      confirmText: 'Load',
+                      cancelText: 'Cancel',
+                    });
+                    if (confirmed) onChange(MARKDOWN_TEMPLATE);
                   }}
                   className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700"
                 >

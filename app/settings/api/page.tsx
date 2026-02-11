@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
+import { useNotification } from '@/app/hooks/useNotification';
 import {
   Loader2,
   Check,
@@ -28,6 +29,7 @@ interface APIConfig {
 export default function APISettingsPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
+  const { showSuccess, showError, showInfo, confirm } = useNotification();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -71,7 +73,7 @@ export default function APISettingsPage() {
 
   const handleSaveConfig = async () => {
     if (!apiKey.trim()) {
-      alert('Please enter an API key');
+      showInfo('Please enter an API key');
       return;
     }
 
@@ -157,9 +159,13 @@ export default function APISettingsPage() {
   };
 
   const handleRemoveConfig = async () => {
-    if (!confirm('Are you sure you want to remove your API configuration? You will use the system API with usage limits.')) {
-      return;
-    }
+    const confirmed = await confirm('Are you sure you want to remove your API configuration? You will use the system API with usage limits.', {
+      title: 'Remove API Configuration',
+      type: 'warning',
+      confirmText: 'Remove',
+      cancelText: 'Cancel',
+    });
+    if (!confirmed) return;
 
     setSaving(true);
 
@@ -174,12 +180,12 @@ export default function APISettingsPage() {
       if (data.success) {
         setConfig(null);
         setApiKey('');
-        alert('API configuration removed. You are now using the system API.');
+        showSuccess('API configuration removed. You are now using the system API.');
       } else {
-        alert(`Failed: ${data.error}`);
+        showError(`Failed: ${data.error}`);
       }
     } catch (error) {
-      alert('Failed to remove API configuration');
+      showError('Failed to remove API configuration');
     } finally {
       setSaving(false);
     }

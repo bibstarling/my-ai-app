@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Plus, Trash2, Save, X } from 'lucide-react';
+import { useNotification } from '@/app/hooks/useNotification';
 
 interface ManualEditorProps {
   portfolioData: any;
@@ -9,6 +10,7 @@ interface ManualEditorProps {
 }
 
 export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
+  const { showSuccess, showError } = useNotification();
   const [data, setData] = useState(portfolioData);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
@@ -17,9 +19,9 @@ export function ManualEditor({ portfolioData, onSave }: ManualEditorProps) {
     setSaving(true);
     try {
       await onSave(data);
-      alert('Portfolio saved successfully!');
+      showSuccess('Portfolio saved successfully!');
     } catch (error) {
-      alert('Failed to save portfolio');
+      showError('Failed to save portfolio');
     } finally {
       setSaving(false);
     }

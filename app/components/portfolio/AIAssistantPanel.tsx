@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Send, Upload, Link as LinkIcon, X, File, Loader2, Sparkles } from 'lucide-react';
+import { useNotification } from '@/app/hooks/useNotification';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -22,6 +23,7 @@ interface AIAssistantPanelProps {
 }
 
 export function AIAssistantPanel({ markdown, onMarkdownUpdate }: AIAssistantPanelProps) {
+  const { showError } = useNotification();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -71,10 +73,10 @@ export function AIAssistantPanel({ markdown, onMarkdownUpdate }: AIAssistantPane
           },
         ]);
       } else {
-        alert(`Upload failed: ${data.error}`);
+        showError(`Upload failed: ${data.error}`);
       }
     } catch (error) {
-      alert('Failed to upload file');
+      showError('Failed to upload file');
     } finally {
       setUploadProgress(false);
       if (fileInputRef.current) {

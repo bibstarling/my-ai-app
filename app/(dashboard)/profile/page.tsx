@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import { Sparkles, Upload, Save, Loader2, User, Briefcase, Target, MapPin, Languages, DollarSign, Settings } from 'lucide-react';
+import { useNotification } from '@/app/hooks/useNotification';
 
 interface Experience {
   title: string;
@@ -63,6 +64,8 @@ interface ProfileData {
 
 export default function ComprehensiveProfilePage() {
   const { user } = useUser();
+  const { showSuccess, showError, showInfo } = useNotification();
+  
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [parsing, setParsing] = useState(false);
@@ -168,7 +171,7 @@ export default function ComprehensiveProfilePage() {
 
   async function parseWithAI() {
     if (!resumeInput.trim()) {
-      alert('Please enter your resume or profile information to parse');
+      showError('Please enter your resume or profile information to parse');
       return;
     }
     
@@ -195,14 +198,14 @@ export default function ComprehensiveProfilePage() {
           certifications: data.parsed.certifications || prev.certifications,
         }));
         
-        alert('✨ Profile parsed successfully! Review and edit the information below.');
+        showSuccess('✨ Profile parsed successfully! Review and edit the information below.');
         setResumeInput(''); // Clear input after parsing
       } else {
-        alert(data.error || 'Failed to parse profile');
+        showError(data.error || 'Failed to parse profile');
       }
     } catch (err) {
       console.error('Parse error:', err);
-      alert('Failed to parse profile');
+      showError('Failed to parse profile');
     } finally {
       setParsing(false);
     }
@@ -262,13 +265,13 @@ export default function ComprehensiveProfilePage() {
       const jobProfileData = await jobProfileRes.json();
       
       if (portfolioData.success && jobProfileData.success) {
-        alert('✅ Profile saved successfully!');
+        showSuccess('✅ Profile saved successfully!');
       } else {
         throw new Error('Failed to save profile');
       }
     } catch (err) {
       console.error('Save error:', err);
-      alert('Failed to save profile');
+      showError('Failed to save profile');
     } finally {
       setSaving(false);
     }

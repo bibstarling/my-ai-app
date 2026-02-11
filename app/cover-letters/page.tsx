@@ -9,6 +9,7 @@ import { HelpButton } from '@/app/components/HelpButton';
 import { PageTour } from '@/app/components/PageTour';
 import { getPageTour } from '@/lib/page-tours';
 import type { Locale } from '@/lib/language-detection';
+import { useNotification } from '@/app/hooks/useNotification';
 
 const locales: Locale[] = ['en', 'pt-BR'];
 const localeNames: Record<Locale, string> = {
@@ -17,6 +18,8 @@ const localeNames: Record<Locale, string> = {
 };
 
 export default function CoverLettersPage() {
+  const { showSuccess, showError, confirm } = useNotification();
+  
   const [coverLetters, setCoverLetters] = useState<CoverLetter[]>([]);
   const [loading, setLoading] = useState(true);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
@@ -46,14 +49,22 @@ export default function CoverLettersPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Are you sure you want to delete this cover letter? This cannot be undone.')) return;
+    const confirmed = await confirm('Are you sure you want to delete this cover letter? This cannot be undone.', {
+      title: 'Delete Cover Letter',
+      type: 'danger',
+      confirmText: 'Delete',
+      cancelText: 'Cancel'
+    });
+    
+    if (!confirmed) return;
     
     try {
       await fetch(`/api/cover-letter/${id}`, { method: 'DELETE', credentials: 'include' });
       setCoverLetters(coverLetters.filter(cl => cl.id !== id));
+      showSuccess('Cover letter deleted');
     } catch (error) {
       console.error('Error deleting cover letter:', error);
-      alert('Failed to delete cover letter');
+      showError('Failed to delete cover letter');
     }
   }
 
@@ -472,11 +483,11 @@ function GenerateCoverLetterModal({
       if (data.cover_letter) {
         onSuccess(data.cover_letter.id);
       } else {
-        alert('Failed to generate cover letter');
+        showError('Failed to generate cover letter');
       }
     } catch (error) {
       console.error('Error generating cover letter:', error);
-      alert('Failed to generate cover letter');
+      showError('Failed to generate cover letter');
     } finally {
       setGenerating(false);
     }

@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useNotification } from '@/app/hooks/useNotification';
 
 export default function SetupPage() {
+  const { showError } = useNotification();
   const [copied, setCopied] = useState(false);
   const projectRef = 'qtplretigutndftokplk';
   const sqlEditorUrl = `https://supabase.com/dashboard/project/${projectRef}/sql/new`;
@@ -21,7 +23,7 @@ export default function SetupPage() {
       setTimeout(() => setCopied(false), 3000);
     } catch (error) {
       console.error('Failed to copy:', error);
-      alert('Failed to copy SQL. Please copy manually from: supabase/all-migrations-combined.sql');
+      showError('Failed to copy SQL. Please copy manually from: supabase/all-migrations-combined.sql');
     }
   };
 

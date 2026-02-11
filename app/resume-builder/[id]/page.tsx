@@ -4,6 +4,7 @@ import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Plus, Save, Trash2, GripVertical, Briefcase, GraduationCap, Award, Code, Sparkles } from 'lucide-react';
 import type { ResumeWithSections, ResumeSection, SectionType, SectionContent, ExperienceContent, EducationContent, SkillsContent, SummaryContent, ProjectContent } from '@/lib/types/resume';
+import { useNotification } from '@/app/hooks/useNotification';
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -11,6 +12,7 @@ type PageProps = {
 
 export default function ResumeEditorPage({ params }: PageProps) {
   const { id } = use(params);
+  const { confirm } = useNotification();
   const [resume, setResume] = useState<ResumeWithSections | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -98,7 +100,14 @@ export default function ResumeEditorPage({ params }: PageProps) {
   }
 
   async function deleteSection(sectionId: string) {
-    if (!resume || !confirm('Delete this section?')) return;
+    if (!resume) return;
+    const confirmed = await confirm('Delete this section?', {
+      title: 'Delete Section',
+      type: 'danger',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+    });
+    if (!confirmed) return;
     
     try {
       await fetch(`/api/resume/${id}/sections/${sectionId}`, {

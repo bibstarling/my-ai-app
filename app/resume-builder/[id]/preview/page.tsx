@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Download, Mail, Phone, MapPin, Linkedin, Globe } from 'lucide-react';
 import type { ResumeWithSections, ResumeSection, ExperienceContent, EducationContent, SkillsContent, SummaryContent, ProjectContent } from '@/lib/types/resume';
+import { useNotification } from '@/app/hooks/useNotification';
 // PDF generation removed - use the download button in the job card modal instead
 
 type PageProps = {
@@ -13,6 +14,7 @@ type PageProps = {
 
 export default function ResumePreviewPage({ params, searchParams }: PageProps) {
   const { id } = use(params);
+  const { showError } = useNotification();
   const resolvedSearchParams = searchParams ? use(searchParams) : undefined;
   const [resume, setResume] = useState<ResumeWithSections | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,7 +29,7 @@ export default function ResumePreviewPage({ params, searchParams }: PageProps) {
       window.print();
     } catch (error) {
       console.error('Error opening print dialog:', error);
-      alert('Failed to open print dialog. Please use Ctrl+P or Cmd+P to print.');
+      showError('Failed to open print dialog. Please use Ctrl+P or Cmd+P to print.');
     } finally {
       setDownloading(false);
     }

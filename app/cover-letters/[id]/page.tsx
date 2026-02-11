@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Download, Save, Eye, Sparkles, Lightbulb } from 'lucide-react';
 import type { CoverLetter } from '@/lib/types/cover-letter';
+import { useNotification } from '@/app/hooks/useNotification';
 // PDF generation removed - use the download button in the job card modal instead
 
 type PageProps = {
@@ -13,6 +14,7 @@ type PageProps = {
 
 export default function CoverLetterEditPage({ params, searchParams }: PageProps) {
   const { id } = use(params);
+  const { showSuccess, showError } = useNotification();
   const resolvedSearchParams = searchParams ? use(searchParams) : undefined;
   const [coverLetter, setCoverLetter] = useState<CoverLetter | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,7 +30,7 @@ export default function CoverLetterEditPage({ params, searchParams }: PageProps)
       window.print();
     } catch (error) {
       console.error('Error opening print dialog:', error);
-      alert('Failed to open print dialog. Please use Ctrl+P or Cmd+P to print.');
+      showError('Failed to open print dialog. Please use Ctrl+P or Cmd+P to print.');
     } finally {
       setDownloading(false);
     }
@@ -64,7 +66,7 @@ export default function CoverLetterEditPage({ params, searchParams }: PageProps)
     
     setSaving(true);
     try {
-      await fetch(`/api/cover-letter/${id}`, {
+      const res = await fetch(`/api/cover-letter/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -76,9 +78,13 @@ export default function CoverLetterEditPage({ params, searchParams }: PageProps)
           company_address: coverLetter.company_address,
         }),
       });
+      const data = await res.json();
+      if (data.cover_letter) {
+        showSuccess('Cover letter saved successfully!');
+      }
     } catch (error) {
       console.error('Error saving cover letter:', error);
-      alert('Failed to save changes');
+      showError('Failed to save changes');
     } finally {
       setSaving(false);
     }

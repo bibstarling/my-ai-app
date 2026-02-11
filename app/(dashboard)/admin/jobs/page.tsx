@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import { ArrowLeft, Play, RefreshCw, Database, AlertCircle } from 'lucide-react';
+import { useNotification } from '@/app/hooks/useNotification';
 
 interface SyncMetrics {
   source: string;
@@ -29,6 +30,7 @@ interface PipelineStats {
 
 export default function AdminJobsPage() {
   const { user } = useUser();
+  const { showSuccess, showError, confirm } = useNotification();
   const [metrics, setMetrics] = useState<SyncMetrics[]>([]);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
@@ -64,9 +66,13 @@ export default function AdminJobsPage() {
   }
 
   async function runPipeline() {
-    if (!confirm('Run the full job ingestion pipeline? This may take several minutes.')) {
-      return;
-    }
+    const confirmed = await confirm('Run the full job ingestion pipeline? This may take several minutes.', {
+      title: 'Run Pipeline',
+      type: 'warning',
+      confirmText: 'Run',
+      cancelText: 'Cancel',
+    });
+    if (!confirmed) return;
 
     setRunning(true);
 
@@ -79,14 +85,14 @@ export default function AdminJobsPage() {
       
       if (data.success) {
         setLastRun(data.stats);
-        alert('Pipeline completed successfully!');
+        showSuccess('Pipeline completed successfully!');
         await loadMetrics();
       } else {
-        alert(`Pipeline failed: ${data.errors?.join(', ') || 'Unknown error'}`);
+        showError(`Pipeline failed: ${data.errors?.join(', ') || 'Unknown error'}`);
       }
     } catch (err) {
       console.error('Pipeline error:', err);
-      alert('Failed to run pipeline');
+      showError('Failed to run pipeline');
     } finally {
       setRunning(false);
     }
