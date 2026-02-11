@@ -553,14 +553,20 @@ function AdminContent() {
                           <button
                             type="button"
                             className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors shadow-sm"
-                            onClick={() =>
-                              showConfirmation(
-                                'Approve User',
+                            onClick={async () => {
+                              const confirmed = await confirm(
                                 `Are you sure you want to approve ${u.email ?? 'this user'}? They will receive an email notification.`,
-                                () => updateUser(u.id, { approved: true }),
-                                'info'
-                              )
-                            }
+                                {
+                                  title: 'Approve User',
+                                  type: 'info',
+                                  confirmText: 'Approve',
+                                  cancelText: 'Cancel'
+                                }
+                              );
+                              if (confirmed) {
+                                await updateUser(u.id, { approved: true });
+                              }
+                            }}
                           >
                             Approve
                           </button>
@@ -709,14 +715,20 @@ function AdminContent() {
                                 {!u.approved && (
                                   <button
                                     className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700 transition-colors"
-                                    onClick={() =>
-                                      showConfirmation(
-                                        'Approve User',
+                                    onClick={async () => {
+                                      const confirmed = await confirm(
                                         `Are you sure you want to approve ${u.email ?? 'this user'}?`,
-                                        () => updateUser(u.id, { approved: true }),
-                                        'info'
-                                      )
-                                    }
+                                        {
+                                          title: 'Approve User',
+                                          type: 'info',
+                                          confirmText: 'Approve',
+                                          cancelText: 'Cancel'
+                                        }
+                                      );
+                                      if (confirmed) {
+                                        await updateUser(u.id, { approved: true });
+                                      }
+                                    }}
                                   >
                                     Approve
                                   </button>
