@@ -196,19 +196,19 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+        <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2">
                 Welcome back{user?.firstName ? `, ${user.firstName}` : ''}!
               </h1>
-              <p className="text-muted mt-2">
+              <p className="text-muted mt-1 sm:mt-2 text-sm sm:text-base">
                 Track your progress and achieve your career goals
               </p>
             </div>
             <Link
               href="/settings/portfolio"
-              className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 rounded-lg transition-all border border-gray-200 text-foreground shadow-sm"
+              className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 rounded-lg transition-all border border-gray-200 text-foreground shadow-sm whitespace-nowrap"
             >
               <Settings className="h-4 w-4" />
               <span className="text-sm font-medium">Settings</span>
@@ -217,15 +217,15 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Job Statistics */}
         {!loadingJobs && jobStats.total > 0 && (
-          <section className="mb-8">
-            <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+          <section className="mb-6 sm:mb-8">
+            <h2 className="text-lg sm:text-xl font-bold text-foreground mb-3 sm:mb-4 flex items-center gap-2">
               <Target className="h-5 w-5 text-accent" />
               Job Search Progress
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <div className="bg-white rounded-xl border-2 border-border p-4 hover-lift">
                 <div className="flex items-center justify-between mb-2">
                   <Briefcase className="h-8 w-8 text-blue-600" />
@@ -261,35 +261,35 @@ export default function DashboardPage() {
           </section>
         )}
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-6 sm:space-y-8">
             {/* Quick Actions */}
             <section>
-              <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+              <h2 className="text-lg sm:text-xl font-bold text-foreground mb-3 sm:mb-4 flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-accent" />
                 Quick Actions
               </h2>
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                 {quickActions.map((action, index) => (
                   <Link
                     key={index}
                     href={action.href}
-                    className="group bg-white rounded-xl border-2 border-border p-6 hover:border-applause-orange hover:shadow-xl transition-all hover-lift"
+                    className="group bg-white rounded-xl border-2 border-border p-4 sm:p-6 hover:border-applause-orange hover:shadow-xl transition-all hover-lift"
                   >
-                    <div className="flex items-start gap-4">
-                      <div className={`p-3 ${action.color} rounded-xl text-white shadow-lg group-hover:scale-110 transition-transform`}>
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <div className={`p-2 sm:p-3 ${action.color} rounded-xl text-white shadow-lg group-hover:scale-110 transition-transform shrink-0`}>
                         {action.icon}
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-bold text-foreground group-hover:text-accent transition-colors mb-1">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-foreground group-hover:text-accent transition-colors mb-1 text-sm sm:text-base">
                           {action.title}
                         </h3>
-                        <p className="text-sm text-muted leading-relaxed">
+                        <p className="text-xs sm:text-sm text-muted leading-relaxed">
                           {action.description}
                         </p>
                       </div>
-                      <ArrowRight className="h-5 w-5 text-muted group-hover:text-accent group-hover:translate-x-1 transition-all" />
+                      <ArrowRight className="h-5 w-5 text-muted group-hover:text-accent group-hover:translate-x-1 transition-all shrink-0 hidden sm:block" />
                     </div>
                   </Link>
                 ))}
@@ -363,9 +363,9 @@ export default function DashboardPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Profile Status */}
-            <div className="bg-white rounded-xl border-2 border-border p-6 hover-lift">
+            <div className="bg-white rounded-xl border-2 border-border p-4 sm:p-6 hover-lift">
               <h3 className="text-sm font-bold uppercase tracking-wider text-accent mb-4 flex items-center gap-2">
                 <Users className="h-4 w-4" />
                 Profile Strength

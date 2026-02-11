@@ -119,9 +119,11 @@ const getMenuSections = (isAdmin: boolean): MenuSection[] => {
 type AppMenuProps = {
   isCollapsed: boolean;
   setIsCollapsed: (value: boolean) => void;
+  isMobileMenuOpen?: boolean;
+  setIsMobileMenuOpen?: (value: boolean) => void;
 };
 
-export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
+export function AppMenu({ isCollapsed, setIsCollapsed, isMobileMenuOpen, setIsMobileMenuOpen }: AppMenuProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isEmbedMode, isSignedIn, isLoaded } = useAuthSafe();
@@ -153,9 +155,12 @@ export function AppMenu({ isCollapsed, setIsCollapsed }: AppMenuProps) {
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-screen bg-white border-r border-gray-200 transition-all duration-300 z-50 ${
-        isCollapsed ? 'w-16' : 'w-64'
-      }`}
+      className={`fixed left-0 h-screen bg-white border-r border-gray-200 transition-all duration-300 z-50
+        ${isCollapsed ? 'w-16' : 'w-64'}
+        max-md:top-[57px]
+        md:top-0
+        ${isMobileMenuOpen ? 'max-md:translate-x-0' : 'max-md:-translate-x-full'}
+      `}
     >
       <div className="flex flex-col h-full">
         {/* Logo/Brand */}

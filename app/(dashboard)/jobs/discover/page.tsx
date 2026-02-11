@@ -408,12 +408,12 @@ export default function JobDiscoveryPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-6 overflow-x-hidden">
-      <h1 className="text-2xl md:text-3xl font-bold mb-6 break-words">Discover Jobs</h1>
+    <div className="max-w-6xl mx-auto p-3 sm:p-4 md:p-6 overflow-x-hidden">
+      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 break-words">Discover Jobs</h1>
       
       {/* Mode Selector */}
-      <div className="mb-6 bg-white rounded-lg shadow p-4 md:p-6 overflow-hidden">
-        <div className="flex items-center gap-6 mb-4">
+      <div className="mb-4 sm:mb-6 bg-white rounded-lg shadow p-3 sm:p-4 md:p-6 overflow-hidden">
+        <div className="flex flex-col xs:flex-row items-start xs:items-center gap-3 xs:gap-6 mb-4">
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="radio"
@@ -421,7 +421,7 @@ export default function JobDiscoveryPage() {
               onChange={() => setMode('personalized')}
               className="w-4 h-4 text-blue-600"
             />
-            <span className="font-medium">Personalized Discovery</span>
+            <span className="font-medium text-sm sm:text-base">Personalized Discovery</span>
           </label>
           
           <label className="flex items-center gap-2 cursor-pointer">
@@ -431,7 +431,7 @@ export default function JobDiscoveryPage() {
               onChange={() => setMode('manual_query')}
               className="w-4 h-4 text-blue-600"
             />
-            <span className="font-medium">Manual Search</span>
+            <span className="font-medium text-sm sm:text-base">Manual Search</span>
           </label>
         </div>
 
@@ -455,7 +455,7 @@ export default function JobDiscoveryPage() {
           <div className="flex gap-2 mb-4">
             <input
               type="text"
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
               placeholder="Search for jobs (e.g., 'senior product manager AI')"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -464,20 +464,21 @@ export default function JobDiscoveryPage() {
           </div>
         )}
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-3 xs:gap-4">
           <button
             onClick={discoverJobs}
             disabled={loading}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm sm:text-base font-medium"
           >
             {loading ? 'Discovering...' : mode === 'personalized' ? 'Discover Jobs' : 'Search'}
           </button>
           
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 relative"
+            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 relative text-sm sm:text-base"
           >
-            {showFilters ? 'Hide' : 'Show'} Filters
+            <span className="hidden xs:inline">{showFilters ? 'Hide' : 'Show'} Filters</span>
+            <span className="xs:hidden">Filters</span>
             {getActiveFilterCount() > 0 && (
               <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
                 {getActiveFilterCount()}
@@ -560,17 +561,17 @@ export default function JobDiscoveryPage() {
 
       {/* Filters Panel */}
       {showFilters && (
-        <div className="mb-6 bg-white rounded-lg shadow p-6">
+        <div className="mb-4 sm:mb-6 bg-white rounded-lg shadow p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Filters</h3>
+            <h3 className="text-base sm:text-lg font-semibold">Filters</h3>
             {getActiveFilterCount() > 0 && (
-              <span className="text-sm text-blue-600 font-medium">
+              <span className="text-xs sm:text-sm text-blue-600 font-medium">
                 {getActiveFilterCount()} active
               </span>
             )}
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {/* Remote Type */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -727,17 +728,17 @@ export default function JobDiscoveryPage() {
 
       {/* Results Header with Sort */}
       {jobs.length > 0 && !loading && (
-        <div className="mb-4 flex items-center justify-between bg-white rounded-lg shadow p-4">
+        <div className="mb-4 flex flex-col xs:flex-row items-start xs:items-center justify-between gap-3 bg-white rounded-lg shadow p-3 sm:p-4">
           <div className="text-sm text-gray-600">
             <span className="font-semibold text-gray-900">{jobs.length}</span> jobs found
           </div>
           
-          <div className="flex items-center gap-3">
-            <label className="text-sm text-gray-700 font-medium">Sort by:</label>
+          <div className="flex items-center gap-2 xs:gap-3 w-full xs:w-auto">
+            <label className="text-xs xs:text-sm text-gray-700 font-medium whitespace-nowrap">Sort by:</label>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+              className="flex-1 xs:flex-none px-2 xs:px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-xs xs:text-sm"
             >
               <option value="match">Best Match</option>
               <option value="date">Most Recent</option>
@@ -761,50 +762,50 @@ export default function JobDiscoveryPage() {
               key={job.id}
               className="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-6"
             >
-              <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-3 overflow-hidden">
+              <div className="flex flex-col xs:flex-row items-start justify-between gap-3 mb-3 overflow-hidden">
                 <div className="flex-1 min-w-0 max-w-full">
-                  <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-1 break-words overflow-wrap-anywhere">
+                  <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 mb-1 break-words overflow-wrap-anywhere">
                     {job.normalized_title || job.title}
                   </h3>
-                  <p className="text-gray-600 truncate overflow-hidden text-ellipsis">{job.company_name}</p>
+                  <p className="text-sm sm:text-base text-gray-600 truncate overflow-hidden text-ellipsis">{job.company_name}</p>
                 </div>
                 
                 {job.match_percentage !== undefined && (
                   <div className="flex items-center gap-2 shrink-0">
-                    <div className="text-center sm:text-right">
-                      <div className="text-xl md:text-2xl font-bold text-blue-600">
+                    <div className="text-center xs:text-right">
+                      <div className="text-lg sm:text-xl md:text-2xl font-bold text-blue-600">
                         {job.match_percentage}%
                       </div>
-                      <div className="text-xs text-gray-500">match</div>
+                      <div className="text-[10px] xs:text-xs text-gray-500">match</div>
                     </div>
                   </div>
                 )}
               </div>
 
-              <div className="flex items-center gap-4 text-sm text-gray-600 mb-3 flex-wrap">
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 mb-3 flex-wrap">
                 {job.seniority && (
-                  <span className="px-2 py-1 bg-gray-100 rounded">
+                  <span className="px-2 py-1 bg-gray-100 rounded whitespace-nowrap">
                     {job.seniority}
                   </span>
                 )}
-                <span className="px-2 py-1 bg-green-100 text-green-800 rounded">
+                <span className="px-2 py-1 bg-green-100 text-green-800 rounded whitespace-nowrap">
                   {job.remote_type}
                 </span>
                 {job.source_name && (
-                  <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs font-medium">
+                  <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-[10px] xs:text-xs font-medium whitespace-nowrap">
                     via {job.source_name}
                   </span>
                 )}
                 {(job.is_saved || job.is_tracked) && (
-                  <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-semibold">
+                  <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-[10px] xs:text-xs font-semibold whitespace-nowrap">
                     ✓ Saved
                   </span>
                 )}
                 {job.locations && job.locations.length > 0 && (
-                  <span>📍 {job.locations.slice(0, 2).join(', ')}</span>
+                  <span className="whitespace-nowrap">📍 {job.locations.slice(0, 2).join(', ')}</span>
                 )}
                 {job.posted_at && (
-                  <span className="text-xs text-gray-500">
+                  <span className="text-[10px] xs:text-xs text-gray-500 whitespace-nowrap">
                     🕐 Posted {getTimeAgo(job.posted_at)}
                   </span>
                 )}
@@ -852,12 +853,12 @@ export default function JobDiscoveryPage() {
                 </div>
               )}
 
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
+              <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2 xs:gap-4">
                 <a
                   href={job.apply_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm text-center"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs xs:text-sm text-center font-medium"
                 >
                   Apply Now
                 </a>
@@ -865,7 +866,7 @@ export default function JobDiscoveryPage() {
                 <button
                   onClick={() => trackJob(job.id)}
                   disabled={job.is_tracked || trackingJob === job.id}
-                  className={`px-4 py-2 rounded-lg text-sm ${
+                  className={`px-4 py-2 rounded-lg text-xs xs:text-sm font-medium ${
                     job.is_tracked
                       ? 'bg-green-100 text-green-800 cursor-default'
                       : 'border border-gray-300 hover:bg-gray-50'

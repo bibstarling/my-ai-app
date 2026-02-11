@@ -17,6 +17,7 @@ export function useMenuContext() {
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const pathname = usePathname();
   const { isOnboardingOpen, closeOnboarding } = useOnboarding();
@@ -27,6 +28,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const isLoginPage = pathname === '/login' || pathname.startsWith('/login/');
   const isPortfolioBuilder = pathname === '/portfolio/builder';
   const showMenu = !isHomePage && !isLoginPage && !pathname.startsWith('/_') && !pathname.startsWith('/api');
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   // Keyboard shortcut: Cmd+K (Mac) or Ctrl+K (Windows/Linux)
   useEffect(() => {
@@ -44,9 +50,49 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <MenuContext.Provider value={{ isCollapsed, setIsCollapsed }}>
       <div className="flex min-h-screen flex-col bg-gray-50">
+        {/* Mobile Header with Hamburger */}
+        {showMenu && (
+          <div className="md:hidden sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-white font-bold shadow-lg">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <span className="font-bold text-gradient-primary text-base">Applause</span>
+            </div>
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              aria-label="Toggle menu"
+            >
+              <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {isMobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
+        )}
+
+        {/* Mobile Menu Overlay */}
+        {showMenu && isMobileMenuOpen && (
+          <div 
+            className="md:hidden fixed inset-0 bg-black/50 z-40"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+
         <div className="flex flex-1">
-          {showMenu && <AppMenu isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />}
-          <main className={`flex-1 transition-all duration-300 ${showMenu ? (isCollapsed ? 'ml-16' : 'ml-64') : ''}`}>
+          {showMenu && (
+            <AppMenu 
+              isCollapsed={isCollapsed} 
+              setIsCollapsed={setIsCollapsed}
+              isMobileMenuOpen={isMobileMenuOpen}
+              setIsMobileMenuOpen={setIsMobileMenuOpen}
+            />
+          )}
+          <main className={`flex-1 transition-all duration-300 ${showMenu ? 'md:ml-16 lg:ml-64' : ''}`}>
             {children}
           </main>
         </div>

@@ -842,21 +842,22 @@ export default function MyJobsPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <main className="flex-1">
-        <div className="mx-auto max-w-7xl px-6 py-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
           {/* Header */}
-          <div className="mb-8 flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">My Jobs</h1>
-              <p className="text-sm text-muted-foreground mt-1">
+          <div className="mb-6 sm:mb-8 flex flex-col xs:flex-row items-start justify-between gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">My Jobs</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                 Track your job applications and generated content
               </p>
             </div>
             <button
               onClick={() => setShowAddJobModal(true)}
-              className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground hover:opacity-90 transition-opacity"
+              className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground hover:opacity-90 transition-opacity whitespace-nowrap"
             >
               <Plus className="h-4 w-4" />
-              Add Job Manually
+              <span className="hidden xs:inline">Add Job Manually</span>
+              <span className="xs:hidden">Add Job</span>
             </button>
           </div>
 
@@ -929,26 +930,26 @@ export default function MyJobsPage() {
 
       {/* Job Detail Modal */}
       {selectedJob && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setSelectedJob(null)}>
-          <div className="w-full max-w-2xl max-h-[85vh] flex flex-col rounded-xl border border-border bg-card shadow-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 sm:p-4" onClick={() => setSelectedJob(null)}>
+          <div className="w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] flex flex-col rounded-xl border border-border bg-card shadow-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
             {/* Sticky Header with Actions */}
-            <div className="sticky top-0 z-10 bg-card border-b border-border p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-foreground">{selectedJob.title}</h2>
-                  <p className="text-lg text-muted-foreground mt-1">{selectedJob.company}</p>
-                  <p className="text-sm text-muted-foreground mt-1">{selectedJob.location}</p>
+            <div className="sticky top-0 z-10 bg-card border-b border-border p-4 sm:p-6">
+              <div className="flex items-start justify-between mb-3 sm:mb-4">
+                <div className="flex-1 min-w-0 pr-2">
+                  <h2 className="text-lg sm:text-2xl font-bold text-foreground break-words">{selectedJob.title}</h2>
+                  <p className="text-sm sm:text-lg text-muted-foreground mt-1">{selectedJob.company}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">{selectedJob.location}</p>
                 </div>
                 <button
                   onClick={() => setSelectedJob(null)}
-                  className="rounded-lg p-2 text-muted hover:bg-muted/50 hover:text-foreground transition-colors"
+                  className="rounded-lg p-1.5 sm:p-2 text-muted hover:bg-muted/50 hover:text-foreground transition-colors flex-shrink-0"
                 >
-                  <X className="h-5 w-5" />
+                  <X className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {selectedJob.tailored_resume_id && (
                   <button
                     onClick={() => setPreviewModal({ type: 'resume', id: selectedJob.tailored_resume_id! })}
@@ -965,6 +966,31 @@ export default function MyJobsPage() {
                   >
                     <FileText className="h-4 w-4" />
                     Cover Letter
+                  </button>
+                )}
+                {/* Regenerate buttons - shown when content already exists */}
+                {(selectedJob.tailored_resume_id || selectedJob.tailored_cover_letter_id) && (
+                  <button
+                    onClick={() => setTailorOptions({
+                      jobId: selectedJob.id,
+                      generateResume: true,
+                      generateCoverLetter: true,
+                    })}
+                    disabled={tailoringJob === selectedJob.id}
+                    className="flex items-center gap-2 rounded-lg border border-accent bg-accent/5 px-3 py-2 text-sm font-medium text-accent hover:bg-accent/10 transition-colors disabled:opacity-50"
+                    title="Regenerate resume and cover letter with latest ATS optimization"
+                  >
+                    {tailoringJob === selectedJob.id ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Regenerating...
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="h-4 w-4" />
+                        Regenerate
+                      </>
+                    )}
                   </button>
                 )}
                 {(!selectedJob.tailored_resume_id || !selectedJob.tailored_cover_letter_id) && (
@@ -1820,14 +1846,14 @@ const DroppableColumn = memo(function DroppableColumn({
   return (
     <div 
       ref={setNodeRef} 
-      className={`flex min-w-[300px] flex-1 flex-col max-w-sm transition-colors ${isOver ? 'ring-2 ring-accent ring-offset-2' : ''}`}
+      className={`flex min-w-[280px] sm:min-w-[300px] flex-1 flex-col max-w-sm transition-colors ${isOver ? 'ring-2 ring-accent ring-offset-2' : ''}`}
     >
-      <div className={`mb-3 flex items-center justify-between rounded-lg border px-4 py-3 ${status.color}`}>
-        <span className="font-medium">{status.label}</span>
-        <span className="text-sm font-bold">{jobs.length}</span>
+      <div className={`mb-3 flex items-center justify-between rounded-lg border px-3 sm:px-4 py-2.5 sm:py-3 ${status.color}`}>
+        <span className="font-medium text-sm sm:text-base">{status.label}</span>
+        <span className="text-xs sm:text-sm font-bold">{jobs.length}</span>
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 rounded-lg bg-muted/30 p-3 min-h-[200px]">
+      <div className="flex flex-1 flex-col gap-2.5 sm:gap-3 rounded-lg bg-muted/30 p-2.5 sm:p-3 min-h-[200px]">
         {jobs.map((job) => (
           <DraggableJobCard
             key={job.id}
@@ -1870,7 +1896,7 @@ const DraggableJobCard = memo(function DraggableJobCard({
     <div
       ref={setNodeRef}
       style={style}
-      className="dnd-item flex cursor-pointer flex-col rounded-lg border border-border bg-card p-4 shadow-sm hover:border-accent/50 hover:shadow-md"
+      className="dnd-item flex cursor-pointer flex-col rounded-lg border border-border bg-card p-3 sm:p-4 shadow-sm hover:border-accent/50 hover:shadow-md"
       onClick={() => onClick(job)}
     >
       <div className="flex items-start gap-2">
@@ -1880,40 +1906,40 @@ const DraggableJobCard = memo(function DraggableJobCard({
           onClick={(e) => e.stopPropagation()}
           className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground mt-0.5 touch-none"
         >
-          <GripVertical className="h-4 w-4" />
+          <GripVertical className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </button>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-foreground line-clamp-1">{job.title}</h3>
-          <p className="text-sm text-muted-foreground line-clamp-1">{job.company}</p>
+          <h3 className="font-semibold text-foreground line-clamp-1 text-sm sm:text-base">{job.title}</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">{job.company}</p>
         </div>
       </div>
 
       {/* Match Percentage Badge */}
       {job.match_percentage !== null && (
-        <div className="mt-3 ml-6">
-          <div className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${getMatchColor(job.match_percentage)}`}>
-            <span className="text-lg leading-none">✓</span>
+        <div className="mt-2.5 sm:mt-3 ml-5 sm:ml-6">
+          <div className={`inline-flex items-center gap-1.5 rounded-full border px-2 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-xs font-semibold ${getMatchColor(job.match_percentage)}`}>
+            <span className="text-base sm:text-lg leading-none">✓</span>
             <span>{job.match_percentage}% Match</span>
           </div>
         </div>
       )}
 
       {(job.tailored_resume_id || job.tailored_cover_letter_id) && (
-        <div className="mt-3 flex gap-1.5 flex-wrap ml-6">
+        <div className="mt-2.5 sm:mt-3 flex gap-1.5 flex-wrap ml-5 sm:ml-6">
           {job.tailored_resume_id && (
-            <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
+            <span className="rounded-full bg-accent/10 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-medium text-accent">
               Resume
             </span>
           )}
           {job.tailored_cover_letter_id && (
-            <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
+            <span className="rounded-full bg-accent/10 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-medium text-accent">
               Cover Letter
             </span>
           )}
         </div>
       )}
 
-      <div className="mt-3 flex items-center gap-1 text-xs text-muted-foreground ml-6">
+      <div className="mt-2.5 sm:mt-3 flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground ml-5 sm:ml-6">
         <Clock className="h-3 w-3" />
         {new Date(job.created_at).toLocaleDateString()}
       </div>
@@ -1925,7 +1951,7 @@ const DraggableJobCard = memo(function DraggableJobCard({
           onStatusChange(job.id, e.target.value as TrackedJob['status']);
         }}
         onClick={(e) => e.stopPropagation()}
-        className="mt-3 ml-6 rounded border border-border bg-background px-2 py-1.5 text-xs text-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+        className="mt-2.5 sm:mt-3 ml-5 sm:ml-6 rounded border border-border bg-background px-2 py-1.5 text-[10px] sm:text-xs text-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
       >
         {statuses.map(s => (
           <option key={s.id} value={s.id}>{s.label}</option>

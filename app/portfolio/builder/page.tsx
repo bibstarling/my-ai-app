@@ -1006,19 +1006,19 @@ export default function PortfolioBuilderPage() {
 
       {/* Floating Chat Panel */}
       {isChatOpen && (
-        <div className="fixed inset-y-0 right-0 z-50 w-[420px] bg-white shadow-2xl border-l border-gray-200 flex flex-col overflow-hidden">
+        <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[420px] max-w-full bg-white shadow-2xl border-l border-gray-200 flex flex-col overflow-hidden">
           {/* Compact Chat Header */}
-          <div className="border-b border-gray-200 px-4 py-3 flex items-center justify-between bg-white flex-shrink-0">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-accent" />
-              <div>
+          <div className="border-b border-gray-200 px-3 sm:px-4 py-3 flex items-center justify-between bg-white flex-shrink-0">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <Sparkles className="h-4 w-4 text-accent flex-shrink-0" />
+              <div className="min-w-0 flex-1">
                 <h3 className="font-semibold text-gray-900 text-sm">Add to Profile</h3>
-                <p className="text-xs text-gray-500">Upload files, URLs, or describe your work</p>
+                <p className="text-xs text-gray-500 truncate">Upload files, URLs, or describe your work</p>
               </div>
             </div>
             <button
               onClick={() => setIsChatOpen(false)}
-              className="text-gray-400 hover:text-gray-900 transition-colors"
+              className="text-gray-400 hover:text-gray-900 transition-colors flex-shrink-0 ml-2"
               title="Close"
             >
               <X className="h-5 w-5" />
@@ -1028,8 +1028,8 @@ export default function PortfolioBuilderPage() {
           {/* AI Chat Content */}
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden" ref={chatContainerRef}>
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 min-h-0">
-              <div className="space-y-4">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-4 min-h-0">
+              <div className="space-y-3 sm:space-y-4">
                 {messages.map((message, idx) => (
                   <div
                     key={idx}
@@ -1086,11 +1086,11 @@ export default function PortfolioBuilderPage() {
 
             {/* Pending Attachments */}
             {pendingAttachments.length > 0 && (
-              <div className="border-t border-gray-200 bg-blue-50 px-4 py-2 flex-shrink-0">
-                <p className="mb-1.5 text-xs font-medium text-blue-900">
+              <div className="border-t border-gray-200 bg-blue-50 px-3 sm:px-4 py-2 flex-shrink-0">
+                <p className="mb-1.5 text-[10px] xs:text-xs font-medium text-blue-900">
                   {pendingAttachments.length} file{pendingAttachments.length > 1 ? 's' : ''} ready
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {pendingAttachments.map((att, idx) => (
                     <div
                       key={idx}
@@ -1113,7 +1113,7 @@ export default function PortfolioBuilderPage() {
             )}
 
             {/* Input Area */}
-            <div className="border-t border-gray-200 bg-white p-4 flex-shrink-0">
+            <div className="border-t border-gray-200 bg-white p-3 sm:p-4 flex-shrink-0">
               <form onSubmit={handleSubmit} className="flex flex-col gap-2">
                 <div className="flex gap-2">
                   <input
@@ -1128,10 +1128,10 @@ export default function PortfolioBuilderPage() {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploadProgress}
-                    className="rounded-lg border border-gray-200 bg-white p-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 disabled:opacity-50"
+                    className="rounded-lg border border-gray-200 bg-white p-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 disabled:opacity-50 flex-shrink-0"
                     title="Upload file"
                   >
-                    <Upload className="h-5 w-5" />
+                    <Upload className="h-4 w-4 sm:h-5 sm:w-5" />
                   </button>
 
                   <input
@@ -1140,21 +1140,21 @@ export default function PortfolioBuilderPage() {
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Ask AI or upload files..."
                     disabled={loading || uploadProgress}
-                    className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-accent focus:outline-none disabled:opacity-50"
+                    className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-white px-2 sm:px-3 py-2 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:border-accent focus:outline-none disabled:opacity-50"
                   />
                   
                   <button
                     type="submit"
                     disabled={loading || uploadProgress || scrapingUrl || (!input.trim() && pendingAttachments.length === 0)}
-                    className="rounded-lg bg-accent p-2 text-white hover:bg-accent/90 disabled:opacity-50"
+                    className="rounded-lg bg-accent p-2 text-white hover:bg-accent/90 disabled:opacity-50 flex-shrink-0"
                   >
-                    <Send className="h-5 w-5" />
+                    <Send className="h-4 w-4 sm:h-5 sm:w-5" />
                   </button>
                 </div>
               </form>
-              <p className="text-xs text-gray-400 mt-2">
+              <p className="text-[10px] xs:text-xs text-gray-400 mt-2">
                 Paste URLs (LinkedIn, GitHub, etc.) • Upload files • 
-                <kbd className="px-1 py-0.5 bg-gray-100 border border-gray-200 rounded text-xs font-mono ml-1">Ctrl+V</kbd> for images
+                <kbd className="px-1 py-0.5 bg-gray-100 border border-gray-200 rounded text-[10px] xs:text-xs font-mono ml-1 hidden xs:inline">Ctrl+V</kbd><span className="xs:hidden ml-1">Ctrl+V</span> for images
               </p>
             </div>
           </div>

@@ -51,39 +51,39 @@ export function Modal({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4"
       onClick={onClose}
     >
       <div 
-        className="relative w-full max-w-md mx-4 bg-white rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200"
+        className="relative w-full max-w-md bg-white rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className={`px-6 py-4 border-b ${variantStyles[variant]}`}>
-          <div className="flex items-center gap-3">
+        <div className={`px-4 sm:px-6 py-3 sm:py-4 border-b ${variantStyles[variant]} flex-shrink-0`}>
+          <div className="flex items-center gap-2 sm:gap-3">
             {icon && (
-              <div className={iconColors[variant]}>
+              <div className={`flex-shrink-0 ${iconColors[variant]}`}>
                 {icon}
               </div>
             )}
-            <h2 className="text-lg font-semibold flex-1">{title}</h2>
+            <h2 className="text-base sm:text-lg font-semibold flex-1 min-w-0 break-words">{title}</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
 
         {/* Body */}
-        <div className="px-6 py-4 text-gray-700">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 text-gray-700 overflow-y-auto flex-1 text-sm sm:text-base">
           {children}
         </div>
 
         {/* Footer */}
         {footer && (
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+          <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-t border-gray-200 flex flex-col xs:flex-row justify-end gap-2 xs:gap-3 flex-shrink-0">
             {footer}
           </div>
         )}
