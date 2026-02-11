@@ -11,13 +11,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { message } = await req.json();
+    const { message, conversationId, messages: conversationHistory } = await req.json();
 
     if (!message) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
-    console.log('Sending message to AI:', message);
+    console.log('Sending message to AI:', message, 'conversationId:', conversationId);
 
     // Get user's professional profile markdown for context
     const supabase = getSupabaseServiceRole();
@@ -65,16 +65,53 @@ Be conversational, supportive, and actionable. Help with:
 - Skill development recommendations
 - Networking strategies`;
 
+    // Build conversation history for AI (use provided history or empty array)
+    const conversationMessages = conversationHistory && Array.isArray(conversationHistory) 
+      ? conversationHistory.map((msg: any) => ({ role: msg.role, content: msg.content }))
+      : [];
+    
+    // Add the current user message
+    conversationMessages.push({ role: 'user', content: message });
+
     // Use the AI provider system (user's API or system fallback)
     const response = await generateAICompletion(
       userId,
       'career_coach_chat',
       systemPrompt,
-      [{ role: 'user', content: message }],
+      conversationMessages,
       2048
     );
 
     console.log('Response from AI:', response);
+
+    // Save messages to database if conversationId provided
+    if (conversationId) {
+      const supabase = getSupabaseServiceRole();
+      
+      // Save user message
+      await supabase
+        .from('ai_coach_messages')
+        .insert({
+          conversation_id: conversationId,
+          role: 'user',
+          content: message,
+        });
+
+      // Save assistant message
+      await supabase
+        .from('ai_coach_messages')
+        .insert({
+          conversation_id: conversationId,
+          role: 'assistant',
+          content: response.content,
+        });
+
+      // Update conversation's updated_at timestamp
+      await supabase
+        .from('ai_coach_conversations')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', conversationId);
+    }
     
     return NextResponse.json({ 
       response: response.content 
