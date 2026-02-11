@@ -102,6 +102,7 @@ export async function POST(req: Request) {
     // Parse contact info from markdown if needed
     let extractedName = null;
     let extractedEmail = null;
+    let extractedLinkedIn = null;
     let extractedPortfolioUrl = null;
 
     if (portfolioMarkdown) {
@@ -129,6 +130,20 @@ export async function POST(req: Request) {
       
       // Extract email
       extractedEmail = extractFromMarkdown(portfolioMarkdown, /(?:email|e-mail|contact)[\s:]*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
+      
+      // Extract LinkedIn URL
+      const linkedInPatterns = [
+        /(?:linkedin|linked-in)[\s:]*(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/([a-zA-Z0-9-]+)/i,
+        /(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/([a-zA-Z0-9-]+)/i,
+      ];
+      
+      for (const pattern of linkedInPatterns) {
+        const match = portfolioMarkdown.match(pattern);
+        if (match) {
+          extractedLinkedIn = match[0].startsWith('http') ? match[0] : `https://linkedin.com/in/${match[1]}`;
+          break;
+        }
+      }
       
       // Extract portfolio URL - look for common patterns
       const urlPatterns = [
@@ -166,13 +181,15 @@ export async function POST(req: Request) {
     // Use extracted values as fallback if portfolio_data is empty
     const fullName = portfolioInfo?.fullName || extractedName || portfolioData.fullName;
     const email = portfolioInfo?.email || extractedEmail || portfolioData.email;
+    const linkedInUrl = portfolioInfo?.linkedinUrl || portfolioInfo?.linkedInUrl || extractedLinkedIn || portfolioData.linkedinUrl || null;
     
     console.log('[Resume Generate] Contact info extracted:', {
       fullName,
       email,
+      linkedInUrl,
       portfolioUrl,
       fromPortfolioData: !!(portfolioInfo?.fullName),
-      fromMarkdown: !!(extractedName || extractedEmail || extractedPortfolioUrl),
+      fromMarkdown: !!(extractedName || extractedEmail || extractedLinkedIn || extractedPortfolioUrl),
     });
 
     // Generate ATS optimization strategy
@@ -210,7 +227,7 @@ export async function POST(req: Request) {
         full_name: fullName,
         email: email,
         location: portfolioInfo.location || portfolioData.location,
-        linkedin_url: portfolioInfo.linkedinUrl || portfolioData.linkedinUrl,
+        linkedin_url: linkedInUrl,
         portfolio_url: portfolioUrl,
       })
       .select()
@@ -555,6 +572,7 @@ ${atsInstructions}
 - Contact information is AUTOMATICALLY extracted and populated in the resume header
 - Candidate's full name: ${fullName}
 - Candidate's email: ${email}
+- LinkedIn: ${linkedInUrl || 'Will be included if available'}
 - Portfolio URL: ${portfolioUrl || 'Will be included if available'}
 - Your job is ONLY to generate the content sections (summary, experience, projects, skills, education)
 - Focus on creating compelling content - contact details are handled separately

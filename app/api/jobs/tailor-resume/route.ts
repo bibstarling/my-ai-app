@@ -67,6 +67,7 @@ export async function POST(request: Request) {
 
     let extractedName = null;
     let extractedEmail = null;
+    let extractedLinkedIn = null;
     let extractedPortfolioUrl = null;
 
     if (portfolioMarkdown) {
@@ -93,6 +94,20 @@ export async function POST(request: Request) {
       
       extractedEmail = extractFromMarkdown(portfolioMarkdown, /(?:email|e-mail|contact)[\s:]*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
       
+      // Extract LinkedIn URL
+      const linkedInPatterns = [
+        /(?:linkedin|linked-in)[\s:]*(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/([a-zA-Z0-9-]+)/i,
+        /(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/([a-zA-Z0-9-]+)/i,
+      ];
+      
+      for (const pattern of linkedInPatterns) {
+        const match = portfolioMarkdown.match(pattern);
+        if (match) {
+          extractedLinkedIn = match[0].startsWith('http') ? match[0] : `https://linkedin.com/in/${match[1]}`;
+          break;
+        }
+      }
+      
       const urlPatterns = [
         /(?:portfolio|website|site|url)[\s:]*(?:https?:\/\/)?([a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.(?:com|net|org|dev|io|co|me|info)[^\s,;)]*)/i,
         /(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.(?:com|net|org|dev|io|co|me|info))/i,
@@ -109,6 +124,7 @@ export async function POST(request: Request) {
 
     const fullName = portfolio?.fullName || portfolio?.name || extractedName || '';
     const email = portfolio?.email || extractedEmail || '';
+    const linkedInUrl = portfolio?.linkedinUrl || portfolio?.linkedInUrl || extractedLinkedIn || '';
     const portfolioUrl = userInfo?.is_super_admin 
       ? 'www.biancastarling.com'
       : (portfolio?.websiteUrl || portfolio?.website || extractedPortfolioUrl || '');
@@ -156,6 +172,7 @@ ${portfolioMarkdown || JSON.stringify(portfolio, null, 2)}
 - Contact information is AUTOMATICALLY populated in the resume header
 - Candidate's full name: ${fullName}
 - Candidate's email: ${email}
+- LinkedIn: ${linkedInUrl || 'Will be included if available'}
 - Portfolio URL: ${portfolioUrl || 'Will be included if available'}
 - Focus ONLY on generating content sections (summary, experience, projects, skills, education)
 
@@ -251,7 +268,7 @@ Return ONLY valid JSON in this exact format:
         email: email,
         phone: portfolio.phone || null,
         location: portfolio.location || '',
-        linkedin_url: portfolio.linkedinUrl || portfolio.linkedin || '',
+        linkedin_url: linkedInUrl,
         portfolio_url: portfolioUrl,
         status: 'draft',
       })
