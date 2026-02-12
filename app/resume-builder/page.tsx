@@ -24,6 +24,7 @@ export default function ResumeBuilderPage() {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [showGenericModal, setShowGenericModal] = useState(false);
   const [showPageTour, setShowPageTour] = useState(false);
   
   const pageTour = getPageTour('resume-builder');
@@ -142,9 +143,16 @@ export default function ResumeBuilderPage() {
                 onClick={() => setShowGenerateModal(true)}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-applause-orange text-white rounded-lg hover:opacity-90 transition-all shadow-lg"
               >
+                <Briefcase className="w-5 h-5" />
                 <Sparkles className="w-5 h-5" />
+                From Job
+              </button>
+              <button
+                onClick={() => setShowGenericModal(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-lg"
+              >
                 <Sparkles className="w-5 h-5" />
-                AI Generate
+                Generic Resume
               </button>
               <button
                 onClick={() => setShowCreateModal(true)}
@@ -280,6 +288,17 @@ export default function ResumeBuilderPage() {
           onClose={() => setShowGenerateModal(false)}
           onSuccess={(resumeId) => {
             setShowGenerateModal(false);
+            window.location.href = `/resume-builder/${resumeId}`;
+          }}
+        />
+      )}
+
+      {/* Generate Generic Resume Modal */}
+      {showGenericModal && (
+        <GenerateGenericResumeModal
+          onClose={() => setShowGenericModal(false)}
+          onSuccess={(resumeId) => {
+            setShowGenericModal(false);
             window.location.href = `/resume-builder/${resumeId}`;
           }}
         />
@@ -567,6 +586,231 @@ function GenerateFromJobModal({
               title={!profileStatus?.hasProfile ? 'Build your profile first to generate tailored resumes' : ''}
             >
               {generating ? 'Generating...' : 'Generate Resume'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GenerateGenericResumeModal({
+  onClose,
+  onSuccess,
+}: {
+  onClose: () => void;
+  onSuccess: (resumeId: string) => void;
+}) {
+  const { showError, showInfo } = useNotification();
+  const [generating, setGenerating] = useState(false);
+  const [contentLanguage, setContentLanguage] = useState<Locale>('en');
+  const [loadingSettings, setLoadingSettings] = useState(true);
+  const [profileStatus, setProfileStatus] = useState<{ hasProfile: boolean; markdownLength: number } | null>(null);
+  const [checkingProfile, setCheckingProfile] = useState(true);
+  const [resumeTitle, setResumeTitle] = useState('Professional Resume');
+
+  useEffect(() => {
+    fetchUserSettings();
+    checkProfileStatus();
+  }, []);
+
+  async function fetchUserSettings() {
+    try {
+      const response = await fetch('/api/users/settings', { credentials: 'include' });
+      const data = await response.json();
+      if (data.settings) {
+        setContentLanguage(data.settings.content_language || 'en');
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    } finally {
+      setLoadingSettings(false);
+    }
+  }
+
+  async function checkProfileStatus() {
+    try {
+      const response = await fetch('/api/portfolio/current', { credentials: 'include' });
+      const data = await response.json();
+      if (data.success && data.portfolio) {
+        const markdownLength = data.portfolio.markdown?.length || 0;
+        setProfileStatus({
+          hasProfile: markdownLength > 100,
+          markdownLength
+        });
+      } else {
+        setProfileStatus({ hasProfile: false, markdownLength: 0 });
+      }
+    } catch (error) {
+      console.error('Error checking profile:', error);
+      setProfileStatus({ hasProfile: false, markdownLength: 0 });
+    } finally {
+      setCheckingProfile(false);
+    }
+  }
+
+  async function handleGenerate() {
+    setGenerating(true);
+    try {
+      const response = await fetch('/api/resume/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          generic: true,
+          resume_title: resumeTitle,
+          content_language: contentLanguage,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.resume) {
+        showInfo('Generic resume generated successfully!');
+        onSuccess(data.resume.id);
+      } else {
+        showError(data.error || 'Failed to generate resume');
+      }
+    } catch (error) {
+      console.error('Error generating resume:', error);
+      showError('Failed to generate resume');
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[85vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <Sparkles className="w-6 h-6 text-blue-600" />
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Generate Generic Resume</h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Create a comprehensive resume showcasing your full experience
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Profile Warning Banner */}
+        {!checkingProfile && profileStatus && !profileStatus.hasProfile && (
+          <div className="mx-6 mt-6 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-amber-800">Professional Profile Required</h3>
+                <p className="mt-1 text-sm text-amber-700">
+                  To generate a resume, the AI needs your professional profile as context. Please build your profile first with your experience, skills, and projects.
+                </p>
+                <Link 
+                  href="/portfolio/builder"
+                  className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-amber-800 hover:text-amber-900 underline"
+                >
+                  <Briefcase className="w-4 h-4" />
+                  Build Your Profile Now
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <div className="p-6 space-y-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <FileText className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-sm font-semibold text-blue-900 mb-1">About Generic Resumes</h3>
+                <p className="text-sm text-blue-800">
+                  This creates a comprehensive "master resume" showcasing your full breadth of experience, skills, and projects. 
+                  Unlike job-specific resumes, this highlights your complete professional profile.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Resume Title */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Resume Title
+            </label>
+            <input
+              type="text"
+              value={resumeTitle}
+              onChange={(e) => setResumeTitle(e.target.value)}
+              placeholder="e.g., Professional Resume, Master Resume"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Language Selection */}
+          {!loadingSettings && (
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                <Globe className="w-4 h-4" />
+                Content Language
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                {locales.map((locale) => (
+                  <button
+                    key={locale}
+                    type="button"
+                    onClick={() => setContentLanguage(locale)}
+                    className={`p-3 rounded-lg border-2 transition-all ${
+                      contentLanguage === locale
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    }`}
+                  >
+                    <span className="font-medium text-gray-900 text-sm">
+                      {localeNames[locale]}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                This language will be used for AI-generated content
+              </p>
+            </div>
+          )}
+
+          {checkingProfile && (
+            <div className="text-center py-4 text-gray-600 flex items-center justify-center gap-2">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Checking profile...
+            </div>
+          )}
+        </div>
+
+        <div className="p-6 border-t border-gray-200 bg-gray-50">
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleGenerate}
+              disabled={generating || !profileStatus?.hasProfile}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              title={!profileStatus?.hasProfile ? 'Build your profile first to generate resumes' : ''}
+            >
+              {generating ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  Generate Resume
+                </>
+              )}
             </button>
           </div>
         </div>

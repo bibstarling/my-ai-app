@@ -12,6 +12,7 @@ type GenerateRequest = {
   job_title?: string;
   job_description?: string;
   resume_title?: string;
+  generic?: boolean; // Flag for generic resume generation
 };
 
 /**
@@ -30,6 +31,7 @@ export async function POST(req: Request) {
     let jobTitle = body.job_title || '';
     let jobDescription = body.job_description || '';
     let jobCompany = '';
+    const isGeneric = body.generic === true;
 
     // If job_id is provided, fetch job details
     if (body.job_id) {
@@ -46,9 +48,10 @@ export async function POST(req: Request) {
       }
     }
 
-    if (!jobTitle && !jobDescription) {
+    // For generic resumes, job details are not required
+    if (!isGeneric && !jobTitle && !jobDescription) {
       return NextResponse.json(
-        { error: 'Either job_id or job details (title, description) required' },
+        { error: 'Either job_id, job details (title, description), or generic flag required' },
         { status: 400 }
       );
     }
@@ -235,12 +238,14 @@ export async function POST(req: Request) {
       fromPortfolioData: !!(portfolioInfo?.fullName),
     });
 
-    // Generate ATS optimization strategy
-    const atsOptimization = generateATSOptimization(jobTitle, jobDescription, jobCompany);
-    console.log('[Resume Generate] ATS Optimization Generated:', {
-      priorityTerms: atsOptimization.priorityTerms.length,
-      industryContext: atsOptimization.industryContext,
-    });
+    // Generate ATS optimization strategy (only for job-specific resumes)
+    const atsOptimization = isGeneric ? null : generateATSOptimization(jobTitle, jobDescription, jobCompany);
+    if (!isGeneric && atsOptimization) {
+      console.log('[Resume Generate] ATS Optimization Generated:', {
+        priorityTerms: atsOptimization.priorityTerms.length,
+        industryContext: atsOptimization.industryContext,
+      });
+    }
 
     // Use AI to select most relevant content from user's portfolio and job profile
     const selection = await selectRelevantContent(
@@ -256,11 +261,12 @@ export async function POST(req: Request) {
       fullName,
       email,
       linkedInUrl,
-      portfolioUrl
+      portfolioUrl,
+      isGeneric
     );
 
     // Create resume
-    const resumeTitle = body.resume_title || `${jobTitle} Resume`;
+    const resumeTitle = body.resume_title || (isGeneric ? 'Professional Resume' : `${jobTitle} Resume`);
     const { data: resume, error: resumeError } = await supabase
       .from('resumes')
       .insert({
@@ -568,7 +574,8 @@ async function selectRelevantContent(
   fullName: string = '',
   email: string = '',
   linkedInUrl: string | null = null,
-  portfolioUrl: string | null = null
+  portfolioUrl: string | null = null,
+  isGeneric: boolean = false
 ): Promise<ContentSelection> {
 
     const awardsText = portfolioInfo.awards?.map((a: any, i: number) => 
@@ -599,9 +606,13 @@ ${awardsText ? `🏆 AWARDS & RECOGNITION:\n${awardsText}\n` : ''}`;
       ? getATSResumePromptInstructions(atsOptimization)
       : '';
 
-    const prompt = `You are an expert resume writer with deep knowledge of modern ATS (Applicant Tracking Systems). Analyze the job posting and select the most relevant content from this candidate's profile and portfolio.
+    const introText = isGeneric 
+      ? `You are an expert resume writer creating a comprehensive, professional resume that showcases the candidate's full range of skills and experience. This is a GENERAL RESUME not targeted to a specific job, so focus on creating a well-rounded, impressive professional profile that highlights breadth and depth.`
+      : `You are an expert resume writer with deep knowledge of modern ATS (Applicant Tracking Systems). Analyze the job posting and select the most relevant content from this candidate's profile and portfolio.
 
-${atsInstructions}
+${atsInstructions}`;
+
+    const prompt = `${introText}
 
 🚨 CRITICAL REQUIREMENT #1 - NEVER FABRICATE OR INVENT CONTENT:
 - ONLY use information that EXISTS in the candidate's portfolio/profile/resume provided below
@@ -631,10 +642,10 @@ ${atsInstructions}
 - Your job is ONLY to generate the content sections (summary, experience, projects, skills, education)
 - Focus on creating compelling content - contact details are handled separately
 
-JOB POSTING:
+${isGeneric ? '🎯 GENERIC RESUME MODE:\n- This is a GENERAL professional resume, NOT targeted to a specific job\n- Showcase the candidate\'s FULL breadth of experience and skills\n- Include ALL significant experiences and projects that demonstrate professional growth\n- Create a comprehensive skills section showing technical and professional capabilities\n- Write a professional summary that positions them as a versatile, accomplished professional\n- Focus on achievements, impact, and demonstrable expertise across their career\n' : `JOB POSTING:
 Title: ${jobTitle}
 Company: ${jobCompany}
-Description: ${jobDescription.slice(0, 2000)}
+Description: ${jobDescription.slice(0, 2000)}`}
 
 ${candidateProfileSection}
 
@@ -658,23 +669,37 @@ AVAILABLE SKILLS:
 ${Object.entries(portfolioInfo.skills || {}).map(([cat, items]) => `${cat}: ${Array.isArray(items) ? items.join(', ') : ''}`).join('\n')}
 
 YOUR TASK:
-${profileResumeText ? 'IMPORTANT: The candidate has provided their resume text above. Use this as your PRIMARY SOURCE for understanding their background, experience, and achievements. Extract relevant experiences and skills from their actual resume first, then supplement with portfolio data if needed.' : 'Select the most relevant experiences, projects, and skills for this specific job from the portfolio data.'} 
+${isGeneric 
+  ? `Create a COMPREHENSIVE, IMPRESSIVE general resume that showcases the candidate's full professional profile:
+- Include ALL significant experiences (4-6 experiences recommended to show career progression)
+- Include ALL notable projects (3-5 projects to demonstrate breadth of expertise)
+- Each experience should have 4-6 achievement bullets with specific metrics and outcomes
+- Projects should have 2-3 detailed bullets explaining impact and technologies used
+- Create a comprehensive skills section that showcases the full range of technical and professional capabilities
+- Write a professional summary that positions them as an accomplished, versatile professional
+
+FOCUS: This is their "master resume" - comprehensive and impressive, not tailored to one job.`
+  : `${profileResumeText ? 'IMPORTANT: The candidate has provided their resume text above. Use this as your PRIMARY SOURCE for understanding their background, experience, and achievements. Extract relevant experiences and skills from their actual resume first, then supplement with portfolio data if needed.' : 'Select the most relevant experiences, projects, and skills for this specific job from the portfolio data.'} 
 
 Prioritize recent and highly relevant items. Create a COMPREHENSIVE, DETAILED resume:
 - Select 3-5 most relevant experiences (prefer more if highly relevant)
 - Include 2-4 key projects that demonstrate capabilities
 - Each experience should showcase 4-6 achievement bullets with specific metrics and outcomes
 - Projects should have 2-3 detailed bullets explaining impact and technologies used
-- Skills section should be comprehensive but focused on job requirements
+- Skills section should be comprehensive but focused on job requirements`}
 
-CRITICAL REQUIREMENTS FOR SUMMARY (ATS-Optimized + Human-Written):
+CRITICAL REQUIREMENTS FOR SUMMARY ${isGeneric ? '(Professional + Human-Written)' : '(ATS-Optimized + Human-Written)'}:
 
-**ATS OPTIMIZATION FOR SUMMARY (HIGHEST PRIORITY):**
+${!isGeneric ? `**ATS OPTIMIZATION FOR SUMMARY (HIGHEST PRIORITY):**
 - MUST include 4-6 priority keywords from the ATS optimization above naturally
 - Use EXACT terminology from job description (not paraphrased)
 - Include both spelled-out terms AND acronyms when relevant
 - First 2 sentences are CRITICAL for ATS scanning - pack with relevant keywords
-- Balance keyword density with natural flow - aim for 0.76+ semantic alignment score
+- Balance keyword density with natural flow - aim for 0.76+ semantic alignment score` : `**FOR GENERIC RESUME - PROFESSIONAL POSITIONING:**
+- Lead with the candidate's strongest area of expertise and years of experience
+- Highlight breadth: mention 2-3 key domains/specializations
+- Include 2-3 concrete achievements with metrics (revenue, users, scale)
+- Position as a senior, accomplished professional with diverse capabilities`}
 
 **AVOID AI DETECTION - This MUST sound like the candidate wrote it:**
 - NO generic resume phrases ("results-driven professional," "proven track record," "dynamic leader")
@@ -686,7 +711,7 @@ CRITICAL REQUIREMENTS FOR SUMMARY (ATS-Optimized + Human-Written):
 - NO buzzword overload - pick 2-3 key strengths, not 10
 - Write in active voice with energy and personality
 
-**Match tone to job type (but keep it human):**
+${!isGeneric ? `**Match tone to job type (but keep it human):**
 
 - For STARTUP/EARLY-STAGE: "I take on massive, ambiguous projects and ship. When priorities shifted, I pivoted fast to manage Creator Hub and CMS simultaneously—both behemoth initiatives—without dropping momentum. That's what I do."
 
@@ -694,7 +719,13 @@ CRITICAL REQUIREMENTS FOR SUMMARY (ATS-Optimized + Human-Written):
 
 - For STRATEGIC/LEADERSHIP: "I ship products (ChatGPT App, Community Feed) and I'm ready to lead strategy. I want to champion product vision and influence where we're going next, not just execute someone else's roadmap."
 
-- For SCALE-UP/GROWTH: "I'm managing Creator Hub and CMS simultaneously right now while supporting cross-functional teams with data and quick experiments. Multiple big initiatives without creating bottlenecks—that's my baseline."
+- For SCALE-UP/GROWTH: "I'm managing Creator Hub and CMS simultaneously right now while supporting cross-functional teams with data and quick experiments. Multiple big initiatives without creating bottlenecks—that's my baseline."` : `**For GENERIC RESUME - Sound accomplished and versatile:**
+
+- "Product leader with 8+ years building AI/ML products at scale. Shipped ChatGPT App (500K+ users), semantic search (25% engagement lift), and enterprise platforms serving 200+ organizations. I lead cross-functional teams, drive strategy, and deliver measurable results."
+
+- "Full-stack engineer specializing in scalable systems and data infrastructure. Built platforms handling 10M+ requests/day, reduced costs by 40%, and architected microservices supporting 500+ enterprise clients. Strong in Python, React, AWS, and team leadership."
+
+- "Strategic product manager with proven track record across startups and scale-ups. Led 5+ products from 0→1, drove $2M in ARR, and managed teams of 10+. I excel at ambiguous problems, rapid iteration, and shipping features customers love."`}
 
 **Human writing rules:**
 - Lead with specific impact (25% engagement, 200% revenue, 500+ schools)
@@ -706,13 +737,15 @@ CRITICAL REQUIREMENTS FOR SUMMARY (ATS-Optimized + Human-Written):
 
 Return ONLY valid JSON in this exact format:
 {
-  "summary": "<3-4 sentence summary that is ATS-OPTIMIZED with 4-6 priority keywords AND sounds like THE CANDIDATE wrote it, not AI. Use contractions. Be SPECIFIC using ACTUAL experiences and achievements with REAL METRICS from the portfolio. Sound like a real person. Vary sentence length. NO generic phrases or buzzwords. Match tone to ${jobTitle} at ${jobCompany} but keep it conversational and genuine. NO placeholders - use real data only. MUST include priority keywords naturally. Example: 'I've shipped 3 major AI products including ChatGPT App (500K+ users) and semantic search that increased engagement by 25%. Currently managing Creator Hub and CMS simultaneously—handling multiple behemoth initiatives is my baseline.'>",
-  "experienceIndices": [<array of 3-5 most relevant experience indices from the list above - prefer MORE experiences if they're relevant>],
-  "projectIndices": [<array of 2-4 most relevant project indices from the list above - include projects that demonstrate technical depth or impact>],
-  "skills": [<array of 12-20 actual skill keywords from the available skills list above - PRIORITIZE skills that match ATS priority keywords - use exact terms from candidate's portfolio - be comprehensive>],
+  "summary": "<${isGeneric 
+    ? '3-4 sentence professional summary that showcases the candidate as an accomplished, versatile professional. Use contractions. Be SPECIFIC using ACTUAL experiences and achievements with REAL METRICS from the portfolio. Highlight breadth of expertise and key accomplishments. Sound like a real person. NO generic phrases or buzzwords. NO placeholders - use real data only. Example: "Product leader with 8+ years building AI/ML products. Shipped ChatGPT App (500K+ users), semantic search (25% lift), and platforms serving 200+ orgs. I lead teams, drive strategy, and deliver results."'
+    : `3-4 sentence summary that is ATS-OPTIMIZED with 4-6 priority keywords AND sounds like THE CANDIDATE wrote it, not AI. Use contractions. Be SPECIFIC using ACTUAL experiences and achievements with REAL METRICS from the portfolio. Sound like a real person. Vary sentence length. NO generic phrases or buzzwords. Match tone to ${jobTitle} at ${jobCompany} but keep it conversational and genuine. NO placeholders - use real data only. MUST include priority keywords naturally. Example: 'I've shipped 3 major AI products including ChatGPT App (500K+ users) and semantic search that increased engagement by 25%. Currently managing Creator Hub and CMS simultaneously—handling multiple behemoth initiatives is my baseline.'`}>",
+  "experienceIndices": [<array of ${isGeneric ? '4-6 significant experience indices' : '3-5 most relevant experience indices'} from the list above ${isGeneric ? '- include ALL major roles to show career progression' : '- prefer MORE experiences if they\'re relevant'}>],
+  "projectIndices": [<array of ${isGeneric ? '3-5 notable project indices' : '2-4 most relevant project indices'} from the list above ${isGeneric ? '- showcase breadth of expertise and accomplishments' : '- include projects that demonstrate technical depth or impact'}>],
+  "skills": [<array of ${isGeneric ? '20-30 actual skill keywords' : '12-20 actual skill keywords'} from the available skills list above ${isGeneric ? '- be COMPREHENSIVE to show full capabilities' : '- PRIORITIZE skills that match ATS priority keywords'} - use exact terms from candidate's portfolio>],
   "includeCertifications": <true if certifications add value, false otherwise>,
-  "reasoning": "<detailed explanation of why you selected this content, how it aligns with job requirements, and your ATS keyword strategy for maximum impact>",
-  "atsKeywordsUsed": [<array of priority keywords from ATS optimization that were successfully integrated into the summary>]
+  "reasoning": "<detailed explanation of why you selected this content${!isGeneric ? ', how it aligns with job requirements, and your ATS keyword strategy for maximum impact' : ' and how it showcases the candidate as an accomplished, versatile professional'}>"${!isGeneric ? `,
+  "atsKeywordsUsed": [<array of priority keywords from ATS optimization that were successfully integrated into the summary>]` : ''}
 }
 
 🚨 REMINDER: The summary must be 100% ready to use. Extract real experiences, projects, and skills from the candidate's portfolio. No [brackets], no placeholders, no generic statements. Use actual achievements with real specifics from the portfolio data provided above.`;
