@@ -65,15 +65,22 @@ export default function ResumePreviewPage({ params, searchParams }: PageProps) {
   }
 
   const handleSectionEdit = (sectionId: string, newContent: any) => {
+    console.log('Editing section:', sectionId, newContent);
     setEditedSections(prev => {
       const newMap = new Map(prev);
       newMap.set(sectionId, newContent);
+      console.log('Updated editedSections:', newMap);
       return newMap;
     });
   };
 
   const handleSave = async () => {
+    console.log('handleSave called');
+    console.log('editedSections size:', editedSections.size);
+    console.log('editedHeader:', editedHeader);
+
     if (editedSections.size === 0 && !editedHeader) {
+      console.log('No changes to save, exiting edit mode');
       setEditMode(false);
       return;
     }
@@ -82,7 +89,8 @@ export default function ResumePreviewPage({ params, searchParams }: PageProps) {
     try {
       // Save header information if edited
       if (editedHeader) {
-        await fetch(`/api/resume/${id}`, {
+        console.log('Saving header:', editedHeader);
+        const headerResponse = await fetch(`/api/resume/${id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -95,26 +103,41 @@ export default function ResumePreviewPage({ params, searchParams }: PageProps) {
             portfolio_url: editedHeader.portfolio_url,
           }),
         });
+
+        if (!headerResponse.ok) {
+          const errorData = await headerResponse.json();
+          console.error('Header update failed:', errorData);
+          throw new Error(errorData.error || 'Failed to update header');
+        }
+        console.log('Header saved successfully');
       }
 
       // Save each edited section
       for (const [sectionId, content] of editedSections.entries()) {
-        await fetch(`/api/resume/${id}/sections/${sectionId}`, {
+        console.log('Saving section:', sectionId, content);
+        const sectionResponse = await fetch(`/api/resume/${id}/sections/${sectionId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify({ content }),
         });
+
+        if (!sectionResponse.ok) {
+          const errorData = await sectionResponse.json();
+          console.error('Section update failed:', errorData);
+          throw new Error(errorData.error || 'Failed to update section');
+        }
+        console.log('Section saved successfully:', sectionId);
       }
 
       showSuccess('Resume updated successfully');
       setEditedSections(new Map());
       setEditedHeader(null);
       setEditMode(false);
-      fetchResume(); // Refresh the resume data
+      await fetchResume(); // Refresh the resume data
     } catch (error) {
       console.error('Error saving resume:', error);
-      showError('Failed to save changes');
+      showError(error instanceof Error ? error.message : 'Failed to save changes');
     } finally {
       setSaving(false);
     }
@@ -150,11 +173,21 @@ export default function ResumePreviewPage({ params, searchParams }: PageProps) {
   return (
     <>
       {/* Background overlay */}
-      <div className="fixed inset-0 bg-black/30" onClick={() => window.history.back()} />
+      <div 
+        className="fixed inset-0 bg-black/30" 
+        onClick={(e) => {
+          if (!editMode) {
+            window.history.back();
+          }
+        }}
+      />
       
       {/* Sidebar modal */}
       <div className="fixed inset-0 flex items-center justify-end pointer-events-none">
-        <div className="h-full w-full max-w-3xl bg-white shadow-xl overflow-y-auto pointer-events-auto animate-slide-in-right">
+        <div 
+          className="h-full w-full max-w-3xl bg-white shadow-xl overflow-y-auto pointer-events-auto animate-slide-in-right"
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Toolbar */}
           <div className="sticky top-0 z-10 bg-white border-b border-gray-200">
             <div className="px-6 py-4 flex items-center justify-between">
