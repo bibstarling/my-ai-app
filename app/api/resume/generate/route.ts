@@ -614,14 +614,38 @@ ${atsInstructions}`;
 
     const prompt = `${introText}
 
-🚨 CRITICAL REQUIREMENT #1 - NEVER FABRICATE OR INVENT CONTENT:
-- ONLY use information that EXISTS in the candidate's portfolio/profile/resume provided below
-- NEVER invent experiences, companies, projects, skills, or achievements that aren't in the provided data
-- NEVER make up metrics, outcomes, or details that aren't explicitly stated in the source material
-- If information about something doesn't exist in the provided data, DO NOT write about it
-- Better to write LESS content than to fabricate ANYTHING
-- Every single claim must be directly traceable to the provided portfolio/profile data
-- When in doubt, DON'T include it - accuracy is more important than volume
+🚨🚨🚨 CRITICAL REQUIREMENT #1 - NEVER FABRICATE OR INVENT CONTENT 🚨🚨🚨
+
+THIS IS THE MOST IMPORTANT RULE. VIOLATIONS WILL BE REJECTED.
+
+STRICT VERIFICATION PROTOCOL:
+- Before writing ANYTHING, verify it EXISTS in the candidate's data below
+- If you cannot find the experience/company/project/skill in the provided data, DO NOT MENTION IT
+- NEVER infer, assume, or extrapolate experiences from related fields
+- NEVER add industries, domains, or experiences that are not explicitly stated
+
+FORBIDDEN BEHAVIORS (These will cause rejection):
+❌ NEVER write "healthcare experience" if candidate has no healthcare jobs
+❌ NEVER write "finance background" if candidate has no finance jobs  
+❌ NEVER write "education sector expertise" if candidate has no education jobs
+❌ NEVER invent companies, job titles, or projects
+❌ NEVER make up metrics (revenue, users, percentages) that aren't stated
+❌ NEVER assume experience in an industry just because it seems related
+❌ NEVER use phrases like "extensive experience in [X]" unless EXPLICITLY documented
+
+ONLY ALLOWED:
+✅ Use experiences, companies, and projects that are EXPLICITLY listed below
+✅ Use metrics and outcomes that are DIRECTLY stated in the data
+✅ Describe what candidate ACTUALLY did, not what you think they might have done
+✅ Write LESS content if you're unsure - accuracy over volume
+
+VERIFICATION CHECKLIST (Apply to every sentence):
+1. Is this company/role/project explicitly listed in the candidate data below? → If NO, DELETE IT
+2. Is this metric/outcome directly stated in the source material? → If NO, DELETE IT  
+3. Is this industry/domain explicitly mentioned in their experience? → If NO, DELETE IT
+4. Can I quote the exact source of this claim from the data below? → If NO, DELETE IT
+
+🚨🚨🚨 REMEMBER: It is BETTER to write a shorter resume with 100% accurate information than a longer resume with ANY fabricated content. 🚨🚨🚨
 
 🚨 CRITICAL REQUIREMENT #2 - NO PLACEHOLDERS ALLOWED:
 - NEVER use placeholders like [Company Name], [Your Name], [Skills], [Metric], etc.
@@ -748,7 +772,28 @@ Return ONLY valid JSON in this exact format:
   "atsKeywordsUsed": [<array of priority keywords from ATS optimization that were successfully integrated into the summary>]` : ''}
 }
 
-🚨 REMINDER: The summary must be 100% ready to use. Extract real experiences, projects, and skills from the candidate's portfolio. No [brackets], no placeholders, no generic statements. Use actual achievements with real specifics from the portfolio data provided above.`;
+🚨🚨🚨 FINAL VERIFICATION BEFORE RESPONDING 🚨🚨🚨
+
+Before you return your JSON response, perform this final check:
+
+1. Read the summary you wrote
+2. For EVERY claim (company, experience, industry, achievement):
+   - Can you find it EXPLICITLY in the candidate data above?
+   - If not, DELETE that claim immediately
+3. Check each experience index you selected
+   - Does that experience actually exist in the numbered list above?
+   - Does it actually contain the information you described?
+4. Verify every skill you listed
+   - Is it in the "AVAILABLE SKILLS" section above?
+   - Don't invent skills or paraphrase - use EXACT terms
+
+EXAMPLES OF FABRICATION TO AVOID:
+- Candidate worked in "EdTech" → DO NOT write "extensive education sector experience"
+- Candidate built "financial dashboard" → DO NOT write "finance industry background"
+- Candidate worked at "health tech startup" → DO NOT write "healthcare experience"
+- Only mention industries/domains if they are EXPLICITLY stated in job titles or descriptions
+
+🚨 REMINDER: The summary must be 100% ready to use. Extract real experiences, projects, and skills from the candidate's portfolio. No [brackets], no placeholders, no generic statements. Use actual achievements with real specifics from the portfolio data provided above. NEVER infer experiences in industries/domains that aren't explicitly documented.`;
 
   try {
     const response = await generateAICompletion(
