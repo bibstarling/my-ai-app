@@ -2362,6 +2362,13 @@ function PreviewModal({ type, id, onClose }: { type: 'resume' | 'cover-letter'; 
             {type === 'resume' ? 'Resume Preview' : 'Cover Letter Preview'}
           </h2>
           <div className="flex items-center gap-2">
+            <Link
+              href={type === 'resume' ? `/resume-builder/${id}` : `/cover-letters/${id}`}
+              className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+            >
+              <Edit2 className="h-4 w-4" />
+              Edit
+            </Link>
             <button
               onClick={handleDownloadPDF}
               disabled={downloading || loading}
