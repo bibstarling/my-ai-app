@@ -346,16 +346,37 @@ Return ONLY valid JSON in this exact format:
       'job_tailor_resume',
       'You are an expert resume writer.',
       [{ role: 'user', content: prompt }],
-      4000
+      8192
     );
 
-    // Parse AI response
-    const jsonMatch = response.content.match(/\{[\s\S]*\}/);
+    // Parse AI response (strip markdown code blocks, then extract JSON)
+    let raw = (response.content || '').trim();
+    if (raw.startsWith('```json')) {
+      raw = raw.replace(/^```json\n?/, '').replace(/\n?```\s*$/, '');
+    } else if (raw.startsWith('```')) {
+      raw = raw.replace(/^```\n?/, '').replace(/\n?```\s*$/, '');
+    }
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
+      console.error('[Tailor Resume] No JSON in response. First 500 chars:', raw.slice(0, 500));
       throw new Error('Invalid JSON response from AI');
     }
-
-    const resumeData = JSON.parse(jsonMatch[0]);
+    let resumeData: { sections?: any[] };
+    try {
+      resumeData = JSON.parse(jsonMatch[0]);
+    } catch (parseErr) {
+      // Try to fix trailing commas (common AI mistake) and retry
+      const fixed = jsonMatch[0].replace(/,(\s*[}\]])/g, '$1');
+      try {
+        resumeData = JSON.parse(fixed);
+      } catch {
+        console.error('[Tailor Resume] JSON parse error:', parseErr);
+        throw new Error('AI returned invalid JSON. Please try again.');
+      }
+    }
+    if (!resumeData || typeof resumeData !== 'object') {
+      throw new Error('Invalid JSON response from AI');
+    }
 
     // Save resume to database
     const { data: resume, error: insertError } = await supabase
@@ -376,8 +397,8 @@ Return ONLY valid JSON in this exact format:
 
     if (insertError) throw insertError;
 
-    // Transform and save resume sections
-    if (resumeData.sections && Array.isArray(resumeData.sections)) {
+    // Transform and save resume sections (sections may be missing if AI response was truncated)
+    if (resumeData.sections && Array.isArray(resumeData.sections) && resumeData.sections.length > 0) {
       const sectionsToInsert: any[] = [];
       let sortOrder = 0;
 
@@ -502,9 +523,10 @@ Return ONLY valid JSON in this exact format:
       resume: resume,
     });
   } catch (error) {
-    console.error('Error generating tailored resume:', error);
+    const message = error instanceof Error ? error.message : 'Failed to generate tailored resume';
+    console.error('[Tailor Resume] Error:', message, error);
     return NextResponse.json(
-      { error: 'Failed to generate tailored resume' },
+      { error: message },
       { status: 500 }
     );
   }

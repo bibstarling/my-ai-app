@@ -289,6 +289,9 @@ export default function JobSearchPage() {
         if (resumeRes.ok) {
           const resumeData = await resumeRes.json();
           resumeId = resumeData.resumeId;
+        } else {
+          const errData = await resumeRes.json().catch(() => ({}));
+          throw new Error(errData?.error || 'Failed to generate resume');
         }
       }
       
@@ -307,6 +310,9 @@ export default function JobSearchPage() {
         if (clRes.ok) {
           const clData = await clRes.json();
           coverLetterId = clData.coverLetterId;
+        } else {
+          const errData = await clRes.json().catch(() => ({}));
+          throw new Error(errData?.error || 'Failed to generate cover letter');
         }
       }
       
@@ -379,7 +385,8 @@ export default function JobSearchPage() {
       setGenerateCoverLetter(true);
     } catch (err) {
       console.error('Error creating tailored content:', err);
-      showError('Failed to create tailored content. Please try again.');
+      const msg = err instanceof Error ? err.message : 'Failed to create tailored content. Please try again.';
+      showError(msg);
     } finally {
       setTailoring(false);
     }

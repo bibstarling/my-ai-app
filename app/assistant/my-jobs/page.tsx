@@ -659,7 +659,8 @@ export default function MyJobsPage() {
           const resumeData = await resumeRes.json();
           resumeId = resumeData.resumeId;
         } else {
-          throw new Error('Failed to generate resume');
+          const errData = await resumeRes.json().catch(() => ({}));
+          throw new Error(errData?.error || 'Failed to generate resume');
         }
       }
 
@@ -680,7 +681,8 @@ export default function MyJobsPage() {
           const clData = await clRes.json();
           coverLetterId = clData.coverLetterId;
         } else {
-          throw new Error('Failed to generate cover letter');
+          const errData = await clRes.json().catch(() => ({}));
+          throw new Error(errData?.error || 'Failed to generate cover letter');
         }
       }
 
@@ -782,7 +784,8 @@ export default function MyJobsPage() {
       showSuccess(message);
     } catch (err) {
       console.error('Error generating tailored content:', err);
-      showError('Failed to generate tailored content. Please try again.');
+      const msg = err instanceof Error ? err.message : 'Failed to generate tailored content. Please try again.';
+      showError(msg);
     } finally {
       setTailoringJob(null);
     }

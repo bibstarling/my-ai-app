@@ -118,10 +118,14 @@ Return the complete cover letter text (no JSON, just the letter).
       'job_tailor_cover_letter',
       'You are an expert cover letter writer.',
       [{ role: 'user', content: prompt }],
-      2000
+      4096
     );
 
-    let coverLetterText = response.content.trim();
+    let coverLetterText = (response.content || '').trim();
+    if (!coverLetterText || coverLetterText.length < 50) {
+      console.error('[Tailor Cover Letter] AI response too short. Length:', coverLetterText.length);
+      throw new Error('AI returned an empty or too-short cover letter. Please try again.');
+    }
 
     // Replace any date placeholders with actual date
     const todayFormatted = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -163,9 +167,10 @@ Return the complete cover letter text (no JSON, just the letter).
       coverLetter: coverLetter,
     });
   } catch (error) {
-    console.error('Error generating tailored cover letter:', error);
+    const message = error instanceof Error ? error.message : 'Failed to generate tailored cover letter';
+    console.error('[Tailor Cover Letter] Error:', message, error);
     return NextResponse.json(
-      { error: 'Failed to generate tailored cover letter' },
+      { error: message },
       { status: 500 }
     );
   }
