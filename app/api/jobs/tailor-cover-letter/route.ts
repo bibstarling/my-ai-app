@@ -90,7 +90,9 @@ ${atsInstructions}
 - When in doubt about whether something is true, DON'T include it - accuracy trumps everything
 
 🚨 CRITICAL REQUIREMENT #2 - NO PLACEHOLDERS ALLOWED:
-- NEVER use placeholders like [Company Name], [Your Name], [Position], [Skills], [Achievement], etc.
+- NEVER use placeholders like [Company Name], [Your Name], [Position], [Skills], [Achievement], [Date], or anything in brackets
+- TODAY'S DATE (use this if you include a date): ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+- Do not write "[Date]" or leave the date blank—either omit the date (it is added on export) or use the exact date above
 - ALWAYS use actual data from the candidate's portfolio provided below
 - Extract the candidate's name, experiences, projects, and skills from their portfolio
 - The cover letter must be 100% ready to send without any edits or replacements needed
@@ -119,13 +121,23 @@ Return the complete cover letter text (no JSON, just the letter).
       2000
     );
 
-    const coverLetterText = response.content.trim();
-    
+    let coverLetterText = response.content.trim();
+
+    // Replace any date placeholders with actual date
+    const todayFormatted = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const replaceDatePlaceholders = (text: string) =>
+      (text || '')
+        .replace(/\s*\[Date\]\s*/gi, ` ${todayFormatted} `)
+        .replace(/\s*\[DATE\]\s*/g, ` ${todayFormatted} `)
+        .replace(/\s*\[Today's Date\]\s*/gi, ` ${todayFormatted} `)
+        .trim();
+    coverLetterText = replaceDatePlaceholders(coverLetterText);
+
     // Split cover letter into paragraphs
     const paragraphs = coverLetterText.split('\n\n').filter(p => p.trim());
-    const opening = paragraphs[0] || '';
-    const bodyParagraphs = paragraphs.slice(1, -1);
-    const closing = paragraphs[paragraphs.length - 1] || '';
+    const opening = replaceDatePlaceholders(paragraphs[0] || '');
+    const bodyParagraphs = paragraphs.slice(1, -1).map((p: string) => replaceDatePlaceholders(p));
+    const closing = replaceDatePlaceholders(paragraphs[paragraphs.length - 1] || '');
 
     // Save cover letter to database
     const { data: coverLetter, error: insertError } = await supabase

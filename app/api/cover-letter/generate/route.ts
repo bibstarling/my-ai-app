@@ -243,6 +243,9 @@ async function generateCoverLetter(params: {
     ? `Dear ${params.recipientName},`
     : `Dear Hiring Manager,`;
 
+  // Today's date for the letter (so the AI never uses [Date] or a placeholder)
+  const todayFormatted = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
   // Get ATS-optimized prompt instructions
   const atsInstructions = params.atsOptimization
     ? getATSCoverLetterPromptInstructions(params.atsOptimization)
@@ -270,7 +273,9 @@ ${params.portfolioMarkdown}
 - When in doubt about whether something is true, DON'T include it - accuracy trumps everything
 
 🚨 CRITICAL REQUIREMENT #2 - NO PLACEHOLDERS ALLOWED:
-- NEVER use placeholders like [Company Name], [Your Name], [Position], [Skills], etc.
+- NEVER use placeholders like [Company Name], [Your Name], [Position], [Skills], [Date], or anything in brackets
+- TODAY'S DATE (use this if you include a date in the letter): ${todayFormatted}
+- Do not write "[Date]" or leave the date blank—either omit the date (it is added on export) or use this exact date: ${todayFormatted}
 - ALWAYS use actual data from the candidate's portfolio and the job posting provided above
 - Extract the candidate's name, experiences, projects, and skills from the portfolio markdown
 - The cover letter must be 100% ready to send without any edits or replacements needed
@@ -363,10 +368,19 @@ Return ONLY valid JSON in this exact format:
     
     const result = JSON.parse(resultText);
 
+    // Replace any date placeholders with actual date (safety net)
+    const todayFormatted = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const replaceDatePlaceholders = (text: string) =>
+      (text || '')
+        .replace(/\s*\[Date\]\s*/gi, ` ${todayFormatted} `)
+        .replace(/\s*\[DATE\]\s*/g, ` ${todayFormatted} `)
+        .replace(/\s*\[Today's Date\]\s*/gi, ` ${todayFormatted} `)
+        .trim();
+
     return {
-      openingParagraph: result.openingParagraph || '',
-      bodyParagraphs: result.bodyParagraphs || [],
-      closingParagraph: result.closingParagraph || '',
+      openingParagraph: replaceDatePlaceholders(result.openingParagraph || ''),
+      bodyParagraphs: (result.bodyParagraphs || []).map((p: string) => replaceDatePlaceholders(p)),
+      closingParagraph: replaceDatePlaceholders(result.closingParagraph || ''),
       selectedExperiences: result.selectedExperiences || [],
       selectedProjects: result.selectedProjects || [],
       keyPoints: result.keyPoints || [],

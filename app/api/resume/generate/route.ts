@@ -632,6 +632,8 @@ FORBIDDEN BEHAVIORS (These will cause rejection):
 ❌ NEVER make up metrics (revenue, users, percentages) that aren't stated
 ❌ NEVER assume experience in an industry just because it seems related
 ❌ NEVER use phrases like "extensive experience in [X]" unless EXPLICITLY documented
+❌ NEVER copy job requirements or desired qualifications from the job description into the resume as if the candidate has them (e.g. if the job asks for "Python" but the candidate never mentioned Python, do NOT add Python)
+❌ NEVER infer skills, tools, or domains from the job posting—only use what is explicitly in the candidate's portfolio
 
 ONLY ALLOWED:
 ✅ Use experiences, companies, and projects that are EXPLICITLY listed below
@@ -666,7 +668,7 @@ VERIFICATION CHECKLIST (Apply to every sentence):
 - Your job is ONLY to generate the content sections (summary, experience, projects, skills, education)
 - Focus on creating compelling content - contact details are handled separately
 
-${isGeneric ? '🎯 GENERIC RESUME MODE:\n- This is a GENERAL professional resume, NOT targeted to a specific job\n- Showcase the candidate\'s FULL breadth of experience and skills\n- Include ALL significant experiences and projects that demonstrate professional growth\n- Create a comprehensive skills section showing technical and professional capabilities\n- Write a professional summary that positions them as a versatile, accomplished professional\n- Focus on achievements, impact, and demonstrable expertise across their career\n' : `JOB POSTING:
+${isGeneric ? '🎯 GENERIC RESUME MODE:\n- This is a GENERAL professional resume, NOT targeted to a specific job\n- Showcase the candidate\'s FULL breadth of experience and skills\n- Include ALL significant experiences and projects that demonstrate professional growth\n- Create a comprehensive skills section showing technical and professional capabilities\n- Write a professional summary that positions them as a versatile, accomplished professional\n- Focus on achievements, impact, and demonstrable expertise across their career\n' : `JOB POSTING (use ONLY to select relevance and keywords—do NOT copy requirements into the resume as if the candidate has them):
 Title: ${jobTitle}
 Company: ${jobCompany}
 Description: ${jobDescription.slice(0, 2000)}`}
@@ -791,6 +793,7 @@ EXAMPLES OF FABRICATION TO AVOID:
 - Candidate worked in "EdTech" → DO NOT write "extensive education sector experience"
 - Candidate built "financial dashboard" → DO NOT write "finance industry background"
 - Candidate worked at "health tech startup" → DO NOT write "healthcare experience"
+- Job description asks for "Python" but portfolio doesn't list it → DO NOT add Python to skills or summary
 - Only mention industries/domains if they are EXPLICITLY stated in job titles or descriptions
 
 🚨 REMINDER: The summary must be 100% ready to use. Extract real experiences, projects, and skills from the candidate's portfolio. No [brackets], no placeholders, no generic statements. Use actual achievements with real specifics from the portfolio data provided above. NEVER infer experiences in industries/domains that aren't explicitly documented.`;

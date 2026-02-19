@@ -205,6 +205,8 @@ FORBIDDEN BEHAVIORS (These will cause rejection):
 ❌ NEVER make up metrics (revenue, users, percentages) that aren't stated
 ❌ NEVER assume experience in an industry just because it seems related
 ❌ NEVER use phrases like "extensive experience in [X]" unless EXPLICITLY documented
+❌ NEVER copy job requirements or desired qualifications from the job description into the resume as if the candidate has them (e.g. if the job asks for "Python" but the candidate never mentioned Python, do NOT add Python)
+❌ NEVER infer skills, tools, or domains from the job posting—only use what is explicitly in the candidate's portfolio
 
 ONLY ALLOWED:
 ✅ Use experiences, companies, and projects that are EXPLICITLY listed below
@@ -235,7 +237,7 @@ VERIFICATION CHECKLIST (Apply to every sentence):
 - Portfolio URL is NON-NEGOTIABLE and will ALWAYS be displayed if available
 - Focus your content generation on the resume sections (summary, experience, skills, education)
 
-JOB INFORMATION:
+JOB INFORMATION (use ONLY to select relevance and ATS keywords—do NOT copy job requirements into the resume as if the candidate has them; only describe what is in the portfolio):
 Title: ${jobTitle}
 Company: ${company}
 Description: ${jobDescription}
@@ -315,7 +317,7 @@ Return ONLY valid JSON in this exact format:
     },
     {
       "type": "skills",
-      "items": ["15-20 relevant skills matching job requirements - be comprehensive"]
+      "items": ["15-20 skills—ONLY from the candidate's portfolio; do NOT add skills from the job description that the candidate did not list"]
     },
     {
       "type": "education",
