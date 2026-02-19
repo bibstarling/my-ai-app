@@ -31,6 +31,7 @@ import {
   Save,
   Wand2,
   Edit2,
+  Search,
 } from 'lucide-react';
 import { pdf } from '@react-pdf/renderer';
 import { ResumePDF } from './ResumePDF';
@@ -131,6 +132,16 @@ export default function MyJobsPage() {
   const [newQuestionText, setNewQuestionText] = useState('');
   const [showEditJobModal, setShowEditJobModal] = useState(false);
   const [editingJob, setEditingJob] = useState(false);
+  const [searchFilter, setSearchFilter] = useState('');
+
+  const filteredJobs = useMemo(() => {
+    const q = searchFilter.trim().toLowerCase();
+    if (!q) return jobs;
+    return jobs.filter(
+      (j) =>
+        j.company.toLowerCase().includes(q) || j.title.toLowerCase().includes(q)
+    );
+  }, [jobs, searchFilter]);
 
   const statuses = useMemo<Array<{ id: TrackedJob['status']; label: string; color: string }>>(
     () => [
@@ -958,6 +969,47 @@ export default function MyJobsPage() {
               </Link>
             </div>
           ) : (
+            <>
+              {/* Search filter */}
+              <div className="mb-4 flex items-center gap-2">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="text"
+                    value={searchFilter}
+                    onChange={(e) => setSearchFilter(e.target.value)}
+                    placeholder="Filter by company or job title"
+                    className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-9 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                  />
+                  {searchFilter && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchFilter('')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                      aria-label="Clear filter"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+                {searchFilter && (
+                  <span className="text-sm text-muted-foreground">
+                    {filteredJobs.length} of {jobs.length} jobs
+                  </span>
+                )}
+              </div>
+              {filteredJobs.length === 0 ? (
+                <div className="rounded-lg border border-border bg-muted/30 px-4 py-8 text-center">
+                  <p className="text-muted-foreground">No jobs match &quot;{searchFilter}&quot;</p>
+                  <button
+                    type="button"
+                    onClick={() => setSearchFilter('')}
+                    className="mt-2 text-sm font-medium text-accent hover:underline"
+                  >
+                    Clear filter
+                  </button>
+                </div>
+              ) : (
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -970,7 +1022,7 @@ export default function MyJobsPage() {
                 className={`flex gap-4 pb-4 kanban-scroll ${isDragging ? 'dragging overflow-x-hidden cursor-grabbing' : 'overflow-x-auto'}`}
               >
                 {statuses.map((status) => {
-                  const statusJobs = jobs.filter(j => j.status === status.id);
+                  const statusJobs = filteredJobs.filter(j => j.status === status.id);
                   return (
                     <DroppableColumn
                       key={status.id}
@@ -999,6 +1051,8 @@ export default function MyJobsPage() {
                 ) : null}
               </DragOverlay>
             </DndContext>
+              )}
+            </>
           )}
         </div>
       </main>
@@ -2242,9 +2296,21 @@ const DraggableJobCard = memo(function DraggableJobCard({
         </div>
       )}
 
-      <div className="mt-2.5 sm:mt-3 flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground ml-5 sm:ml-6">
-        <Clock className="h-3 w-3" />
-        {new Date(job.created_at).toLocaleDateString()}
+      <div className="mt-2.5 sm:mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] sm:text-xs text-muted-foreground ml-5 sm:ml-6">
+        <span className="flex items-center gap-1">
+          <Clock className="h-3 w-3" />
+          {new Date(job.created_at).toLocaleDateString()}
+        </span>
+        <span className="flex items-center gap-1" title="Days in this status">
+          {(() => {
+            const updated = new Date(job.updated_at).getTime();
+            const days = Math.floor((Date.now() - updated) / (24 * 60 * 60 * 1000));
+            const statusLabel = statuses.find((s) => s.id === job.status)?.label ?? job.status;
+            if (days === 0) return `${statusLabel} · today`;
+            if (days === 1) return `${statusLabel} · 1 day`;
+            return `${statusLabel} · ${days} days`;
+          })()}
+        </span>
       </div>
 
       <select
