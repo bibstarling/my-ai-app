@@ -207,6 +207,8 @@ FORBIDDEN BEHAVIORS (These will cause rejection):
 ❌ NEVER use phrases like "extensive experience in [X]" unless EXPLICITLY documented
 ❌ NEVER copy job requirements or desired qualifications from the job description into the resume as if the candidate has them (e.g. if the job asks for "Python" but the candidate never mentioned Python, do NOT add Python)
 ❌ NEVER infer skills, tools, or domains from the job posting—only use what is explicitly in the candidate's portfolio
+❌ NEVER list the job posting company ("${company}") as the candidate's employer. That company is who they are APPLYING TO, not where they have worked. Every company and role in the experience section must come ONLY from the CANDIDATE PORTFOLIO below.
+❌ NEVER write that the candidate is or was a "${jobTitle}" at "${company}" (or any role at the application company) unless that exact job at that company appears in their portfolio as their own past/current experience.
 
 ONLY ALLOWED:
 ✅ Use experiences, companies, and projects that are EXPLICITLY listed below
@@ -273,6 +275,7 @@ EXAMPLES OF FABRICATION TO AVOID:
 - Candidate worked in "EdTech" → DO NOT write "extensive education sector experience"
 - Candidate built "financial dashboard" → DO NOT write "finance industry background"
 - Candidate worked at "health tech startup" → DO NOT write "healthcare experience"
+- Job posting is for "Product Manager at Acme Corp" → DO NOT add "Product Manager at Acme Corp" or "Acme Corp" to experience unless Acme Corp is already in the candidate's portfolio as a past/current employer
 - Only mention industries/domains if they are EXPLICITLY stated in job titles or descriptions
 
 Return ONLY valid JSON in this exact format:

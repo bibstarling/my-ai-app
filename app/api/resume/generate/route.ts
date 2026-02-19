@@ -634,6 +634,8 @@ FORBIDDEN BEHAVIORS (These will cause rejection):
 ❌ NEVER use phrases like "extensive experience in [X]" unless EXPLICITLY documented
 ❌ NEVER copy job requirements or desired qualifications from the job description into the resume as if the candidate has them (e.g. if the job asks for "Python" but the candidate never mentioned Python, do NOT add Python)
 ❌ NEVER infer skills, tools, or domains from the job posting—only use what is explicitly in the candidate's portfolio
+❌ NEVER list the job posting company as the candidate's employer. The job posting company is who they are APPLYING TO, not where they have worked. Every company and role in the experience section must come ONLY from the CANDIDATE PORTFOLIO / EXPERIENCES list below.
+❌ NEVER add an experience entry like "[Job Title] at [Job Posting Company]" unless that exact role at that company already appears in the candidate's own experience data.
 
 ONLY ALLOWED:
 ✅ Use experiences, companies, and projects that are EXPLICITLY listed below
@@ -794,6 +796,7 @@ EXAMPLES OF FABRICATION TO AVOID:
 - Candidate built "financial dashboard" → DO NOT write "finance industry background"
 - Candidate worked at "health tech startup" → DO NOT write "healthcare experience"
 - Job description asks for "Python" but portfolio doesn't list it → DO NOT add Python to skills or summary
+- Job posting is for "PM at Acme" → DO NOT add "Product Manager at Acme" (or any role at the application company) to experience unless Acme is already in the candidate's portfolio as their employer
 - Only mention industries/domains if they are EXPLICITLY stated in job titles or descriptions
 
 🚨 REMINDER: The summary must be 100% ready to use. Extract real experiences, projects, and skills from the candidate's portfolio. No [brackets], no placeholders, no generic statements. Use actual achievements with real specifics from the portfolio data provided above. NEVER infer experiences in industries/domains that aren't explicitly documented.`;

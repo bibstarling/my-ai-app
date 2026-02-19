@@ -172,15 +172,14 @@ export default function MyJobsPage() {
     }
   }, [selectedJob?.id]);
 
-  const loadJobs = async () => {
+  const loadJobs = async (): Promise<TrackedJob[] | undefined> => {
     try {
       if (!user) {
         setError('Please sign in to view your jobs');
         setLoading(false);
-        return;
+        return undefined;
       }
 
-      // Query tracked_jobs directly using Clerk ID
       const { data, error: fetchError } = await supabase
         .from('tracked_jobs')
         .select('*')
@@ -189,10 +188,13 @@ export default function MyJobsPage() {
 
       if (fetchError) throw fetchError;
 
-      setJobs(data || []);
+      const list = (data || []) as TrackedJob[];
+      setJobs(list);
+      return list;
     } catch (err) {
       console.error('Error loading jobs:', err);
       setError('Failed to load jobs');
+      return undefined;
     } finally {
       setLoading(false);
     }
@@ -691,11 +693,12 @@ export default function MyJobsPage() {
       if (resumeId) updateData.tailored_resume_id = resumeId;
       if (coverLetterId) updateData.tailored_cover_letter_id = coverLetterId;
 
-      if (Object.keys(updateData).length > 0) {
+      if (Object.keys(updateData).length > 0 && user) {
         const { error: updateError } = await supabase
           .from('tracked_jobs')
           .update(updateData)
-          .eq('id', jobId);
+          .eq('id', jobId)
+          .eq('clerk_id', user.id);
 
         if (updateError) throw updateError;
       }
@@ -757,25 +760,13 @@ export default function MyJobsPage() {
         });
       }
 
-      // Small delay to ensure database has been updated
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Reload jobs to show updated content (with match percentage if calculated)
-      await loadJobs();
-      
-      // Update selected job if it's open
-      if (selectedJob?.id === jobId) {
-        const { data: updatedJob } = await supabase
-          .from('tracked_jobs')
-          .select('*')
-          .eq('id', jobId)
-          .single();
-        
-        if (updatedJob) {
-          setSelectedJob(updatedJob as TrackedJob);
-        }
+      // Reload jobs and update UI so new resume/cover letter buttons appear immediately
+      const nextJobs = await loadJobs();
+      if (nextJobs && selectedJob?.id === jobId) {
+        const updated = nextJobs.find((j) => j.id === jobId);
+        if (updated) setSelectedJob(updated);
       }
-      
+
       setTailorOptions(null);
       
       const message = matchCalculated 
