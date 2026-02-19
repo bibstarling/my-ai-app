@@ -1,6 +1,6 @@
 import { clerkMiddleware } from '@clerk/nextjs/server';
 
-// Simple middleware - let Clerk auto-detect configuration from publishable key
+// Clerk middleware - required for auth() to work in API routes and server components
 export default clerkMiddleware();
 
 export const config = {
