@@ -133,6 +133,7 @@ export default function MyJobsPage() {
   const [showEditJobModal, setShowEditJobModal] = useState(false);
   const [editingJob, setEditingJob] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
+  const [sortBy, setSortBy] = useState<'default' | 'title' | 'days'>('default');
 
   const filteredJobs = useMemo(() => {
     const q = searchFilter.trim().toLowerCase();
@@ -997,6 +998,21 @@ export default function MyJobsPage() {
                     {filteredJobs.length} of {jobs.length} jobs
                   </span>
                 )}
+                <div className="flex items-center gap-2">
+                  <label htmlFor="sort-by" className="text-sm text-muted-foreground whitespace-nowrap">
+                    Sort:
+                  </label>
+                  <select
+                    id="sort-by"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as 'default' | 'title' | 'days')}
+                    className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                  >
+                    <option value="default">Default</option>
+                    <option value="title">Title</option>
+                    <option value="days">Days in column</option>
+                  </select>
+                </div>
               </div>
               {filteredJobs.length === 0 ? (
                 <div className="rounded-lg border border-border bg-muted/30 px-4 py-8 text-center">
@@ -1022,7 +1038,17 @@ export default function MyJobsPage() {
                 className={`flex gap-4 pb-4 kanban-scroll ${isDragging ? 'dragging overflow-x-hidden cursor-grabbing' : 'overflow-x-auto'}`}
               >
                 {statuses.map((status) => {
-                  const statusJobs = filteredJobs.filter(j => j.status === status.id);
+                  let statusJobs = filteredJobs.filter(j => j.status === status.id);
+                  if (sortBy === 'title') {
+                    statusJobs = [...statusJobs].sort((a, b) =>
+                      a.title.localeCompare(b.title, undefined, { sensitivity: 'base' })
+                    );
+                  } else if (sortBy === 'days') {
+                    statusJobs = [...statusJobs].sort(
+                      (a, b) =>
+                        new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()
+                    );
+                  }
                   return (
                     <DroppableColumn
                       key={status.id}
