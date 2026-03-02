@@ -1,19 +1,21 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { generateAICompletion } from '@/lib/ai-provider';
-import { scrapeUrl, isValidUrl } from '@/lib/url-scraper';
+import { scrapeUrl, isValidUrl, fetchPageContentLight } from '@/lib/url-scraper';
+
+const MIN_CONTENT_FOR_LIGHT_FETCH = 800;
 
 export async function POST(request: Request) {
   try {
     const { userId } = await auth();
-    
+
     if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
-    
+
     const body = await request.json();
     const { url } = body;
 
@@ -24,7 +26,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validate URL format
     if (!isValidUrl(url)) {
       return NextResponse.json(
         { error: 'Invalid URL format' },
@@ -32,56 +33,68 @@ export async function POST(request: Request) {
       );
     }
 
-    // Scrape the webpage content using Puppeteer (works with JS-heavy sites)
     let pageContent: string;
     let pageTitle: string;
+
+    // Try fast path first (HTTP + cheerio) for static/semi-static job pages
     try {
-      console.log('[Job Extract] Scraping URL:', url);
-      const scrapedData = await scrapeUrl(url);
-      pageContent = scrapedData.content;
-      pageTitle = scrapedData.title;
-      console.log('[Job Extract] Scraping successful, content length:', pageContent.length);
-    } catch (error) {
-      console.error('[Job Extract] Error scraping URL:', error);
-      return NextResponse.json(
-        { error: 'Failed to fetch job posting. The page may be protected or unavailable.' },
-        { status: 500 }
-      );
+      const light = await fetchPageContentLight(url);
+      if (light.content.length >= MIN_CONTENT_FOR_LIGHT_FETCH) {
+        pageContent = light.content;
+        pageTitle = light.title;
+        console.log('[Job Extract] Used light fetch, content length:', pageContent.length);
+      } else {
+        throw new Error('Content too short for light path');
+      }
+    } catch (lightErr) {
+      console.log('[Job Extract] Light fetch failed or insufficient, using full scrape:', lightErr instanceof Error ? lightErr.message : '');
+      try {
+        const scrapedData = await scrapeUrl(url, { mode: 'job' });
+        pageContent = scrapedData.content;
+        pageTitle = scrapedData.title;
+        console.log('[Job Extract] Full scrape (job mode) successful, content length:', pageContent.length);
+      } catch (error) {
+        console.error('[Job Extract] Error scraping URL:', error);
+        return NextResponse.json(
+          { error: 'Failed to fetch job posting. The page may be protected or unavailable.' },
+          { status: 500 }
+        );
+      }
     }
 
-    // Use AI to extract job details from scraped content
-    const prompt = `You are a job posting information extractor. Extract the key details from this job posting content.
+    const contentForPrompt = pageContent.slice(0, 48000);
 
-JOB POSTING TITLE: ${pageTitle}
+    const prompt = `Extract job posting details from the following content. The JOB TITLE and COMPANY NAME are usually at or near the top (page title or first heading). The main JOB DESCRIPTION is typically the longest block of text (responsibilities, requirements, qualifications).
 
-JOB POSTING CONTENT:
-${pageContent.slice(0, 50000)}
+PAGE TITLE: ${pageTitle}
 
-Extract and return ONLY valid JSON with these fields:
+CONTENT:
+${contentForPrompt}
+
+Return ONLY a single valid JSON object with exactly these keys (no markdown, no code fence, no extra text):
 {
-  "title": "Job title",
-  "company": "Company name",
-  "location": "Job location (city, state/country or Remote)",
-  "job_type": "Full-time, Part-time, Contract, or Freelance",
-  "salary": "Salary range if mentioned (or null)",
-  "description": "Full job description including responsibilities, requirements, and qualifications. Keep all important details."
+  "title": "exact job title",
+  "company": "company or employer name",
+  "location": "city/region or Remote",
+  "job_type": "Full-time | Part-time | Contract | Freelance",
+  "salary": "salary/compensation range if stated, else null",
+  "description": "complete job description including all responsibilities, requirements, and qualifications. Preserve structure and key bullets."
 }
 
 Rules:
-- Extract the actual job description text, not HTML tags
-- For location: use "Remote" if it's a remote position, otherwise extract city/state/country
-- For job_type: pick the closest match from the options above
-- For salary: extract any mentioned salary/compensation range, or use null if not mentioned
-- For description: include the full description with all responsibilities, requirements, and qualifications
-- Return ONLY the JSON object, no other text
-- If you cannot find a field, use null for that field`;
+- title and company are required; extract from the beginning of the content or page title if present.
+- location: use "Remote" for remote roles; otherwise city, state/country.
+- job_type: one of Full-time, Part-time, Contract, Freelance.
+- salary: exact phrase if present (e.g. "$120k - $150k"), otherwise null.
+- description: full text, not a summary. Include all sections. If content was truncated, include up to the limit.
+- Output only the JSON object.`;
 
     const response = await generateAICompletion(
       userId,
       'job_extract',
-      'You are a job posting information extractor.',
+      'You extract job posting fields and return only valid JSON.',
       [{ role: 'user', content: prompt }],
-      4000
+      4096
     );
 
     // Parse AI response
