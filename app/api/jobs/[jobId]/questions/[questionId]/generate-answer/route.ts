@@ -1,13 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { generateAICompletion } from '@/lib/ai-provider';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseServiceRole } from '@/lib/supabase-server';
 import { portfolioData } from '@/lib/portfolio-data';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 type RouteContext = {
   params: Promise<{ jobId: string; questionId: string }>;
@@ -26,7 +21,7 @@ export async function POST(request: Request, context: RouteContext) {
         { status: 401 }
       );
     }
-    
+    const supabase = getSupabaseServiceRole();
     const { jobId, questionId } = await context.params;
 
     // Fetch the job details

@@ -1,11 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { getSupabaseServiceRole } from '@/lib/supabase-server';
 
 type RouteContext = {
   params: Promise<{ jobId: string; questionId: string }>;
@@ -24,7 +19,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         { status: 401 }
       );
     }
-    
+    const supabase = getSupabaseServiceRole();
     const { jobId, questionId } = await context.params;
     const body = await request.json();
     const { question_text, answer_text } = body;
@@ -115,7 +110,7 @@ export async function DELETE(request: Request, context: RouteContext) {
         { status: 401 }
       );
     }
-    
+    const supabase = getSupabaseServiceRole();
     const { jobId, questionId } = await context.params;
 
     // Verify user owns this question

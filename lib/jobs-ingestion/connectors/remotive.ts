@@ -6,7 +6,7 @@
 import type { CanonicalJob, ConnectorFetchResult } from '../types';
 import type { JobSourceEnum } from '../types';
 import { buildDedupeKey } from '../dedupe';
-import { parseRemoteRegionEligibility } from '../remote-eligibility';
+import { parseRemoteRegionEligibility, detectRemoteTypeFromText } from '../remote-eligibility';
 import { extractSkillsForJob } from '../skills-extractor';
 import { fetchWithRetry, rateLimit } from '../http';
 import { getConfig } from '../constants';
@@ -16,8 +16,9 @@ const API_URL = 'https://remotive.com/api/remote-jobs';
 const RATE_LIMIT_MS = 2000;
 const RATE_MAX = 1;
 
-function toRemoteType(_raw: unknown): CanonicalJob['remote_type'] {
-  return 'remote';
+function toRemoteType(description: string, location: string | null): CanonicalJob['remote_type'] {
+  const detected = detectRemoteTypeFromText(description, location);
+  return detected !== 'unknown' ? detected : 'remote';
 }
 
 function stripHtml(html: string): string {
@@ -55,15 +56,16 @@ export async function fetchRecentJobsRemotive(): Promise<ConnectorFetchResult> {
       publicationDate && !Number.isNaN(Date.parse(publicationDate)) ? publicationDate : null;
     const location = String(item.candidate_required_location ?? '').trim() || null;
 
+    const remoteType = toRemoteType(description, location);
     const canonical: CanonicalJob = {
       title,
       company_name: company,
       company_domain: null,
       location_raw: location,
       country: null,
-      is_remote: true,
-      remote_type: toRemoteType(item),
-      remote_region_eligibility: parseRemoteRegionEligibility(description) || (location ? location : null),
+      is_remote: remoteType === 'remote' || remoteType === 'hybrid',
+      remote_type: remoteType,
+      remote_region_eligibility: parseRemoteRegionEligibility(description, location) || (location ? location : null),
       employment_type: item.job_type ? String(item.job_type) : null,
       seniority: null,
       salary_min: null,
@@ -117,15 +119,18 @@ export async function fetchJobBySourceIdRemotive(sourceId: string): Promise<Conn
   const publicationDate = item.publication_date ? String(item.publication_date) : null;
   const postedAt = publicationDate && !Number.isNaN(Date.parse(publicationDate)) ? publicationDate : null;
   const now = new Date().toISOString();
+  const loc = String(item.candidate_required_location ?? '').trim() || null;
+  const remoteType = detectRemoteTypeFromText(description, loc);
+  const finalRemoteType = remoteType !== 'unknown' ? remoteType : 'remote';
   const canonical: CanonicalJob = {
     title,
     company_name: company,
     company_domain: null,
-    location_raw: String(item.candidate_required_location ?? '').trim() || null,
+    location_raw: loc,
     country: null,
-    is_remote: true,
-    remote_type: 'remote',
-    remote_region_eligibility: parseRemoteRegionEligibility(description),
+    is_remote: finalRemoteType === 'remote' || finalRemoteType === 'hybrid',
+    remote_type: finalRemoteType,
+    remote_region_eligibility: parseRemoteRegionEligibility(description, loc),
     employment_type: item.job_type ? String(item.job_type) : null,
     seniority: null,
     salary_min: null,

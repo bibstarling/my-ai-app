@@ -224,6 +224,10 @@ export async function PATCH(req: Request) {
       updates.locations_allowed = body.locations_allowed;
     }
     
+    if ('remote_only' in body) {
+      updates.remote_only = !!body.remote_only;
+    }
+    
     if ('languages' in body) {
       updates.languages = body.languages;
     }

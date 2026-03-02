@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { getSupabaseServiceRole } from '@/lib/supabase-server';
 import { RankingService } from '@/lib/jobs-ingestion/ranking-service';
+import { parseRemoteRegionEligibilityToAllowedCountries } from '@/lib/jobs-ingestion/remote-eligibility';
 import { Job, JobSearchFilters } from '@/lib/types/job-intelligence';
 
 export const dynamic = 'force-dynamic';
@@ -58,6 +59,19 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    // Normalize profile so location preferences are always arrays (DB can return null)
+    const normalizedProfile = {
+      ...profile,
+      locations_allowed: Array.isArray(profile.locations_allowed) ? profile.locations_allowed : [],
+      remote_only: !!profile.remote_only,
+    };
+
+    // Apply profile preference: remote only (from Profile → Location & remote)
+    const effectiveFilters = { ...filters };
+    if (normalizedProfile.remote_only) {
+      effectiveFilters.remote_type = ['remote'];
+    }
     
     // Build base query
     let jobsQuery = supabase
@@ -67,20 +81,20 @@ export async function POST(req: Request) {
       .order('posted_at', { ascending: false, nullsFirst: false }); // Order by posted_at for better diversity
     
     // Apply filters
-    if (filters.remote_type && filters.remote_type.length > 0) {
-      jobsQuery = jobsQuery.in('remote_type', filters.remote_type);
+    if (effectiveFilters.remote_type && effectiveFilters.remote_type.length > 0) {
+      jobsQuery = jobsQuery.in('remote_type', effectiveFilters.remote_type);
     }
     
-    if (filters.seniority && filters.seniority.length > 0) {
-      jobsQuery = jobsQuery.in('seniority', filters.seniority);
+    if (effectiveFilters.seniority && effectiveFilters.seniority.length > 0) {
+      jobsQuery = jobsQuery.in('seniority', effectiveFilters.seniority);
     }
     
-    if (filters.languages && filters.languages.length > 0) {
-      jobsQuery = jobsQuery.in('language', filters.languages);
+    if (effectiveFilters.languages && effectiveFilters.languages.length > 0) {
+      jobsQuery = jobsQuery.in('language', effectiveFilters.languages);
     }
     
-    if (filters.posted_since) {
-      jobsQuery = jobsQuery.gte('posted_at', filters.posted_since);
+    if (effectiveFilters.posted_since) {
+      jobsQuery = jobsQuery.gte('posted_at', effectiveFilters.posted_since);
     }
     
     // Manual query mode: filter by title primarily (NOT broad text search)
@@ -115,8 +129,8 @@ export async function POST(req: Request) {
     
     // Determine filtering keywords based on mode
     let filterKeywords: string[] = [];
-    if (mode === 'personalized' && profile.target_titles.length > 0) {
-      filterKeywords = profile.target_titles.map((t: string) => t.toLowerCase());
+    if (mode === 'personalized' && normalizedProfile.target_titles?.length > 0) {
+      filterKeywords = normalizedProfile.target_titles.map((t: string) => t.toLowerCase());
     } else if (mode === 'manual_query' && query) {
       filterKeywords = [query.toLowerCase()];
     }
@@ -185,12 +199,21 @@ export async function POST(req: Request) {
       }
     }
     
+    // Derive allowed_countries from remote_region_eligibility so ranking can match user locations_allowed
+    const jobsForRanking = (filteredJobs as Job[]).map((job) => ({
+      ...job,
+      allowed_countries:
+        job.allowed_countries?.length > 0
+          ? job.allowed_countries
+          : parseRemoteRegionEligibilityToAllowedCountries(job.remote_region_eligibility),
+    }));
+
     // Rank jobs (use filtered jobs in personalized mode)
     const rankingService = new RankingService();
     const rankedMatches = await rankingService.rankJobs(
-      filteredJobs as Job[],
+      jobsForRanking,
       {
-        profile,
+        profile: normalizedProfile,
         query: mode === 'manual_query' ? query : undefined,
         use_profile_context: mode === 'personalized' ? use_profile_context : false,
         filters,

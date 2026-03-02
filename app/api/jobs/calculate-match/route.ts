@@ -1,16 +1,12 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { generateAICompletion } from '@/lib/ai-provider';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { getSupabaseServiceRole } from '@/lib/supabase-server';
 
 export async function POST(request: Request) {
   try {
     console.log('[Match Calculation] Starting...');
+    const supabase = getSupabaseServiceRole();
     
     // Check if required environment variables are set
     if (!process.env.ANTHROPIC_API_KEY) {

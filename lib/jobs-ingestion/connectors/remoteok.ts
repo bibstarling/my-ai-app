@@ -6,7 +6,7 @@
 import type { CanonicalJob, ConnectorFetchResult } from '../types';
 import type { JobSourceEnum } from '../types';
 import { buildDedupeKey } from '../dedupe';
-import { parseRemoteRegionEligibility } from '../remote-eligibility';
+import { parseRemoteRegionEligibility, detectRemoteTypeFromText } from '../remote-eligibility';
 import { extractSkillsForJob } from '../skills-extractor';
 import { fetchWithRetry, rateLimit } from '../http';
 import { getConfig } from '../constants';
@@ -16,8 +16,10 @@ const API_URL = 'https://remoteok.com/api';
 const RATE_LIMIT_MS = 2000;
 const RATE_MAX = 1;
 
-function toRemoteType(_raw: unknown): CanonicalJob['remote_type'] {
-  return 'remote'; // RemoteOK is remote-first
+// RemoteOK is remote-first; still detect onsite/in-person from description so we can filter
+function toRemoteType(description: string, location: string | null): CanonicalJob['remote_type'] {
+  const detected = detectRemoteTypeFromText(description, location);
+  return detected !== 'unknown' ? detected : 'remote';
 }
 
 function parseSalary(val: unknown): number | null {
@@ -70,15 +72,16 @@ export async function fetchRecentJobsRemoteOK(): Promise<ConnectorFetchResult> {
     const salaryMin = parseSalary(item.salary_min);
     const salaryMax = parseSalary(item.salary_max);
 
+    const remoteType = toRemoteType(description, location);
     const canonical: CanonicalJob = {
       title: position,
       company_name: company,
       company_domain: null,
       location_raw: location,
       country: null,
-      is_remote: true,
-      remote_type: toRemoteType(item),
-      remote_region_eligibility: parseRemoteRegionEligibility(description),
+      is_remote: remoteType === 'remote' || remoteType === 'hybrid',
+      remote_type: remoteType,
+      remote_region_eligibility: parseRemoteRegionEligibility(description, location),
       employment_type: null,
       seniority: null,
       salary_min: salaryMin,

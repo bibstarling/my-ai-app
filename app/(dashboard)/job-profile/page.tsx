@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
-import { useNotification } from '@/app/hooks/useNotification';
 
 interface JobProfile {
   resume_text?: string;
@@ -22,7 +21,6 @@ interface JobProfile {
 
 export default function JobProfilePage() {
   const { user } = useUser();
-  const { showSuccess, showError, showInfo } = useNotification();
   const [profile, setProfile] = useState<JobProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -78,7 +76,7 @@ export default function JobProfilePage() {
 
   async function parseFromPlatformProfile() {
     if (!platformProfileContext.trim()) {
-      showInfo('No platform profile found. Please set up your portfolio first.');
+      alert('No platform profile found. Please set up your portfolio first.');
       return;
     }
     
@@ -98,13 +96,13 @@ export default function JobProfilePage() {
         setTargetTitles(data.parsed.target_titles || []);
         setSeniority(data.parsed.seniority || 'Mid');
         setLanguages(data.parsed.languages || ['en']);
-        showSuccess('Profile parsed successfully! Review the extracted information below.');
+        alert('Profile parsed successfully! Review the extracted information below.');
       } else {
-        showError(data.error || 'Failed to parse profile');
+        alert(data.error || 'Failed to parse profile');
       }
     } catch (err) {
       console.error('Parse error:', err);
-      showError('Failed to parse profile');
+      alert('Failed to parse profile');
     } finally {
       setParsing(false);
     }
@@ -134,14 +132,14 @@ export default function JobProfilePage() {
       const data = await res.json();
       
       if (data.success) {
-        showSuccess('Profile saved successfully!');
+        alert('Profile saved successfully!');
         setProfile(data.profile);
       } else {
-        showError(data.error || 'Failed to save profile');
+        alert(data.error || 'Failed to save profile');
       }
     } catch (err) {
       console.error('Save error:', err);
-      showError('Failed to save profile');
+      alert('Failed to save profile');
     } finally {
       setSaving(false);
     }

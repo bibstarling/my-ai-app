@@ -88,10 +88,11 @@ export class RankingService {
       }
     }
     
-    // Location check
-    if (this.config.eligibility.enforce_location && profile.locations_allowed.length > 0) {
+    // Location check (use normalized array so location preferences are enforced when set)
+    const userLocations = profile.locations_allowed ?? [];
+    if (this.config.eligibility.enforce_location && userLocations.length > 0) {
       const jobCountries = job.allowed_countries || [];
-      const userCountries = profile.locations_allowed;
+      const userCountries = userLocations;
       
       const hasMatch = jobCountries.some(jc => 
         jc === 'Worldwide' || 
@@ -419,17 +420,18 @@ export class RankingService {
   }
   
   private scoreLocationFit(job: Job, profile: UserJobProfile): number {
-    if (profile.locations_allowed.length === 0) return 1.0;  // No preference
+    const userCountries = profile.locations_allowed ?? [];
+    if (userCountries.length === 0) return 1.0;  // No preference
     
     const jobCountries = job.allowed_countries || [];
-    const userCountries = profile.locations_allowed;
-    
+    // Job has no region data → treat as Worldwide (don't penalize)
+    if (jobCountries.length === 0) return 1.0;
+
     if (jobCountries.includes('Worldwide') || userCountries.includes('Worldwide')) {
       return 1.0;
     }
-    
+
     const overlap = jobCountries.filter(jc => userCountries.includes(jc));
-    
     return overlap.length > 0 ? 1.0 : 0;
   }
   

@@ -1,11 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { getSupabaseServiceRole } from '@/lib/supabase-server';
 
 type RouteContext = {
   params: Promise<{ jobId: string }>;
@@ -24,7 +19,7 @@ export async function GET(request: Request, context: RouteContext) {
         { status: 401 }
       );
     }
-    
+    const supabase = getSupabaseServiceRole();
     const { jobId } = await context.params;
 
     // Verify user owns this job
@@ -84,7 +79,7 @@ export async function POST(request: Request, context: RouteContext) {
         { status: 401 }
       );
     }
-    
+    const supabase = getSupabaseServiceRole();
     const { jobId } = await context.params;
     const body = await request.json();
     const { question_text } = body;

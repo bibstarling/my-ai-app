@@ -430,144 +430,143 @@ export default function JobSearchPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <main className="flex-1">
-        <div className="mx-auto max-w-7xl px-6 py-8">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-              <Search className="w-8 h-8 text-accent" />
-              Find Jobs
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Discover roles you'll love and get matched instantly!
-            </p>
+    <div className="flex w-full min-w-0 flex-1 flex-col bg-background">
+      <div className="mx-auto w-full min-w-0 max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8">
+        {/* Header */}
+        <header className="mb-6 sm:mb-8">
+          <h1 className="flex items-center gap-3 text-2xl font-bold text-foreground sm:text-3xl">
+            <Search className="h-7 w-7 shrink-0 text-accent sm:h-8 sm:w-8" />
+            Find Jobs
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Discover roles you&apos;ll love and get matched instantly!
+          </p>
+        </header>
+
+        {/* Search Filters */}
+        <section className="mb-6 rounded-xl border border-border bg-card p-4 sm:p-6" aria-label="Search filters">
+          <div className="mb-4">
+            <label htmlFor="job-query" className="text-xs font-medium text-muted">
+              What kind of role excites you?
+            </label>
+            <input
+              id="job-query"
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="e.g. Product Manager, AI Engineer, Marketing Lead"
+              className="mt-1 w-full min-w-0 rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            />
           </div>
 
-          {/* Search Filters */}
-          <div className="mb-6 rounded-xl border border-border bg-card p-6">
-            <div className="mb-4">
-              <label htmlFor="job-query" className="text-xs font-medium text-muted">
-                What kind of role excites you?
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <label className="flex cursor-pointer items-center gap-2 sm:col-span-2 lg:col-span-1">
+              <input
+                type="checkbox"
+                checked={remoteOnly}
+                onChange={(e) => setRemoteOnly(e.target.checked)}
+                className="h-4 w-4 shrink-0 rounded border-border text-accent focus:ring-accent"
+              />
+              <span className="text-sm font-medium text-foreground">Remote only</span>
+            </label>
+
+            <div className="flex flex-col gap-1 sm:col-span-2 lg:col-span-1">
+              <label htmlFor="job-country" className="text-xs font-medium text-muted">
+                Working from (country)
               </label>
               <input
-                id="job-query"
+                id="job-country"
                 type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="e.g. Product Manager, AI Engineer, Marketing Lead"
-                className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                placeholder="e.g. Brazil, United States"
+                className="w-full min-w-0 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               />
             </div>
 
-            <div className="flex flex-wrap gap-6">
-              <label className="flex cursor-pointer items-center gap-2">
+            <div className="flex flex-col gap-1 sm:col-span-2 lg:col-span-1">
+              <span className="text-xs font-medium text-muted">Resume for matching</span>
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
                 <input
-                  type="checkbox"
-                  checked={remoteOnly}
-                  onChange={(e) => setRemoteOnly(e.target.checked)}
-                  className="h-4 w-4 rounded border-border text-accent focus:ring-accent"
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".txt,.md,.pdf"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="resume-upload"
                 />
-                <span className="text-sm font-medium text-foreground">Remote only</span>
-              </label>
-              
-              <div className="flex flex-col gap-1">
-                <label htmlFor="job-country" className="text-xs font-medium text-muted">
-                  Working from (country)
-                </label>
-                <input
-                  id="job-country"
-                  type="text"
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  placeholder="e.g. Brazil, United States"
-                  className="w-48 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-medium text-muted">Resume for matching</span>
-                <div className="flex items-center gap-2">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".txt,.md,.pdf"
-                    onChange={handleFileChange}
-                    className="hidden"
-                    id="resume-upload"
-                  />
-                  <label
-                    htmlFor="resume-upload"
-                    className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground hover:border-accent hover:bg-card transition-colors"
-                  >
-                    {extractingResume ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Upload className="h-4 w-4" />
-                    )}
-                    {extractingResume ? 'Reading...' : 'Upload (.txt, .md, .pdf)'}
-                  </label>
-                  {resumeFileName && (
-                    <span className="flex items-center gap-2 text-sm text-muted">
-                      <FileText className="h-4 w-4" />
-                      {resumeFileName}
-                      <button
-                        type="button"
-                        onClick={clearResume}
-                        className="rounded p-0.5 text-muted hover:bg-muted hover:text-foreground"
-                        aria-label="Remove resume"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </span>
+                <label
+                  htmlFor="resume-upload"
+                  className="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground hover:border-accent hover:bg-card transition-colors"
+                >
+                  {extractingResume ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4" />
                   )}
-                </div>
-                {fileError && <p className="text-xs text-red-400">{fileError}</p>}
+                  {extractingResume ? 'Reading...' : 'Upload (.txt, .md, .pdf)'}
+                </label>
+                {resumeFileName && (
+                  <span className="flex min-w-0 items-center gap-2 truncate text-sm text-muted">
+                    <FileText className="h-4 w-4 shrink-0" />
+                    <span className="truncate">{resumeFileName}</span>
+                    <button
+                      type="button"
+                      onClick={clearResume}
+                      className="shrink-0 rounded p-0.5 text-muted hover:bg-muted hover:text-foreground"
+                      aria-label="Remove resume"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </span>
+                )}
               </div>
+              {fileError && <p className="text-xs text-red-400">{fileError}</p>}
             </div>
-
-            <button
-              type="button"
-              onClick={fetchJobs}
-              disabled={loading}
-              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-accent px-6 py-3 font-semibold text-accent-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
-            >
-              {loading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <Search className="h-5 w-5" />
-              )}
-              {loading ? 'Searching...' : 'Find Jobs'}
-            </button>
           </div>
 
-          {/* Results */}
-          <div ref={resultsRef}>
-            {error && (
-              <div className="mb-6 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-                {error}
-              </div>
+          <button
+            type="button"
+            onClick={fetchJobs}
+            disabled={loading}
+            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-accent px-6 py-3 font-semibold text-accent-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
+          >
+            {loading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Search className="h-5 w-5" />
             )}
+            {loading ? 'Searching...' : 'Find Jobs'}
+          </button>
+        </section>
 
-            {searchDone && !loading && jobs.length === 0 && (
-              <div className="rounded-xl border border-border bg-card p-12 text-center">
-                <Briefcase className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  No jobs found. Try different search criteria.
-                </p>
-              </div>
-            )}
+        {/* Results */}
+        <section ref={resultsRef} className="min-w-0" aria-label="Search results">
+          {error && (
+            <div className="mb-6 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              {error}
+            </div>
+          )}
 
-            <div className="grid gap-6 md:grid-cols-2">
-              {jobs.map((job) => (
-                <div
-                  key={job.id}
-                  className="rounded-xl border border-border bg-card p-6 hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-start justify-between gap-3 mb-4">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-foreground text-lg">{job.title}</h3>
-                      <p className="text-sm text-muted-foreground mt-1">{job.company}</p>
+          {searchDone && !loading && jobs.length === 0 && (
+            <div className="rounded-xl border border-border bg-card p-8 text-center sm:p-12">
+              <Briefcase className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+              <p className="text-muted-foreground">
+                No jobs found. Try different search criteria.
+              </p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
+            {jobs.map((job) => (
+              <article
+                key={job.id}
+                className="min-w-0 rounded-xl border border-border bg-card p-4 transition-shadow hover:shadow-md sm:p-6"
+              >
+                  <div className="mb-4 flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="truncate text-lg font-semibold text-foreground" title={job.title}>{job.title}</h3>
+                      <p className="mt-1 truncate text-sm text-muted-foreground" title={job.company}>{job.company}</p>
                     </div>
                     {job.applyUrl && job.applyUrl !== '#' && (
                       <a
@@ -620,23 +619,22 @@ export default function JobSearchPage() {
                     </div>
                   )}
 
-                  <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
+                  <p className="mb-4 line-clamp-3 min-w-0 text-sm text-muted-foreground">
                     {job.description}
                   </p>
 
                   <button
                     onClick={() => setTailorModal({ job, show: true })}
-                    className="w-full flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground hover:opacity-90 transition-opacity"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
                   >
                     <Sparkles className="h-4 w-4" />
                     Create Tailored Content
                   </button>
-                </div>
+                </article>
               ))}
-            </div>
           </div>
-        </div>
-      </main>
+        </section>
+      </div>
 
       {/* Tailor Content Modal */}
       {tailorModal && (

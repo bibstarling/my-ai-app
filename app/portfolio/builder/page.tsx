@@ -43,6 +43,23 @@ import '@uiw/react-markdown-preview/markdown.css';
 // Import custom editor styles
 import './editor.css';
 
+/** "Where are you based?" presets for job search location filtering */
+const LOCATION_PRESETS: { value: string; label: string; locations: string[] }[] = [
+  { value: 'BR', label: 'Brazil', locations: ['BR', 'LATAM', 'Worldwide'] },
+  { value: 'MX', label: 'Mexico', locations: ['MX', 'LATAM', 'Worldwide'] },
+  { value: 'AR', label: 'Argentina', locations: ['AR', 'LATAM', 'Worldwide'] },
+  { value: 'CO', label: 'Colombia', locations: ['CO', 'LATAM', 'Worldwide'] },
+  { value: 'CL', label: 'Chile', locations: ['CL', 'LATAM', 'Worldwide'] },
+  { value: 'LATAM', label: 'Other Latin America', locations: ['LATAM', 'Worldwide'] },
+  { value: 'US', label: 'United States', locations: ['US', 'Worldwide'] },
+  { value: 'CA', label: 'Canada', locations: ['CA', 'US', 'Worldwide'] },
+  { value: 'GB', label: 'United Kingdom', locations: ['GB', 'Europe', 'Worldwide'] },
+  { value: 'DE', label: 'Germany', locations: ['DE', 'Europe', 'Worldwide'] },
+  { value: 'FR', label: 'France', locations: ['FR', 'Europe', 'Worldwide'] },
+  { value: 'ES', label: 'Spain', locations: ['ES', 'Europe', 'Worldwide'] },
+  { value: 'Other', label: 'Other / Worldwide only', locations: ['Worldwide'] },
+];
+
 export default function PortfolioBuilderPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
@@ -55,6 +72,7 @@ export default function PortfolioBuilderPage() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [showJobSettings, setShowJobSettings] = useState(false);
   const [jobProfile, setJobProfile] = useState<any>(null);
+  const [savingJobPrefs, setSavingJobPrefs] = useState(false);
   
   // Markdown editor state
   const [markdown, setMarkdown] = useState('');
@@ -107,6 +125,30 @@ export default function PortfolioBuilderPage() {
       }
     } catch (err) {
       console.error('Failed to load job profile:', err);
+    }
+  };
+
+  const saveJobLocationAndRemote = async (locationsAllowed: string[], remoteOnly: boolean) => {
+    setSavingJobPrefs(true);
+    try {
+      const res = await fetch('/api/job-profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ locations_allowed: locationsAllowed, remote_only: remoteOnly }),
+      });
+      const data = await res.json();
+      if (data.success && data.profile) {
+        setJobProfile((prev: any) => ({ ...prev, ...data.profile }));
+        showSuccess('Location & remote preference saved');
+      } else {
+        throw new Error(data.error || 'Failed to save');
+      }
+    } catch (err) {
+      console.error('Failed to save job location/remote:', err);
+      showError('Failed to save. Try again.');
+    } finally {
+      setSavingJobPrefs(false);
     }
   };
 
@@ -894,6 +936,60 @@ export default function PortfolioBuilderPage() {
               </div>
             )}
           </div>
+
+          {/* Location & remote – always visible so users see it without expanding */}
+          <div className="mb-6 rounded-lg bg-white shadow-sm border border-gray-200 p-6">
+            <h2 className="text-base font-semibold text-gray-900 mb-1">Location & remote</h2>
+            <p className="text-xs text-gray-500 mb-4">Used on the job search page to filter by location and remote-only jobs.</p>
+            {!jobProfile && (
+              <p className="text-xs text-amber-700 bg-amber-50 px-2 py-1.5 rounded mb-3">Save your profile content above once to unlock these settings.</p>
+            )}
+            <div className="flex flex-wrap items-center gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Where are you based?</label>
+                <select
+                  disabled={!jobProfile || savingJobPrefs}
+                  className="w-full min-w-[200px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed text-sm"
+                  value={
+                    jobProfile?.locations_allowed
+                      ? (LOCATION_PRESETS.find(
+                          (p) => p.locations.join(',') === (jobProfile.locations_allowed || []).join(',')
+                        )?.value ?? 'Other')
+                      : 'Other'
+                  }
+                  onChange={async (e) => {
+                    const preset = LOCATION_PRESETS.find((p) => p.value === e.target.value);
+                    if (preset && jobProfile) {
+                      await saveJobLocationAndRemote(preset.locations, jobProfile.remote_only ?? false);
+                    }
+                  }}
+                >
+                  {LOCATION_PRESETS.map((p) => (
+                    <option key={p.value} value={p.value}>{p.label}</option>
+                  ))}
+                </select>
+              </div>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  disabled={!jobProfile || savingJobPrefs}
+                  checked={jobProfile?.remote_only ?? false}
+                  onChange={async (e) => {
+                    if (jobProfile) {
+                      const next = e.target.checked;
+                      setJobProfile((prev: any) => (prev ? { ...prev, remote_only: next } : prev));
+                      await saveJobLocationAndRemote(
+                        jobProfile.locations_allowed || ['Worldwide'],
+                        next
+                      );
+                    }
+                  }}
+                  className="w-4 h-4 text-blue-600 rounded disabled:opacity-60"
+                />
+                <span className="text-sm font-medium text-gray-700">Remote only</span>
+              </label>
+            </div>
+          </div>
           
           {/* Job Search Settings Section */}
           <div className="mb-6 rounded-lg bg-white shadow-sm border border-gray-200 overflow-hidden">
@@ -983,13 +1079,13 @@ export default function PortfolioBuilderPage() {
                 {jobProfile && (
                   <div className="pt-3 border-t border-gray-200">
                     <p className="text-xs text-gray-600 mb-2">
-                      ✨ These settings are automatically extracted from your profile. Save your profile to update them.
+                      ✨ Target roles, seniority, and skills are auto-extracted from your profile. Save your profile to update them.
                     </p>
                     <a
-                      href="/job-profile"
+                      href="/profile?tab=job-search"
                       className="text-sm text-blue-600 hover:text-blue-800 font-medium"
                     >
-                      → Manual settings editor
+                      → Edit all job search settings
                     </a>
                   </div>
                 )}

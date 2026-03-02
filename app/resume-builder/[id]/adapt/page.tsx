@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { ArrowLeft, Sparkles, TrendingUp, AlertCircle, CheckCircle2, Lightbulb, Download, FileText } from 'lucide-react';
 import type { ResumeWithSections, ResumeAdaptation } from '@/lib/types/resume';
 import type { JobListing } from '@/app/api/jobs/route';
-import { useNotification } from '@/app/hooks/useNotification';
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -13,7 +12,6 @@ type PageProps = {
 
 export default function AdaptResumePage({ params }: PageProps) {
   const { id } = use(params);
-  const { showError } = useNotification();
   const [resume, setResume] = useState<ResumeWithSections | null>(null);
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string>('');
@@ -65,7 +63,7 @@ export default function AdaptResumePage({ params }: PageProps) {
       }
     } catch (error) {
       console.error('Error adapting resume:', error);
-      showError('Failed to adapt resume');
+      alert('Failed to adapt resume');
     } finally {
       setAdapting(false);
     }
@@ -92,7 +90,7 @@ export default function AdaptResumePage({ params }: PageProps) {
       }
     } catch (error) {
       console.error('Error generating resume:', error);
-      showError('Failed to generate resume');
+      alert('Failed to generate resume');
     } finally {
       setAdapting(false);
     }
@@ -120,7 +118,7 @@ export default function AdaptResumePage({ params }: PageProps) {
       }
     } catch (error) {
       console.error('Error generating cover letter:', error);
-      showError('Failed to generate cover letter');
+      alert('Failed to generate cover letter');
     } finally {
       setAdapting(false);
     }

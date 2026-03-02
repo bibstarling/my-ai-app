@@ -323,6 +323,8 @@ export default function MyJobsPage() {
     description: string;
     job_type?: string;
     salary?: string;
+    /** Set when form was populated via "Fetch from URL" – skip redundant extract call */
+    alreadyFetchedFromUrl?: boolean;
   }) => {
     try {
       if (!user) {
@@ -332,12 +334,16 @@ export default function MyJobsPage() {
 
       setAddingJob(true);
 
-      // ALWAYS fetch complete job details from the apply URL if available
       let finalDescription = jobData.description;
       let finalJobType = jobData.job_type;
       let finalSalary = jobData.salary;
 
-      if (jobData.apply_url && jobData.apply_url !== '#') {
+      // Only fetch from URL when we don't already have fetched data (e.g. user used "Fetch Details")
+      if (
+        !jobData.alreadyFetchedFromUrl &&
+        jobData.apply_url &&
+        jobData.apply_url !== '#'
+      ) {
         try {
           const fetchResponse = await fetch('/api/jobs/extract', {
             method: 'POST',
@@ -349,11 +355,9 @@ export default function MyJobsPage() {
           if (fetchResponse.ok) {
             const fetchData = await fetchResponse.json();
             if (fetchData.success && fetchData.job) {
-              // Use fetched description if it's more complete
               if (fetchData.job.description && fetchData.job.description.length > finalDescription.length) {
                 finalDescription = fetchData.job.description;
               }
-              // Fill in missing data
               if (!finalJobType && fetchData.job.job_type) {
                 finalJobType = fetchData.job.job_type;
               }
@@ -364,7 +368,6 @@ export default function MyJobsPage() {
           }
         } catch (fetchErr) {
           console.warn('Could not fetch additional job details, using provided description:', fetchErr);
-          // Continue with provided description if fetch fails
         }
       }
 
@@ -1598,6 +1601,7 @@ function AddJobModal({
     description: string;
     job_type?: string;
     salary?: string;
+    alreadyFetchedFromUrl?: boolean;
   }) => void;
   isLoading: boolean;
 }) {
@@ -1605,6 +1609,8 @@ function AddJobModal({
   const [jobUrl, setJobUrl] = useState('');
   const [fetchingDetails, setFetchingDetails] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  /** True when form was populated via "Fetch Details" so we don't re-fetch on Add Job */
+  const [formPopulatedByFetch, setFormPopulatedByFetch] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     company: '',
@@ -1649,6 +1655,7 @@ function AddJobModal({
           salary: data.job.salary || '',
         });
         setFetchError(null);
+        setFormPopulatedByFetch(true);
       }
     } catch (err) {
       console.error('Error fetching job details:', err);
@@ -1664,7 +1671,7 @@ function AddJobModal({
       showError('Please fill in all required fields');
       return;
     }
-    onSubmit(formData);
+    onSubmit({ ...formData, alreadyFetchedFromUrl: formPopulatedByFetch });
   };
 
   return (

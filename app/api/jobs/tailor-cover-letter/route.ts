@@ -1,17 +1,13 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { generateAICompletion } from '@/lib/ai-provider';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseServiceRole } from '@/lib/supabase-server';
 import { portfolioData, getPMPositioning } from '@/lib/portfolio-data';
 import { generateATSOptimization, getATSCoverLetterPromptInstructions, analyzeATSCompatibility } from '@/lib/ats-optimizer';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 export async function POST(request: Request) {
   try {
+    const supabase = getSupabaseServiceRole();
     const { userId } = await auth();
     
     if (!userId) {

@@ -256,12 +256,15 @@ export default function JobDiscoveryPage() {
     }
   }
 
-  async function trackJob(jobId: string) {
+  async function trackJob(job: JobResult) {
+    const jobId = job.id;
     setTrackingJob(jobId);
-    
+
     try {
       const res = await fetch(`/api/jobs/${jobId}/track`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(job),
       });
       
       const data = await res.json();
@@ -864,7 +867,7 @@ export default function JobDiscoveryPage() {
                 </a>
                 
                 <button
-                  onClick={() => trackJob(job.id)}
+                  onClick={() => trackJob(job)}
                   disabled={job.is_tracked || trackingJob === job.id}
                   className={`px-4 py-2 rounded-lg text-xs xs:text-sm font-medium ${
                     job.is_tracked

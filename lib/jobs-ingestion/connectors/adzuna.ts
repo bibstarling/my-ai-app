@@ -6,7 +6,7 @@
 import type { CanonicalJob, ConnectorFetchResult } from '../types';
 import type { JobSourceEnum } from '../types';
 import { buildDedupeKey } from '../dedupe';
-import { parseRemoteRegionEligibility } from '../remote-eligibility';
+import { parseRemoteRegionEligibility, detectRemoteTypeFromText } from '../remote-eligibility';
 import { extractSkillsForJob } from '../skills-extractor';
 import { fetchWithRetry, rateLimit } from '../http';
 import { getConfig } from '../constants';
@@ -30,8 +30,10 @@ function stripHtml(html: string): string {
   return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-function toRemoteType(item: Record<string, unknown>): CanonicalJob['remote_type'] {
-  const desc = String(item.description ?? '').toLowerCase();
+function toRemoteType(description: string, location: string | null): CanonicalJob['remote_type'] {
+  const detected = detectRemoteTypeFromText(description, location);
+  if (detected !== 'unknown') return detected;
+  const desc = description.toLowerCase();
   if (/remote|work from home|wfh|distributed/i.test(desc)) return 'remote';
   if (/hybrid/i.test(desc)) return 'hybrid';
   return 'unknown';
@@ -81,15 +83,16 @@ export async function fetchRecentJobsAdzuna(): Promise<ConnectorFetchResult> {
       const salaryCur = itemRec.salary_currency ? String(itemRec.salary_currency) : null;
       const sourceId = itemRec.id != null ? String(itemRec.id) : '';
 
+      const remoteType = toRemoteType(description, location);
       const canonical: CanonicalJob = {
         title,
         company_name: company,
         company_domain: null,
         location_raw: location,
         country: country.toUpperCase(),
-        is_remote: true,
-        remote_type: toRemoteType(itemRec),
-        remote_region_eligibility: parseRemoteRegionEligibility(description),
+        is_remote: remoteType === 'remote' || remoteType === 'hybrid',
+        remote_type: remoteType,
+        remote_region_eligibility: parseRemoteRegionEligibility(description, location),
         employment_type: itemRec.contract_type ? String(itemRec.contract_type) : null,
         seniority: null,
         salary_min: Number.isFinite(salaryMin) ? salaryMin : null,
@@ -156,15 +159,18 @@ export async function fetchJobBySourceIdAdzuna(
   const applyUrl = String(itemRec.redirect_url ?? itemRec.url ?? '').trim() || '';
   const now = new Date().toISOString();
   const postedAt = itemRec.created ? new Date(String(itemRec.created)).toISOString() : null;
+  const locationObj = itemRec.location as AdzunaLocation | undefined;
+  const locationRaw = [locationObj?.display_name, locationObj?.area].filter(Boolean).join(', ') || null;
+  const remoteType = toRemoteType(description, locationRaw);
   const canonical: CanonicalJob = {
     title,
     company_name: company,
     company_domain: null,
-    location_raw: null,
+    location_raw: locationRaw,
     country: c.toUpperCase(),
-    is_remote: true,
-    remote_type: 'unknown',
-    remote_region_eligibility: parseRemoteRegionEligibility(description),
+    is_remote: remoteType === 'remote' || remoteType === 'hybrid',
+    remote_type: remoteType,
+    remote_region_eligibility: parseRemoteRegionEligibility(description, locationRaw),
     employment_type: null,
     seniority: null,
     salary_min: null,

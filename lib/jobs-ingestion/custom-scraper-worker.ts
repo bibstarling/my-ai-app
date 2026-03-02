@@ -325,16 +325,19 @@ export class CustomScraperWorker extends BaseJobWorker {
   }
   
   private detectRemoteType(title: string, description: string, location: string | null): string | null {
-    const text = `${title} ${description} ${location}`.toLowerCase();
-    
+    const text = `${title} ${description} ${location ?? ''}`.toLowerCase();
+    // Check onsite/in-person first so we don't label them as remote
+    if (
+      /in[-\s]?person|on[-\s]?site|onsite|in[-\s]?office|office[-\s]?based|work (in|at) (our )?office|no remote|not remote/.test(
+        text
+      )
+    ) {
+      return 'Onsite';
+    }
+    if (text.includes('hybrid')) return 'Hybrid';
     if (text.includes('remote') || text.includes('work from home') || text.includes('wfh')) {
       return 'Remote';
     }
-    
-    if (text.includes('hybrid')) {
-      return 'Hybrid';
-    }
-    
     return null;
   }
   

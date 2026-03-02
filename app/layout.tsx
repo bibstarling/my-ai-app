@@ -6,6 +6,9 @@ import { AppLayout } from './components/AppLayout';
 
 const inter = Inter({ subsets: ['latin'] });
 
+// Avoid static prerender so Clerk (useUser) is in context; env may be missing at build time on Vercel
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "Applause - AI-Powered Career Platform | Build Portfolios, Resumes & Land Jobs",
   description: "AI-powered platform to build stunning portfolios, create standout resumes, and land your dream job. Smart job matching, career coaching, and application tracking—all in one place.",
@@ -16,7 +19,6 @@ export const metadata: Metadata = {
 };
 
 const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? '';
-const clerkFrontendApi = process.env.NEXT_PUBLIC_CLERK_FRONTEND_API || 'https://clerk.applausejobs.com';
 
 export default function RootLayout({
   children,
