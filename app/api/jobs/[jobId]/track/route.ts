@@ -110,6 +110,7 @@ export async function POST(
           { error: 'Job not found' },
           { status: 404 }
         );
+      }
       job = fetched as TrackJobPayload;
     }
 
