@@ -8,8 +8,8 @@ import type { UserJobProfile } from '../types';
 import type { CanonicalJob } from '../types';
 
 function makeJob(overrides: Partial<CanonicalJob> & { id: string }): CanonicalJob & { id: string } {
+  const { id, ...rest } = overrides;
   return {
-    id: overrides.id,
     title: 'Software Engineer',
     company_name: 'Acme',
     company_domain: null,
@@ -33,7 +33,8 @@ function makeJob(overrides: Partial<CanonicalJob> & { id: string }): CanonicalJo
     dedupe_key: 'abc',
     status: 'active',
     skills_json: ['react', 'typescript'],
-    ...overrides,
+    ...rest,
+    id,
   };
 }
 

@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "deploy:check": "tsc --noEmit && npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "validate-translations": "node scripts/validate-translations.mjs"
